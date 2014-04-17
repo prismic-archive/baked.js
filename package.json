@@ -1,0 +1,14 @@
+{
+  "name": "dorian",
+  "description": "A singlepage framework for prismic.io",
+  "version": "0.0.1",
+  "main": "./lib/dorian",
+  "directories": { "lib": "./lib" },
+  "engines": [ "node >=0.5.0" ],
+  "devDependencies": {
+    "ejs": "~1.0",
+    "grunt": "~0.4.1",
+    "jsdom": "~0.10.5",
+    "prismic.io": "~1.0.9"
+  }
+}
