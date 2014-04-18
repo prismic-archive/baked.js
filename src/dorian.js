@@ -1,52 +1,86 @@
-var Renderer = require("./renderer");
+var Prismic = require("prismic.io").Prismic;
+var ejs = require("ejs");
 
-// TODO change-me
-var fs = require("fs");
+(function (Global, undefined) {
+  "use strict";
 
-function withWindow(content, f) {
-  if (typeof window === "object" && window) {
-    return f(window);
-  } else {
-    require("jsdom").env(
-      content,  // HTML content
-      [],       // JS libs
-      function (errors, window) {
-        return f(window);
+  function Renderer(window, cb) {
+    var conf = {};
+    var documentSets = {};
+    var document = window.document;
+
+    function renderEJS(api) {
+      documentSets.loggedIn = !!conf.accessToken;
+      documentSets.refs = api.data.refs;
+      documentSets.ref = api.master();
+      document.body.innerHTML = ejs.render(conf.tmpl, documentSets);
+      var imageSrc = document.querySelectorAll('img[data-src]');
+      for(var i=0; i<imageSrc.length; i++) {
+        var attr = imageSrc[i].getAttribute('data-src');
+        if (attr) {
+          imageSrc[i].setAttribute('src', attr);
+          imageSrc[i].removeAttribute('data-src');
+        }
       }
-    );
-  }
-}
+      if(cb) cb(null, document.innerHTML);
+    }
 
-function render(cb) {
-  fs.mkdir("generated", function (err) {
-    if (!err || err.code == 'EEXIST') {
-      var content = fs.readFile("to_generate/index.html", "utf8", function (err, content) {
-        if (!err) {
-          withWindow(content, function (window) {
-            Renderer.render(window, function (err, generated) {
-              if (!err) {
-                fs.writeFile("generated/index.html", generated, "utf8", function (err) {
-                  if (!err) {
-                    if (cb) cb();
-                  } else {
-                    console.log(err);
-                  }
-                });
-              } else {
-                console.log(err);
-              }
-            });
-          });
-        } else {
-          console.log(err);
+    function callback(api, binding, andThen) {
+      return function(err, documents) {
+        if (err) {
+          console.log("Error while running query: \n%s\n", conf.bindings[binding].predicates, err);
+          return;
+        }
+        documentSets[binding] = documents.results;
+        if(Object.keys(documentSets).length == Object.keys(conf.bindings).length) {
+          andThen(api);
+        }
+      };
+    }
+
+    function parseRequests(andThen) {
+      Prismic.Api(conf.api, function(err, api) {
+        if (err) {
+          console.log("Error while fetching Api at %s", conf.api, err);
+          return;
+        }
+        for(var binding in conf.bindings) {
+          api.form(conf.bindings[binding].form).ref(api.master())
+             .query(conf.bindings[binding].predicates)
+             .submit(callback(api, binding, andThen));
         }
       });
-    } else {
-      console.log(err);
     }
-  });
-}
 
-render(function () {
-  console.log("ok");
-});
+    // The Prismic.io API endpoint
+    try {
+      conf.api = document.querySelectorAll('head meta[name="prismic-api"]')[0].content;
+    } catch(e) {
+      cb('Please define your api endpoint in the <head> element. ' +
+        'For example: <meta name="prismic-api" content="https://lesbonneschoses.prismic.io/api">');
+      return;
+    }
+    // OAuth client id (optional)
+    try {
+      conf.clientId = document.querySelectorAll('head meta[name="prismic-oauth-client-id"]')[0].content;
+    } catch(e) {}
+    // Extract the bindings
+    conf.bindings = {};
+    var queryScripts = document.querySelectorAll('script[type="text/prismic-query"]');
+    for(var i=0; i<queryScripts.length; i++) {
+      var node = queryScripts[i];
+      conf.bindings[node.getAttribute('data-binding') || ""] = {
+        form: node.getAttribute('data-form') || 'everything',
+        predicates: node.textContent
+      };
+      node.parentNode.removeChild(node);
+    }
+    // Extract the template
+    ejs.open = '[%'; ejs.close = '%]';
+    conf.tmpl = document.body.innerHTML;
+    parseRequests(renderEJS);
+  }
+
+  Global.render = Renderer;
+
+}(typeof exports === 'object' && exports ? exports : (typeof module === "object" && module && typeof module.exports === "object" ? module.exports : window)));

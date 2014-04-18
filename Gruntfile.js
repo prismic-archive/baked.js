@@ -5,9 +5,22 @@ module.exports = function(grunt) {
   grunt.initConfig({
 
     VERSION: pkg.version,
-    pkg: pkg
+    pkg: pkg,
+
+    browserify: {
+      dist: {
+        files: {
+          'build/<%= pkg.name %>.js': ['src/dorian.js', 'src/browser.js'],
+        },
+        options: {
+          alias: ['./src/fake:canvas']
+        }
+      }
+    }
 
   });
+
+  grunt.loadNpmTasks('grunt-browserify');
 
   // Default task.
   grunt.registerTask('default', []);

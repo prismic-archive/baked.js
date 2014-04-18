@@ -9,6 +9,7 @@
     "ejs": "~1.0",
     "grunt": "~0.4.1",
     "jsdom": "~0.10.5",
-    "prismic.io": "~1.0.9"
+    "prismic.io": "~1.0.9",
+    "grunt-browserify": "~2.0.7"
   }
 }
