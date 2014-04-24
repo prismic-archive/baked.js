@@ -6,12 +6,7 @@ var _ = require("underscore");
 (function(GLOBAL, notifyRendered) {
   "use strict";
 
-  var conf = GLOBAL.prismicSinglePage || {};
-  GLOBAL.prismicSinglePage = conf;
-
-  var HTML = document.querySelectorAll('html')[0];
-
-  function getAPI(url) {
+  function getAPI(conf) {
     var deferred = Q.defer();
     Prismic.Api(conf.api, function(err, api) {
       if(err) {
@@ -23,23 +18,8 @@ var _ = require("underscore");
     return deferred.promise;
   }
 
-  HTML.style.display = 'none';
-  document.addEventListener('DOMContentLoaded', function() {
-
-    // Handle OAuth callback
-    if(document.location.hash) {
-      var maybeAccessToken;
-      document.location.hash.substring(1).split('&').forEach(function(data) {
-        if(data.indexOf('access_token=') === 0) {
-          maybeAccessToken = data.substring(13);
-        }
-      });
-      if(maybeAccessToken) {
-        sessionStorage.setItem('ACCESS_TOKEN', maybeAccessToken);
-        document.location.hash = '';
-      }
-    }
-
+  function initConf() {
+    var conf = {};
     // AccessToken
     conf.accessToken = sessionStorage.getItem('ACCESS_TOKEN');
 
@@ -66,17 +46,41 @@ var _ = require("underscore");
       node.parentNode.removeChild(node);
     });
     // Extract the template
-    ejs.open = '[%'; ejs.close = '%]';
     conf.tmpl = document.body.innerHTML;
 
-    render()
+    return conf;
+  }
+
+  var HTML = document.querySelectorAll('html')[0];
+  HTML.style.display = 'none';
+  document.addEventListener('DOMContentLoaded', function() {
+
+    // Handle OAuth callback
+    if(document.location.hash) {
+      var maybeAccessToken;
+      document.location.hash.substring(1).split('&').forEach(function(data) {
+        if(data.indexOf('access_token=') === 0) {
+          maybeAccessToken = data.substring(13);
+        }
+      });
+      if(maybeAccessToken) {
+        sessionStorage.setItem('ACCESS_TOKEN', maybeAccessToken);
+        document.location.hash = '';
+      }
+    }
+
+
+    ejs.open = '[%'; ejs.close = '%]';
+    var conf = GLOBAL.prismicSinglePage;
+    if (!conf) { GLOBAL.prismicSinglePage = conf = initConf();}
+    render(conf)
       .fin(function() { HTML.style.display = ''; })
       .done();
 
   });
 
-  var render = function(maybeRef) {
-    return getAPI(conf.api).then(function(api) {
+  var render = function(conf, maybeRef) {
+    return getAPI(conf).then(function(api) {
       var documentSets = {};
 
       return Q
@@ -108,15 +112,21 @@ var _ = require("underscore");
           document.body.innerHTML = ejs.render(conf.tmpl, documentSets);
 
           var maybeSignInButton = document.querySelectorAll('[data-prismic-action="signin"]')[0];
-          if(maybeSignInButton) maybeSignInButton.addEventListener("click", signin);
+          if(maybeSignInButton) {
+            maybeSignInButton.addEventListener("click", function () { signin(conf); });
+          }
 
           var maybeSignOutButton = document.querySelectorAll('[data-prismic-action="signout"]')[0];
-          if(maybeSignOutButton) maybeSignOutButton.addEventListener("click", signout);
+          if(maybeSignOutButton) {
+            maybeSignOutButton.addEventListener("click", function () { signout(conf); });
+          }
 
           var maybeUpdateButton = document.querySelectorAll('[data-prismic-action="update"]')[0];
-          if(maybeUpdateButton) maybeUpdateButton.addEventListener("change", function(e) {
-            render(e.target.value).done();
-          });
+          if(maybeUpdateButton) {
+            maybeUpdateButton.addEventListener("change", function(e) {
+              render(conf, e.target.value).done();
+            });
+          }
 
           var imagesSrc = document.querySelectorAll('img[data-src]');
           _.each(imagesSrc, function(imageSrc) {
@@ -132,8 +142,8 @@ var _ = require("underscore");
 
   };
 
-  var signin = function() {
-    getAPI(conf.api).then(function(api) {
+  var signin = function(conf) {
+    getAPI(conf).then(function(api) {
       document.location =
         api.data.oauthInitiate +
         '?response_type=token' +
@@ -143,10 +153,10 @@ var _ = require("underscore");
     }).done();
   };
 
-  var signout = function() {
+  var signout = function(conf) {
     sessionStorage.removeItem('ACCESS_TOKEN');
     conf.accessToken = undefined;
-    render().done();
+    render(conf).done();
   };
 
 })(window, function() {
