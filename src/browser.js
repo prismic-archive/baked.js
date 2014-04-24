@@ -18,7 +18,8 @@ var _ = require("underscore");
     return deferred.promise;
   }
 
-  function initConf() {
+  function initConf(window) {
+    var document = window.document;
     var conf = {};
     // AccessToken
     conf.accessToken = sessionStorage.getItem('ACCESS_TOKEN');
@@ -69,17 +70,17 @@ var _ = require("underscore");
       }
     }
 
-
     ejs.open = '[%'; ejs.close = '%]';
     var conf = GLOBAL.prismicSinglePage;
-    if (!conf) { GLOBAL.prismicSinglePage = conf = initConf();}
-    render(conf)
+    if (!conf) { GLOBAL.prismicSinglePage = conf = initConf(window);}
+    render(window, conf)
       .fin(function() { HTML.style.display = ''; })
       .done();
 
   });
 
-  var render = function(conf, maybeRef) {
+  var render = function(window, conf, maybeRef) {
+    var document = window.document;
     return getAPI(conf).then(function(api) {
       var documentSets = {};
 
@@ -113,12 +114,12 @@ var _ = require("underscore");
 
           var maybeSignInButton = document.querySelectorAll('[data-prismic-action="signin"]')[0];
           if(maybeSignInButton) {
-            maybeSignInButton.addEventListener("click", function () { signin(conf); });
+            maybeSignInButton.addEventListener("click", function () { signin(window, conf); });
           }
 
           var maybeSignOutButton = document.querySelectorAll('[data-prismic-action="signout"]')[0];
           if(maybeSignOutButton) {
-            maybeSignOutButton.addEventListener("click", function () { signout(conf); });
+            maybeSignOutButton.addEventListener("click", function () { signout(window, conf); });
           }
 
           var maybeUpdateButton = document.querySelectorAll('[data-prismic-action="update"]')[0];
@@ -142,7 +143,8 @@ var _ = require("underscore");
 
   };
 
-  var signin = function(conf) {
+  var signin = function(window, conf) {
+    var document = window.document;
     getAPI(conf).then(function(api) {
       document.location =
         api.data.oauthInitiate +
@@ -153,10 +155,10 @@ var _ = require("underscore");
     }).done();
   };
 
-  var signout = function(conf) {
+  var signout = function(window, conf) {
     sessionStorage.removeItem('ACCESS_TOKEN');
     conf.accessToken = undefined;
-    render(conf).done();
+    render(window, conf).done();
   };
 
 })(window, function() {
