@@ -38,7 +38,7 @@ var _ = require("underscore");
       .nbind(fs.mkdir, fs)("generated").catch(function (err) { if (!err || err.code != 'EEXIST') { throw err; } })
       .then(function () { return Q.nbind(fs.readFile, fs)("to_generate/index.html", "utf8"); })
       .then(function (content) { return withWindow(content); })
-      .then(function (window) { return dorian.render(window); })
+      .then(function (window) { return dorian.render(window).then(function () { return window.document.innerHTML; }); })
       .then(function (generated) { return Q.nbind(fs.writeFile, fs)("generated/index.html", generated, "utf8"); });
   }
 

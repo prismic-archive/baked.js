@@ -13,7 +13,7 @@ module.exports = function(grunt) {
           'build/<%= pkg.name %>.js': ['src/dorian.js', 'src/browser.js'],
         },
         options: {
-          alias: ['./src/fake:canvas']
+          alias: ['./src/fake:canvas', './src/dorian:dorian']
         }
       }
     }
