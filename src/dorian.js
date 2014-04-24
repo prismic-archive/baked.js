@@ -1,54 +1,53 @@
 var Prismic = require("prismic.io").Prismic;
 var ejs = require("ejs");
+var Q = require("q");
+var _ = require("underscore");
 
 (function (Global, undefined) {
   "use strict";
 
-  function Renderer(window, cb) {
+  function Renderer(window) {
     var conf = {};
-    var documentSets = {};
     var document = window.document;
+    var deferred = Q.defer();
 
-    function renderEJS(api) {
+    function renderEJS(conf, api, documentSets) {
       documentSets.loggedIn = !!conf.accessToken;
       documentSets.refs = api.data.refs;
       documentSets.ref = api.master();
       document.body.innerHTML = ejs.render(conf.tmpl, documentSets);
-      var imageSrc = document.querySelectorAll('img[data-src]');
-      for(var i=0; i<imageSrc.length; i++) {
-        var attr = imageSrc[i].getAttribute('data-src');
+      var imagesSrc = document.querySelectorAll('img[data-src]');
+      _.each(imagesSrc, function (imageSrc) {
+        var attr = imageSrc.getAttribute('data-src');
         if (attr) {
-          imageSrc[i].setAttribute('src', attr);
-          imageSrc[i].removeAttribute('data-src');
+          imageSrc.setAttribute('src', attr);
+          imageSrc.removeAttribute('data-src');
         }
-      }
-      if(cb) cb(null, document.innerHTML);
+      });
+      return Q.fcall(function() { return document.innerHTML; });
     }
 
-    function callback(api, binding, andThen) {
-      return function(err, documents) {
-        if (err) {
-          console.log("Error while running query: \n%s\n", conf.bindings[binding].predicates, err);
-          return;
-        }
-        documentSets[binding] = documents.results;
-        if(Object.keys(documentSets).length == Object.keys(conf.bindings).length) {
-          andThen(api);
-        }
-      };
-    }
-
-    function parseRequests(andThen) {
-      Prismic.Api(conf.api, function(err, api) {
-        if (err) {
-          console.log("Error while fetching Api at %s", conf.api, err);
-          return;
-        }
-        for(var binding in conf.bindings) {
-          api.form(conf.bindings[binding].form).ref(api.master())
-             .query(conf.bindings[binding].predicates)
-             .submit(callback(api, binding, andThen));
-        }
+    function parseRequests(conf, api) {
+      var promises = _.map(conf.bindings, function (binding, name) {
+        var deferred = Q.defer();
+        api
+          .form(binding.form)
+          .ref(api.master())
+          .query(binding.predicates)
+          .submit(deferred.makeNodeResolver());
+        return deferred.promise
+          .then(
+            function (documents) { return [name, documents.results]; },
+            function (err) { console.log("Error while running query: \n%s\n", binding.predicates, err); }
+          );
+      });
+      return Q.all(promises).then(function (results) {
+        return _.reduce(results, function (memo, nameResult) {
+          var name = nameResult[0];
+          var result = nameResult[1];
+          memo[name] = result;
+          return memo;
+        }, {});
       });
     }
 
@@ -56,9 +55,9 @@ var ejs = require("ejs");
     try {
       conf.api = document.querySelectorAll('head meta[name="prismic-api"]')[0].content;
     } catch(e) {
-      cb('Please define your api endpoint in the <head> element. ' +
+      deferred.reject('Please define your api endpoint in the <head> element. ' +
         'For example: <meta name="prismic-api" content="https://lesbonneschoses.prismic.io/api">');
-      return;
+      return deferred.promise;
     }
     // OAuth client id (optional)
     try {
@@ -67,18 +66,22 @@ var ejs = require("ejs");
     // Extract the bindings
     conf.bindings = {};
     var queryScripts = document.querySelectorAll('script[type="text/prismic-query"]');
-    for(var i=0; i<queryScripts.length; i++) {
-      var node = queryScripts[i];
-      conf.bindings[node.getAttribute('data-binding') || ""] = {
-        form: node.getAttribute('data-form') || 'everything',
-        predicates: node.textContent
+    _.each(queryScripts, function (queryScript) {
+      conf.bindings[queryScript.getAttribute('data-binding') || ""] = {
+        form: queryScript.getAttribute('data-form') || 'everything',
+        predicates: queryScript.textContent
       };
-      node.parentNode.removeChild(node);
-    }
+      queryScript.parentNode.removeChild(queryScript);
+    });
     // Extract the template
     ejs.open = '[%'; ejs.close = '%]';
     conf.tmpl = document.body.innerHTML;
-    parseRequests(renderEJS);
+    deferred.resolve(Q.nbind(Prismic.Api, Prismic)(conf.api).then(function(res) {
+      var api = res[0];
+      return parseRequests(conf, api)
+        .then(function (documentSets) { return renderEJS(conf, api, documentSets); });
+    }));
+    return deferred.promise;
   }
 
   Global.render = Renderer;
