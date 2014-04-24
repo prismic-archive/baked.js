@@ -4,6 +4,7 @@ var Q = require("q");
 var _ = require("underscore");
 
 (function(GLOBAL, notifyRendered) {
+  "use strict";
 
   var conf = GLOBAL.prismicSinglePage || {};
   GLOBAL.prismicSinglePage = conf;
