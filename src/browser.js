@@ -1,5 +1,6 @@
 var Prismic = require("prismic.io").Prismic;
 var ejs = require("ejs");
+var _ = require("underscore");
 
 (function(GLOBAL, notifyRendered) {
 
@@ -43,15 +44,13 @@ var ejs = require("ejs");
     // Extract the bindings
     conf.bindings = {};
     var queryScripts = document.querySelectorAll('script[type="text/prismic-query"]');
-    for(var i=0; i<queryScripts.length; i++) {
-      var node = queryScripts[i];
+    _.each(queryScripts, function (node) {
       conf.bindings[node.dataset.binding || ""] = {
         form: node.dataset.form || 'everything',
         predicates: node.textContent
       };
       node.parentNode.removeChild(node);
-    }
-
+    });
     // Extract the template
     ejs.open = '[%'; ejs.close = '%]';
     conf.tmpl = document.body.innerHTML;
@@ -68,46 +67,42 @@ var ejs = require("ejs");
 
       var documentSets = {};
 
-      function callback(x) {
-        return function(err, documents) {
-          if (err) { console.log("Error while running query: \n%s\n", conf.bindings[x].predicates, err); return; }
-          documentSets[x] = documents.results;
-          if(Object.keys(documentSets).length == Object.keys(conf.bindings).length) {
+      _.each(conf.bindings, function (binding, name) {
+        Api.form(binding.form).ref(maybeRef || Api.master()).query(binding.predicates).submit(
+          function(err, documents) {
+            if (err) { console.log("Error while running query: \n%s\n", conf.bindings[name].predicates, err); return; }
+            documentSets[name] = documents.results;
+            if(Object.keys(documentSets).length == Object.keys(conf.bindings).length) {
 
-            documentSets.loggedIn = !!conf.accessToken;
-            documentSets.refs = Api.data.refs;
-            documentSets.ref = maybeRef || Api.master();
+              documentSets.loggedIn = !!conf.accessToken;
+              documentSets.refs = Api.data.refs;
+              documentSets.ref = maybeRef || Api.master();
 
-            document.body.innerHTML = ejs.render(conf.tmpl, documentSets);
+              document.body.innerHTML = ejs.render(conf.tmpl, documentSets);
 
-            var maybeSignInButton = document.querySelectorAll('[data-prismic-action="signin"]')[0];
-            if(maybeSignInButton) maybeSignInButton.addEventListener("click", signin);
+              var maybeSignInButton = document.querySelectorAll('[data-prismic-action="signin"]')[0];
+              if(maybeSignInButton) maybeSignInButton.addEventListener("click", signin);
 
-            var maybeSignOutButton = document.querySelectorAll('[data-prismic-action="signout"]')[0];
-            if(maybeSignOutButton) maybeSignOutButton.addEventListener("click", signout);
+              var maybeSignOutButton = document.querySelectorAll('[data-prismic-action="signout"]')[0];
+              if(maybeSignOutButton) maybeSignOutButton.addEventListener("click", signout);
 
-            var maybeUpdateButton = document.querySelectorAll('[data-prismic-action="update"]')[0];
-            if(maybeUpdateButton) maybeUpdateButton.addEventListener("change", function(e) {
-              update(e.target.value);
-            });
+              var maybeUpdateButton = document.querySelectorAll('[data-prismic-action="update"]')[0];
+              if(maybeUpdateButton) maybeUpdateButton.addEventListener("change", function(e) {
+                update(e.target.value);
+              });
 
-            var imageSrc = document.querySelectorAll('img[data-src]');
-            for(var i=0; i<imageSrc.length; i++) {
-              imageSrc[i].setAttribute('src', imageSrc[i].attributes['data-src'].value);
+              var imagesSrc = document.querySelectorAll('img[data-src]');
+              _.each(imagesSrc, function (imageSrc) {
+                imageSrc.setAttribute('src', imageSrc.attributes['data-src'].value);
+              });
+
+              if(notifyRendered) setTimeout(notifyRendered, 0);
+
+              if(cb) cb();
             }
-
-            if(notifyRendered) setTimeout(notifyRendered, 0);
-
-            if(cb) cb();
           }
-        };
-      }
-
-      for(var binding in conf.bindings) {
-        Api.form(conf.bindings[binding].form).ref(maybeRef || Api.master()).query(conf.bindings[binding].predicates).submit(
-          callback(binding)
         );
-      }
+      });
 
     }, conf.accessToken);
 
