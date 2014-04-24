@@ -1,5 +1,6 @@
 var Prismic = require("prismic.io").Prismic;
 var ejs = require("ejs");
+var Q = require("q");
 var _ = require("underscore");
 
 (function(GLOBAL, notifyRendered) {
@@ -8,6 +9,18 @@ var _ = require("underscore");
   GLOBAL.prismicSinglePage = conf;
 
   var HTML = document.querySelectorAll('html')[0];
+
+  function getAPI(url) {
+    var deferred = Q.defer();
+    Prismic.Api(conf.api, function(err, api) {
+      if(err) {
+        console.log("Error while fetching Api at %s", conf.api, err);
+        deferred.reject(err);
+      }
+      else deferred.resolve(api);
+    });
+    return deferred.promise;
+  }
 
   HTML.style.display = 'none';
   document.addEventListener('DOMContentLoaded', function() {
@@ -44,7 +57,7 @@ var _ = require("underscore");
     // Extract the bindings
     conf.bindings = {};
     var queryScripts = document.querySelectorAll('script[type="text/prismic-query"]');
-    _.each(queryScripts, function (node) {
+    _.each(queryScripts, function(node) {
       conf.bindings[node.dataset.binding || ""] = {
         form: node.dataset.form || 'everything',
         predicates: node.textContent
@@ -55,78 +68,84 @@ var _ = require("underscore");
     ejs.open = '[%'; ejs.close = '%]';
     conf.tmpl = document.body.innerHTML;
 
-    render(undefined, function() {
-      HTML.style.display = '';
-    });
+    render()
+      .fin(function() { HTML.style.display = ''; })
+      .done();
 
   });
 
-  var render = function(maybeRef, cb) {
-    Prismic.Api(conf.api, function(err, Api) {
-      if (err) { console.log("Error while fetching Api at %s", conf.api, err); return; }
-
+  var render = function(maybeRef) {
+    return getAPI(conf.api).then(function(api) {
       var documentSets = {};
 
-      _.each(conf.bindings, function (binding, name) {
-        Api.form(binding.form).ref(maybeRef || Api.master()).query(binding.predicates).submit(
-          function(err, documents) {
-            if (err) { console.log("Error while running query: \n%s\n", conf.bindings[name].predicates, err); return; }
-            documentSets[name] = documents.results;
-            if(Object.keys(documentSets).length == Object.keys(conf.bindings).length) {
-
-              documentSets.loggedIn = !!conf.accessToken;
-              documentSets.refs = Api.data.refs;
-              documentSets.ref = maybeRef || Api.master();
-
-              document.body.innerHTML = ejs.render(conf.tmpl, documentSets);
-
-              var maybeSignInButton = document.querySelectorAll('[data-prismic-action="signin"]')[0];
-              if(maybeSignInButton) maybeSignInButton.addEventListener("click", signin);
-
-              var maybeSignOutButton = document.querySelectorAll('[data-prismic-action="signout"]')[0];
-              if(maybeSignOutButton) maybeSignOutButton.addEventListener("click", signout);
-
-              var maybeUpdateButton = document.querySelectorAll('[data-prismic-action="update"]')[0];
-              if(maybeUpdateButton) maybeUpdateButton.addEventListener("change", function(e) {
-                update(e.target.value);
-              });
-
-              var imagesSrc = document.querySelectorAll('img[data-src]');
-              _.each(imagesSrc, function (imageSrc) {
-                imageSrc.setAttribute('src', imageSrc.attributes['data-src'].value);
-              });
-
-              if(notifyRendered) setTimeout(notifyRendered, 0);
-
-              if(cb) cb();
+      return Q
+        .all(_.map(conf.bindings, function(binding, name) {
+          var deferred = Q.defer();
+          api
+            .form(binding.form)
+            .ref(maybeRef || api.master())
+            .query(binding.predicates)
+            .submit(deferred.makeNodeResolver());
+          return deferred.promise
+            .then(
+              function (documents) { return [name, documents.results]; },
+              function (err) { console.log("Error while running query: \n%s\n", binding.predicates, err); }
+            );
+        }))
+        .then(function (results) {
+          return _.reduce(results, function (documentSets, res) {
+            if(res) {
+              documentSets[res[0]] = res[1];
             }
-          }
-        );
-      });
+            return documentSets;
+          }, {});
+        }).then(function(documentSets) {
+          documentSets.loggedIn = !!conf.accessToken;
+          documentSets.refs = api.data.refs;
+          documentSets.ref = maybeRef || api.master();
+
+          document.body.innerHTML = ejs.render(conf.tmpl, documentSets);
+
+          var maybeSignInButton = document.querySelectorAll('[data-prismic-action="signin"]')[0];
+          if(maybeSignInButton) maybeSignInButton.addEventListener("click", signin);
+
+          var maybeSignOutButton = document.querySelectorAll('[data-prismic-action="signout"]')[0];
+          if(maybeSignOutButton) maybeSignOutButton.addEventListener("click", signout);
+
+          var maybeUpdateButton = document.querySelectorAll('[data-prismic-action="update"]')[0];
+          if(maybeUpdateButton) maybeUpdateButton.addEventListener("change", function(e) {
+            render(e.target.value).done();
+          });
+
+          var imagesSrc = document.querySelectorAll('img[data-src]');
+          _.each(imagesSrc, function(imageSrc) {
+            imageSrc.setAttribute('src', imageSrc.attributes['data-src'].value);
+          });
+
+          if(notifyRendered) setTimeout(notifyRendered, 0);
+
+          return;
+        });
 
     }, conf.accessToken);
 
   };
 
-  var update = function(ref) {
-    render(ref);
-  };
-
   var signin = function() {
-    Prismic.Api(conf.api, function(err, Api) {
+    getAPI(conf.api).then(function(api) {
       document.location =
-       Api.data.oauthInitiate +
-       '?response_type=token' +
-       '&client_id=' + encodeURIComponent(conf.clientId) +
-       '&redirect_uri=' + encodeURIComponent(document.location.href.replace(/#.*/, '') + '') +
-       '&scope=' + encodeURIComponent('master+releases');
-    });
+        api.data.oauthInitiate +
+        '?response_type=token' +
+        '&client_id=' + encodeURIComponent(conf.clientId) +
+        '&redirect_uri=' + encodeURIComponent(document.location.href.replace(/#.*/, '') + '') +
+        '&scope=' + encodeURIComponent('master+releases');
+    }).done();
   };
 
   var signout = function() {
     sessionStorage.removeItem('ACCESS_TOKEN');
     conf.accessToken = undefined;
-    render();
+    render().done();
   };
 
 })(window, function() {
