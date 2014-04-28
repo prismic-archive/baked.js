@@ -98,11 +98,19 @@ var _ = require("underscore");
               return order[0];
             });
         }, async).then(function (generated) { return [name, generated]; });
-      }).then(function (res) {
-        console.log("render file " + src + "... OK");
-        console.timeEnd("render file " + src);
-        return res;
-      });
+      }).then(
+        function (res) {
+          console.log("render file " + src + "... OK");
+          console.timeEnd("render file " + src);
+          return res;
+        },
+        function (err) {
+          console.log(err.stack);
+          console.log("render file " + src + "... ERROR");
+          console.timeEnd("render file " + src);
+          return [];
+        }
+      );
   }
 
   function renderDir(src_dir, dst_static_dir, dst_dyn_dir, async) {
