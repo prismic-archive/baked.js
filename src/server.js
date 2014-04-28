@@ -153,7 +153,10 @@ var _ = require("underscore");
 
   console.log("async =", async);
 
-  renderDir("to_generate", "generated/static", "generated/dyn", async)
+  createDir(["generated"])
+    .then(function () {
+      return renderDir("to_generate", "generated/static", "generated/dyn", async);
+    })
     .done(function () { console.log("cool cool cool"); });
 
 }());
