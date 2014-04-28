@@ -34,6 +34,7 @@ var _ = require("underscore");
   }
 
   function render(src, dst_static, dst_dyn) {
+    console.time("Complete rendering");
     return Q
       .ninvoke(fs, 'mkdir', dst_static).catch(function (err) {
         if (!err || err.code != 'EEXIST') { throw err; }
@@ -52,12 +53,18 @@ var _ = require("underscore");
           var src_name = src + "/" + name;
           var dst_static_name = dst_static + "/" + name;
           var dst_dyn_name = dst_dyn + "/" + name;
+          console.log("read file " + src_name + "...");
+          console.time("read file " + src_name + "... OK");
           return Q
             .ninvoke(fs, 'readFile', src_name, "utf8")
             .then(function (content) {
+              console.timeEnd("read file " + src_name + "... OK");
               if (/\.html$/.test(name)) {
                 return withWindow(content).then(function (window) {
+                  console.log("render file " + src_name + "...");
+                  console.time("render file " + src_name + "... OK");
                   return dorian.render(window).then(function () {
+                    console.timeEnd("render file " + src_name + "... OK");
                     return [name, content, window.document.innerHTML];
                   });
                 });
@@ -72,15 +79,19 @@ var _ = require("underscore");
               return Q.
                 all(_.map(to_generate, function (order) {
                   var act = order[2] ? "generate" : "copy";
+                  console.log(act + " file " + src_name + " => " + order[0] + "...");
+                  console.time(act + " file " + src_name + " => " + order[0] + "... OK");
                   return Q
                     .ninvoke(fs, 'writeFile', order[0], order[1], "utf8")
                     .then(function () {
+                      console.timeEnd(act + " file " + src_name + " => " + order[0] + "... OK");
                       return order[0];
                     });
                 })).then(function (generated) { return [name, generated]; });
             });
         }));
       }).then(function (res) {
+        console.timeEnd("Complete rendering");
         return res;
       });
   }
