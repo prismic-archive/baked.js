@@ -52,6 +52,8 @@ var _ = require("underscore");
           var src = src_dir + "/" + name;
           var dst_static = dst_static_dir + "/" + name;
           var dst_dyn = dst_dyn_dir + "/" + name;
+          console.log("render file " + src + "...");
+          console.time("render file " + src + "... OK");
           console.log("read file " + src + "...");
           console.time("read file " + src + "... OK");
           return Q
@@ -104,6 +106,9 @@ var _ = require("underscore");
                 console.log("Ignore file " + src + " (" + typ + ")");
                 return null;
               }
+            }).then(function (res) {
+              console.timeEnd("render file " + src + "... OK");
+              return res;
             });
         }));
       });
