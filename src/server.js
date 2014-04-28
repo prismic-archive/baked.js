@@ -34,7 +34,6 @@ var _ = require("underscore");
   }
 
   function render(src_dir, dst_static_dir, dst_dyn_dir) {
-    console.time("Complete rendering");
     return Q
       .ninvoke(fs, 'mkdir', dst_static_dir).catch(function (err) {
         if (!err || err.code != 'EEXIST') { throw err; }
@@ -93,9 +92,10 @@ var _ = require("underscore");
                           });
                       })).then(function (generated) { return [name, generated]; });
                   });
+              } else if (stats.isDirectory()) {
+                return render(src, dst_static, dst_dyn);
               } else {
                 var typ;
-                if (stats.isDirectory()) { typ = "Directory"; }
                 if (stats.isBlockDevice()) { typ = "BlockDevice"; }
                 if (stats.isCharacterDevice()) { typ = "CharacterDevice"; }
                 if (stats.isSymbolicLink()) { typ = "SymbolicLink"; }
@@ -106,13 +106,11 @@ var _ = require("underscore");
               }
             });
         }));
-      }).then(function (res) {
-        console.timeEnd("Complete rendering");
-        return res;
       });
   }
 
+  console.time("Complete rendering");
   render("to_generate", "generated/static", "generated/dyn")
-    .done(function () { console.log("cool cool cool"); });
+    .done(function () { console.timeEnd("Complete rendering"); })
 
 }());
