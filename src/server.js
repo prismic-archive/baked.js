@@ -56,38 +56,54 @@ var _ = require("underscore");
           console.log("read file " + src + "...");
           console.time("read file " + src + "... OK");
           return Q
-            .ninvoke(fs, 'readFile', src, "utf8")
-            .then(function (content) {
-              console.timeEnd("read file " + src + "... OK");
-              if (/\.html$/.test(name)) {
-                return withWindow(content).then(function (window) {
-                  console.log("render file " + src + "...");
-                  console.time("render file " + src + "... OK");
-                  return dorian.render(window).then(function () {
-                    console.timeEnd("render file " + src + "... OK");
-                    return [name, content, window.document.innerHTML];
+            .ninvoke(fs, 'lstat', src)
+            .then(function (stats) {
+              if (stats.isFile()) {
+                return Q
+                  .ninvoke(fs, 'readFile', src, "utf8")
+                  .then(function (content) {
+                    console.timeEnd("read file " + src + "... OK");
+                    if (/\.html$/.test(name)) {
+                      return withWindow(content).then(function (window) {
+                        console.log("render file " + src + "...");
+                        console.time("render file " + src + "... OK");
+                        return dorian.render(window).then(function () {
+                          console.timeEnd("render file " + src + "... OK");
+                          return [name, content, window.document.innerHTML];
+                        });
+                      });
+                    } else {
+                      return Q.fcall(function () { return [name, content]; });
+                    }
+                  }).spread(function (name, orig, generated) {
+                    var to_generate = [
+                      [dst_static, generated || orig, !!generated],
+                      [dst_dyn, orig, false]
+                    ];
+                    return Q.
+                      all(_.map(to_generate, function (order) {
+                        var act = order[2] ? "generate" : "copy";
+                        console.log(act + " file " + src + " => " + order[0] + "...");
+                        console.time(act + " file " + src + " => " + order[0] + "... OK");
+                        return Q
+                          .ninvoke(fs, 'writeFile', order[0], order[1], "utf8")
+                          .then(function () {
+                            console.timeEnd(act + " file " + src + " => " + order[0] + "... OK");
+                            return order[0];
+                          });
+                      })).then(function (generated) { return [name, generated]; });
                   });
-                });
               } else {
-                return Q.fcall(function () { return [name, content]; });
+                var typ;
+                if (stats.isDirectory()) { typ = "Directory"; }
+                if (stats.isBlockDevice()) { typ = "BlockDevice"; }
+                if (stats.isCharacterDevice()) { typ = "CharacterDevice"; }
+                if (stats.isSymbolicLink()) { typ = "SymbolicLink"; }
+                if (stats.isFIFO()) { typ = "FIFO"; }
+                if (stats.isSocket()) { typ = "Socket"; }
+                console.log("Ignore file " + src + " (" + typ + ")");
+                return null;
               }
-            }).spread(function (name, orig, generated) {
-              var to_generate = [
-                [dst_static, generated || orig, !!generated],
-                [dst_dyn, orig, false]
-              ];
-              return Q.
-                all(_.map(to_generate, function (order) {
-                  var act = order[2] ? "generate" : "copy";
-                  console.log(act + " file " + src + " => " + order[0] + "...");
-                  console.time(act + " file " + src + " => " + order[0] + "... OK");
-                  return Q
-                    .ninvoke(fs, 'writeFile', order[0], order[1], "utf8")
-                    .then(function () {
-                      console.timeEnd(act + " file " + src + " => " + order[0] + "... OK");
-                      return order[0];
-                    });
-                })).then(function (generated) { return [name, generated]; });
             });
         }));
       }).then(function (res) {
