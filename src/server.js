@@ -6,6 +6,22 @@ var _ = require("underscore");
 (function (undefined) {
   "use strict";
 
+  function sequence(arr, fn, async) {
+    if (async) {
+      return Q.all(_.map(arr, fn));
+    } else {
+      if (arr.length === 0) {
+        return Q.fcall(function () { return []; });
+      } else {
+        return Q.fcall(fn, arr[0]).then(function (result) {
+          return sequence(arr.slice(1), fn, async).then(function (results) {
+            return [result].concat(results);
+          });
+        });
+      }
+    }
+  }
+
   function withWindow(content, f) {
     var deferred = Q.defer();
     if (typeof window === "object" && window) {
@@ -33,69 +49,77 @@ var _ = require("underscore");
     return deferred.promise;
   }
 
-  function render(src_dir, dst_static_dir, dst_dyn_dir) {
-    return Q
-      .ninvoke(fs, 'mkdir', dst_static_dir).catch(function (err) {
-        if (!err || err.code != 'EEXIST') { throw err; }
-      })
-      .then(function () {
-        return Q
-        .ninvoke(fs, 'mkdir', dst_dyn_dir).catch(function (err) {
+  function createDir(dirs, async) {
+    return sequence(dirs, function (dir) {
+      return Q
+        .ninvoke(fs, 'mkdir', dir).catch(function (err) {
           if (!err || err.code != 'EEXIST') { throw err; }
         });
-      })
+    }, async);
+  }
+
+  function renderFile(name, src, dst_static, dst_dyn, async) {
+    console.log("render file " + src + "...");
+    console.time("render file " + src + "... OK");
+    console.log("read file " + src + "...");
+    console.time("read file " + src + "... OK");
+    return Q
+      .ninvoke(fs, 'readFile', src, "utf8")
+      .then(function (content) {
+        console.timeEnd("read file " + src + "... OK");
+        if (/\.html$/.test(name)) {
+          return withWindow(content).then(function (window) {
+            console.log("render file " + src + "...");
+            console.time("render file " + src + "... OK");
+            return dorian.render(window).then(function () {
+              console.timeEnd("render file " + src + "... OK");
+              return [name, content, window.document.innerHTML];
+            });
+          });
+        } else {
+          return Q.fcall(function () { return [name, content]; });
+        }
+      }).spread(function (name, orig, generated) {
+        var to_generate = [
+          [dst_static, generated || orig, !!generated],
+          [dst_dyn, orig, false]
+        ];
+        return sequence(to_generate, function (order) {
+          var act = order[2] ? "generate" : "copy";
+          console.log(act + " file " + src + " => " + order[0] + "...");
+          console.time(act + " file " + src + " => " + order[0] + "... OK");
+          return Q
+            .ninvoke(fs, 'writeFile', order[0], order[1], "utf8")
+            .then(function () {
+              console.timeEnd(act + " file " + src + " => " + order[0] + "... OK");
+              return order[0];
+            });
+        }, async).then(function (generated) { return [name, generated]; });
+      }).then(function (res) {
+        console.timeEnd("render file " + src + "... OK");
+        return res;
+      });
+  }
+
+  function renderDir(src_dir, dst_static_dir, dst_dyn_dir, async) {
+    console.log("render dir " + src_dir + "...");
+    console.time("render dir " + src_dir + "... OK");
+    return createDir([dst_static_dir, dst_dyn_dir], async)
       .then(function () {
         return Q.ninvoke(fs, 'readdir', src_dir);
       })
       .then(function (names) {
-        return Q.all(_.map(names, function (name) {
+        return sequence(names, function (name) {
           var src = src_dir + "/" + name;
           var dst_static = dst_static_dir + "/" + name;
           var dst_dyn = dst_dyn_dir + "/" + name;
-          console.log("render file " + src + "...");
-          console.time("render file " + src + "... OK");
-          console.log("read file " + src + "...");
-          console.time("read file " + src + "... OK");
           return Q
             .ninvoke(fs, 'lstat', src)
             .then(function (stats) {
               if (stats.isFile()) {
-                return Q
-                  .ninvoke(fs, 'readFile', src, "utf8")
-                  .then(function (content) {
-                    console.timeEnd("read file " + src + "... OK");
-                    if (/\.html$/.test(name)) {
-                      return withWindow(content).then(function (window) {
-                        console.log("render file " + src + "...");
-                        console.time("render file " + src + "... OK");
-                        return dorian.render(window).then(function () {
-                          console.timeEnd("render file " + src + "... OK");
-                          return [name, content, window.document.innerHTML];
-                        });
-                      });
-                    } else {
-                      return Q.fcall(function () { return [name, content]; });
-                    }
-                  }).spread(function (name, orig, generated) {
-                    var to_generate = [
-                      [dst_static, generated || orig, !!generated],
-                      [dst_dyn, orig, false]
-                    ];
-                    return Q.
-                      all(_.map(to_generate, function (order) {
-                        var act = order[2] ? "generate" : "copy";
-                        console.log(act + " file " + src + " => " + order[0] + "...");
-                        console.time(act + " file " + src + " => " + order[0] + "... OK");
-                        return Q
-                          .ninvoke(fs, 'writeFile', order[0], order[1], "utf8")
-                          .then(function () {
-                            console.timeEnd(act + " file " + src + " => " + order[0] + "... OK");
-                            return order[0];
-                          });
-                      })).then(function (generated) { return [name, generated]; });
-                  });
+                return renderFile(name, src, dst_static, dst_dyn, async);
               } else if (stats.isDirectory()) {
-                return render(src, dst_static, dst_dyn);
+                return renderDir(src, dst_static, dst_dyn, async);
               } else {
                 var typ;
                 if (stats.isBlockDevice()) { typ = "BlockDevice"; }
@@ -106,16 +130,25 @@ var _ = require("underscore");
                 console.log("Ignore file " + src + " (" + typ + ")");
                 return null;
               }
-            }).then(function (res) {
-              console.timeEnd("render file " + src + "... OK");
-              return res;
             });
-        }));
+        }, async);
+      }).then(function (res) {
+        console.timeEnd("render dir " + src_dir + "... OK");
+        return res;
       });
   }
 
-  console.time("Complete rendering");
-  render("to_generate", "generated/static", "generated/dyn")
-    .done(function () { console.timeEnd("Complete rendering"); })
+  var async = true;
+  _.each(process.argv.slice(2), function (arg) {
+    switch (arg) {
+      case '--async' : async = true; break;
+      case '--no-async' : async = false; break;
+    }
+  });
+
+  console.log("async =", async);
+
+  renderDir("to_generate", "generated/static", "generated/dyn", async)
+    .done(function () { console.log("cool cool cool"); });
 
 }());
