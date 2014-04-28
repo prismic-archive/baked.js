@@ -33,31 +33,59 @@ var _ = require("underscore");
     return deferred.promise;
   }
 
-  function render() {
+  function render(src, dst_static, dst_dyn) {
     return Q
-      .nbind(fs.mkdir, fs)("generated").catch(function (err) {
+      .ninvoke(fs, 'mkdir', dst_static).catch(function (err) {
         if (!err || err.code != 'EEXIST') { throw err; }
       })
       .then(function () {
-        return Q.nbind(fs.readFile, fs)("to_generate/index.html", "utf8");
-      })
-      .then(function (content) {
-        return withWindow(content).then(function (window) {
-          return dorian.render(window).then(function () {
-            return [content, window.document.innerHTML];
-          });
+        return Q
+        .ninvoke(fs, 'mkdir', dst_dyn).catch(function (err) {
+          if (!err || err.code != 'EEXIST') { throw err; }
         });
       })
-      .spread(function (orig, generated) {
-        return Q
-          .nbind(fs.writeFile, fs)("generated/index.dyn.html", orig, "utf8")
-          .then(function () {
-            return Q
-              .nbind(fs.writeFile, fs)("generated/index.html", generated, "utf8");
-          });
+      .then(function () {
+        return Q.ninvoke(fs, 'readdir', src);
+      })
+      .then(function (names) {
+        return Q.all(_.map(names, function (name) {
+          var src_name = src + "/" + name;
+          var dst_static_name = dst_static + "/" + name;
+          var dst_dyn_name = dst_dyn + "/" + name;
+          return Q
+            .ninvoke(fs, 'readFile', src_name, "utf8")
+            .then(function (content) {
+              if (/\.html$/.test(name)) {
+                return withWindow(content).then(function (window) {
+                  return dorian.render(window).then(function () {
+                    return [name, content, window.document.innerHTML];
+                  });
+                });
+              } else {
+                return Q.fcall(function () { return [name, content]; });
+              }
+            }).spread(function (name, orig, generated) {
+              var to_generate = [
+                [dst_static_name, generated || orig, !!generated],
+                [dst_dyn_name, orig, false]
+              ];
+              return Q.
+                all(_.map(to_generate, function (order) {
+                  var act = order[2] ? "generate" : "copy";
+                  return Q
+                    .ninvoke(fs, 'writeFile', order[0], order[1], "utf8")
+                    .then(function () {
+                      return order[0];
+                    });
+                })).then(function (generated) { return [name, generated]; });
+            });
+        }));
+      }).then(function (res) {
+        return res;
       });
   }
 
-  render().done(function () { console.log("ok"); });
+  render("to_generate", "generated/static", "generated/dyn")
+    .done(function () { console.log("cool cool cool"); });
 
 }());
