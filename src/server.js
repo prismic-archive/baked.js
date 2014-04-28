@@ -60,19 +60,21 @@ var _ = require("underscore");
 
   function renderFile(name, src, dst_static, dst_dyn, async) {
     console.log("render file " + src + "...");
-    console.time("render file " + src + "... OK");
+    console.time("render file " + src);
     console.log("read file " + src + "...");
-    console.time("read file " + src + "... OK");
+    console.time("read file " + src);
     return Q
       .ninvoke(fs, 'readFile', src, "utf8")
       .then(function (content) {
-        console.timeEnd("read file " + src + "... OK");
+        console.log("read file " + src + "... OK");
+        console.timeEnd("read file " + src);
         if (/\.html$/.test(name)) {
           return withWindow(content).then(function (window) {
             console.log("render file " + src + "...");
-            console.time("render file " + src + "... OK");
+            console.time("render file " + src);
             return dorian.render(window).then(function () {
-              console.timeEnd("render file " + src + "... OK");
+              console.log("render file " + src + "... OK");
+              console.timeEnd("render file " + src);
               return [name, content, window.document.innerHTML];
             });
           });
@@ -87,23 +89,25 @@ var _ = require("underscore");
         return sequence(to_generate, function (order) {
           var act = order[2] ? "generate" : "copy";
           console.log(act + " file " + src + " => " + order[0] + "...");
-          console.time(act + " file " + src + " => " + order[0] + "... OK");
+          console.time(act + " file " + src + " => " + order[0]);
           return Q
             .ninvoke(fs, 'writeFile', order[0], order[1], "utf8")
             .then(function () {
-              console.timeEnd(act + " file " + src + " => " + order[0] + "... OK");
+              console.log(act + " file " + src + " => " + order[0] + "... OK");
+              console.timeEnd(act + " file " + src + " => " + order[0]);
               return order[0];
             });
         }, async).then(function (generated) { return [name, generated]; });
       }).then(function (res) {
-        console.timeEnd("render file " + src + "... OK");
+        console.log("render file " + src + "... OK");
+        console.timeEnd("render file " + src);
         return res;
       });
   }
 
   function renderDir(src_dir, dst_static_dir, dst_dyn_dir, async) {
     console.log("render dir " + src_dir + "...");
-    console.time("render dir " + src_dir + "... OK");
+    console.time("render dir " + src_dir);
     return createDir([dst_static_dir, dst_dyn_dir], async)
       .then(function () {
         return Q.ninvoke(fs, 'readdir', src_dir);
@@ -133,7 +137,8 @@ var _ = require("underscore");
             });
         }, async);
       }).then(function (res) {
-        console.timeEnd("render dir " + src_dir + "... OK");
+        console.log("render dir " + src_dir + "... OK");
+        console.timeEnd("render dir " + src_dir);
         return res;
       });
   }
