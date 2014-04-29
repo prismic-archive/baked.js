@@ -13,5 +13,8 @@
     "grunt-browserify": "~2.0.7",
     "q": "~1.0.1",
     "underscore": "~1.6.0"
+  },
+  "scripts": {
+    "start": "node src/server.js"
   }
 }
