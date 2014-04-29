@@ -152,14 +152,22 @@ var _ = require("underscore");
   }
 
   var async = true;
+  var debug = false;
   _.each(process.argv.slice(2), function (arg) {
     switch (arg) {
       case '--async' : async = true; break;
       case '--no-async' : async = false; break;
+      case '-d' :
+      case '--debug' : debug = true; break;
+      case '--no-debug' : debug = false; break;
     }
   });
 
   console.log("async =", async);
+  if (debug) {
+    console.log("debug =", debug);
+    Q.longStackSupport = true;
+  }
 
   createDir(["generated"])
     .then(function () {
