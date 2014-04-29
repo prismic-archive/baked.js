@@ -58,23 +58,35 @@ var _ = require("underscore");
     }, async);
   }
 
-  function renderFile(name, src, dst_static, dst_dyn, async) {
-    console.log("render file " + src + "...");
-    console.time("render file " + src);
-    console.log("read file " + src + "...");
-    console.time("read file " + src);
+  function logAndTime(name, fn) {
+    console.log(name + "...");
+    console.time(name);
     return Q
-      .ninvoke(fs, 'readFile', src, "utf8")
-      .then(function (content) {
-        console.log("read file " + src + "... OK");
-        console.timeEnd("read file " + src);
+      .fcall(fn)
+      .then(
+        function (res) {
+          console.log(name + "... OK");
+          return res;
+        },
+        function (err) {
+          console.log(name + "... ERROR");
+          throw err;
+        }
+      ).finally(function () {
+        console.timeEnd(name);
+      });
+  }
+
+  function renderFile(name, src, dst_static, dst_dyn, async) {
+    return logAndTime("render file " + src, function () {
+      return logAndTime("read file " + src, function () {
+        return Q.ninvoke(fs, 'readFile', src, "utf8");
+      }).then(function (content) {
         if (/\.html$/.test(name)) {
           return withWindow(content).then(function (window) {
-            console.log("render file " + src + "...");
-            console.time("render file " + src);
-            return dorian.render(window).then(function () {
-              console.log("render file " + src + "... OK");
-              console.timeEnd("render file " + src);
+            return logAndTime("render file " + src, function () {
+              return dorian.render(window);
+            }).then(function () {
               return [name, content, window.document.innerHTML];
             });
           });
@@ -88,67 +100,51 @@ var _ = require("underscore");
         ];
         return sequence(to_generate, function (order) {
           var act = order[2] ? "generate" : "copy";
-          console.log(act + " file " + src + " => " + order[0] + "...");
-          console.time(act + " file " + src + " => " + order[0]);
-          return Q
-            .ninvoke(fs, 'writeFile', order[0], order[1], "utf8")
-            .then(function () {
-              console.log(act + " file " + src + " => " + order[0] + "... OK");
-              console.timeEnd(act + " file " + src + " => " + order[0]);
-              return order[0];
-            });
+          return logAndTime(act + " file " + src + " => " + order[0], function () {
+            return Q.ninvoke(fs, 'writeFile', order[0], order[1], "utf8");
+          }).then(function () {
+            return order[0];
+          });
         }, async).then(function (generated) { return [name, generated]; });
-      }).then(
-        function (res) {
-          console.log("render file " + src + "... OK");
-          console.timeEnd("render file " + src);
-          return res;
-        },
-        function (err) {
-          console.log(err.stack);
-          console.log("render file " + src + "... ERROR");
-          console.timeEnd("render file " + src);
-          return [];
-        }
-      );
+      });
+    }).catch(function (err) {
+      console.log(err.stack || err);
+      return [];
+    });
   }
 
   function renderDir(src_dir, dst_static_dir, dst_dyn_dir, async) {
-    console.log("render dir " + src_dir + "...");
-    console.time("render dir " + src_dir);
-    return createDir([dst_static_dir, dst_dyn_dir], async)
-      .then(function () {
-        return Q.ninvoke(fs, 'readdir', src_dir);
-      })
-      .then(function (names) {
-        return sequence(names, function (name) {
-          var src = src_dir + "/" + name;
-          var dst_static = dst_static_dir + "/" + name;
-          var dst_dyn = dst_dyn_dir + "/" + name;
-          return Q
-            .ninvoke(fs, 'lstat', src)
-            .then(function (stats) {
-              if (stats.isFile()) {
-                return renderFile(name, src, dst_static, dst_dyn, async);
-              } else if (stats.isDirectory()) {
-                return renderDir(src, dst_static, dst_dyn, async);
-              } else {
-                var typ;
-                if (stats.isBlockDevice()) { typ = "BlockDevice"; }
-                if (stats.isCharacterDevice()) { typ = "CharacterDevice"; }
-                if (stats.isSymbolicLink()) { typ = "SymbolicLink"; }
-                if (stats.isFIFO()) { typ = "FIFO"; }
-                if (stats.isSocket()) { typ = "Socket"; }
-                console.log("Ignore file " + src + " (" + typ + ")");
-                return null;
-              }
-            });
-        }, async);
-      }).then(function (res) {
-        console.log("render dir " + src_dir + "... OK");
-        console.timeEnd("render dir " + src_dir);
-        return res;
-      });
+    return logAndTime("render dir " + src_dir, function () {
+      return createDir([dst_static_dir, dst_dyn_dir], async)
+        .then(function () {
+          return Q.ninvoke(fs, 'readdir', src_dir);
+        })
+        .then(function (names) {
+          return sequence(names, function (name) {
+            var src = src_dir + "/" + name;
+            var dst_static = dst_static_dir + "/" + name;
+            var dst_dyn = dst_dyn_dir + "/" + name;
+            return Q
+              .ninvoke(fs, 'lstat', src)
+              .then(function (stats) {
+                if (stats.isFile()) {
+                  return renderFile(name, src, dst_static, dst_dyn, async);
+                } else if (stats.isDirectory()) {
+                  return renderDir(src, dst_static, dst_dyn, async);
+                } else {
+                  var typ;
+                  if (stats.isBlockDevice()) { typ = "BlockDevice"; }
+                  if (stats.isCharacterDevice()) { typ = "CharacterDevice"; }
+                  if (stats.isSymbolicLink()) { typ = "SymbolicLink"; }
+                  if (stats.isFIFO()) { typ = "FIFO"; }
+                  if (stats.isSocket()) { typ = "Socket"; }
+                  console.log("Ignore file " + src + " (" + typ + ")");
+                  return null;
+                }
+              });
+          }, async);
+        });
+    });
   }
 
   var async = true;
