@@ -30,3 +30,5 @@ through a sign of aging.
 
 The Picture of Dorian Gray is considered a work of classic Gothic fiction with a
 strong Faustian theme.
+
+![Dorian Gray](http://salmanlatif.files.wordpress.com/2011/08/dorian.jpeg)
