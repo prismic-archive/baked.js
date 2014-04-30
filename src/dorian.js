@@ -1,7 +1,7 @@
 var Prismic = require("prismic.io").Prismic;
 var ejs = require("ejs");
 var Q = require("q");
-var _ = require("underscore");
+var _ = require("lodash");
 
 (function (Global, undefined) {
   "use strict";

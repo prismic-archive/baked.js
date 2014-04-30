@@ -1,7 +1,7 @@
 var fs = require("fs");
 var dorian = require("./dorian");
 var Q = require("q");
-var _ = require("underscore");
+var _ = require("lodash");
 
 (function (undefined) {
   "use strict";
