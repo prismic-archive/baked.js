@@ -20,12 +20,13 @@ var _ = require("lodash");
 
   var defaultHelpers = {};
 
-  function initConf(window, logger) {
+  function initConf(window, opts) {
     var document = window.document;
-    var conf = {
-      helpers: {},
-      logger: logger || window.console
-    };
+    var conf = _.extend({
+      helpers: opts.helpers || {},
+      logger: opts.logger || window.console,
+      args: opts.args
+    }, conf);
 
     // The Prismic.io API endpoint
     try {
@@ -58,14 +59,14 @@ var _ = require("lodash");
     return conf;
   }
 
-  function initRender(window, opts) {
+  function initRender(window, router, opts) {
     if (!opts) { opts = {}; }
     ejs.open = '[%'; ejs.close = '%]';
-    var conf = opts.conf || initConf(window, opts.logger);
-    return render(window, conf, opts.ref, opts.notifyRendered);
+    var conf = opts.conf || initConf(window, opts);
+    return render(window, router, conf, opts.ref, opts.notifyRendered);
   }
 
-  var render = function(window, conf, maybeRef, notifyRendered) {
+  var render = function(window, router, conf, maybeRef, notifyRendered) {
     var document = window.document;
     return getAPI(conf).then(function(api) {
       return Q
@@ -94,12 +95,10 @@ var _ = require("lodash");
           documentSets.refs = api.data.refs;
           documentSets.ref = maybeRef || api.master();
 
-          documentSets.url_to = function () {
-            return router.urlTo.apply(router, arguments);
-          };
-
           _.extend(documentSets, defaultHelpers);
           if (conf.helpers) { _.extend(documentSets, conf.helpers); }
+
+          _.extend(documentSets, conf.args);
 
           document.body.innerHTML = ejs.render(conf.tmpl, documentSets);
 

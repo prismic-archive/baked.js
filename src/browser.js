@@ -2,12 +2,16 @@ var Prismic = require("prismic.io").Prismic;
 var ejs = require("ejs");
 var Q = require("q");
 var _ = require("lodash");
-var dorian = require("dorian");
+
+var dorian = require("./dorian");
+var Router = require("./router");
 
 (function(window, undefined) {
   "use strict";
 
   var logger = window.console;
+  var router = Router.create({}, logger);
+
   function prepareConf() {
     var conf = dorian.initConf(window, logger);
     // AccessToken
@@ -78,7 +82,7 @@ var dorian = require("dorian");
 
     var conf = window.prismicSinglePage;
     if (!conf) { window.prismicSinglePage = conf = prepareConf(); }
-    dorian.render(window, {conf: conf, notifyRendered: notifyRendered})
+    dorian.render(window, router, {conf: conf, notifyRendered: notifyRendered})
       .fin(function() { HTML.style.display = ''; })
       .done();
 
