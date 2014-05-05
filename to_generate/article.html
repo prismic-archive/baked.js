@@ -8,20 +8,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="prismic-api" content="https://lesbonneschoses-uzbwuqeaafgaxjun.prismic.io/api">
     <meta name="prismic-oauth-client-id" content="UzHD5AEAAA2GxOTo">
+    <meta name="prismic-param-name" content="id">
 
-    <script src="../../build/dorian.js"></script>
+    <script src="../build/dorian.js"></script>
   </head>
   <body>
 
-    <div><a href="[%= url_to('article', {id: 'UjHnwMuvzUcAPLxi'}) %]">[%= url_to('article', {id: 'UjHnwMuvzUcAPLxi'}) %]</a></div>
-    <div><a href="[%= url_to('article', 'UjHnwMuvzUcAPLxi') %]">[%= url_to('article', 'UjHnwMuvzUcAPLxi') %]</a></div>
-    <div><a href="[%= url_to('article', 'otherId') %]">[%= url_to('article', 'otherId') %]</a></div>
+    <a href="[%= url_to('product', 'UjHnwMuvzUcAPLxi') %]">[%= url_to('product', 'UjHnwMuvzUcAPLxi') %]</a>
 
-    <div><a href="[%= url_to('product', {category: 'post', name: 'toto'}) %]">[%= url_to('product', {category: 'post', name: 'toto'}) %]</a></div>
-    <div><a href="[%= url_to('product', {category: 'post', name: 'tata'}) %]">[%= url_to('product', {category: 'post', name: 'tata'}) %]</a></div>
-    <div><a href="[%= url_to('product', {category: 'blog', name: 'toto'}) %]">[%= url_to('product', {category: 'blog', name: 'toto'}) %]</a></div>
-    <div><a href="[%= url_to('product', {category: 'post', name: 'toto'}) %]">[%= url_to('product', {category: 'post', name: 'toto'}) %]</a></div>
+    <div> </div><div> </div>
 
+    <script type="text/prismic-query" data-binding="myTest">
+      [
+        [:d = any(document.id, ["UjHnwMuvzUcAPLxi"])]
+      ]
+    </script>
+
+    [% myTest.forEach(function(obj) { %]
+      <div>[%= JSON.stringify(obj) %]</div>
+    [% }) %]
 
     <script type="text/prismic-query" data-binding="featuredProducts">
       [
