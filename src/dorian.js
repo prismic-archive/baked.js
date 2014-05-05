@@ -53,9 +53,11 @@ var _ = require("lodash");
     return conf;
   }
 
-  function initRender(window, conf, notifyRendered) {
+  function initRender(window, opts) {
+    if (!opts) { opts = {}; }
     ejs.open = '[%'; ejs.close = '%]';
-    return render(window, conf || initConf(window), undefined, notifyRendered);
+    var conf = opts.conf || initConf(window);
+    return render(window, conf, opts.ref, opts.notifyRendered);
   }
 
   var render = function(window, conf, maybeRef, notifyRendered) {

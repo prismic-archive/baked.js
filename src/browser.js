@@ -31,7 +31,7 @@ var dorian = require("dorian");
     var signout = function() {
       sessionStorage.removeItem('ACCESS_TOKEN');
       conf.accessToken = undefined;
-      render(window, conf, undefined, notifyRendered).done();
+      dorian.render(window, conf, {notifyRendered: notifyRendered}).done();
     };
 
     var maybeSignInButton = document.querySelectorAll('[data-prismic-action="signin"]')[0];
@@ -47,7 +47,7 @@ var dorian = require("dorian");
     var maybeUpdateButton = document.querySelectorAll('[data-prismic-action="update"]')[0];
     if(maybeUpdateButton) {
       maybeUpdateButton.addEventListener("change", function(e) {
-        render(window, conf, e.target.value, notifyRendered).done();
+        dorian.render(window, conf, {ref: e.target.value, notifyRendered: notifyRendered}).done();
       });
     }
 
@@ -77,7 +77,7 @@ var dorian = require("dorian");
 
     var conf = window.prismicSinglePage;
     if (!conf) { window.prismicSinglePage = conf = prepareConf(); }
-    dorian.render(window, conf, undefined, notifyRendered)
+    dorian.render(window, {conf: conf, notifyRendered: notifyRendered})
       .fin(function() { HTML.style.display = ''; })
       .done();
 
