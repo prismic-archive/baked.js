@@ -313,20 +313,21 @@ var Router = require("./router");
     Q.longStackSupport = true;
   }
 
-  createDir(["generated"])
-    .then(function () {
-      return buildRouter("to_generate");
-    })
-    .then(function (router) {
-      return renderDir("to_generate", "generated/static", "generated/dyn", router, async)
-        .then(function () { return router; });
-    })
-    .then(function (router) {
-      return renderStackedCalls(router, "generated/static", async);
-    })
-    .done(
-      function () { logger.info("cool cool cool"); },
-      function (err) { logger.error(err.stack); }
-    );
+  return logAndTime("Generation", function () {
+    return createDir(["generated"])
+      .then(function () {
+        return buildRouter("to_generate");
+      })
+      .then(function (router) {
+        return renderDir("to_generate", "generated/static", "generated/dyn", router, async)
+          .then(function () { return router; });
+      })
+      .then(function (router) {
+        return renderStackedCalls(router, "generated/static", async);
+      });
+  }).done(
+    function () { logger.info("cool cool cool"); },
+    function (err) { logger.error(err.stack); }
+  );
 
 }());
