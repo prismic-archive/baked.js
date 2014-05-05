@@ -15,8 +15,10 @@
     "grunt-browserify": "~2.0.7",
     "jsdom": "~0.10.5",
     "lodash": "~2.4.1",
+    "moment": "~2.6.0",
     "prismic.io": "~1.0.9",
-    "q": "~1.0.1"
+    "q": "~1.0.1",
+    "winston": "^0.7.3"
   },
   "scripts": {
     "start": "node src/server.js"

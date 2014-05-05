@@ -2,9 +2,26 @@ var fs = require("fs");
 var dorian = require("./dorian");
 var Q = require("q");
 var _ = require("lodash");
+var moment = require("moment");
+var winston = require('winston');
 
 (function (undefined) {
   "use strict";
+
+  var logger = new (winston.Logger)({
+    transports: [
+      new (winston.transports.Console)({
+        json: false,
+        timestamp: true,
+        level: 'debug',
+        colorize: true
+      })
+    ],
+    exceptionHandlers: [
+      new (winston.transports.Console)({json: false, timestamp: true})
+    ],
+    exitOnError: false
+  });
 
   function sequence(arr, fn, async) {
     if (async) {
@@ -59,22 +76,21 @@ var _ = require("lodash");
   }
 
   function logAndTime(name, fn) {
-    console.log(name + "...");
-    console.time(name);
+    var start = moment();
+    function diff() { return moment().diff(start); }
+    logger.info(name + " ...");
     return Q
       .fcall(fn)
       .then(
         function (res) {
-          console.log(name + "... OK");
+          logger.info(name + " ... OK [" + diff() +"ms]");
           return res;
         },
         function (err) {
-          console.log(name + "... ERROR");
+          logger.info(name + " ... ERROR [" + diff() +"ms]");
           throw err;
         }
-      ).finally(function () {
-        console.timeEnd(name);
-      });
+      );
   }
 
   function renderFile(name, src, dst_static, dst_dyn, async) {
@@ -108,7 +124,7 @@ var _ = require("lodash");
         }, async).then(function (generated) { return [name, generated]; });
       });
     }).catch(function (err) {
-      console.log(err.stack || err);
+      logger.error(err.stack || err);
       return [];
     });
   }
@@ -138,7 +154,7 @@ var _ = require("lodash");
                   if (stats.isSymbolicLink()) { typ = "SymbolicLink"; }
                   if (stats.isFIFO()) { typ = "FIFO"; }
                   if (stats.isSocket()) { typ = "Socket"; }
-                  console.log("Ignore file " + src + " (" + typ + ")");
+                  logger.info("Ignore file " + src + " (" + typ + ")");
                   return null;
                 }
               });
@@ -159,9 +175,9 @@ var _ = require("lodash");
     }
   });
 
-  console.log("async =", async);
+  logger.info("async =", async);
   if (debug) {
-    console.log("debug =", debug);
+    logger.info("debug =", debug);
     Q.longStackSupport = true;
   }
 
@@ -169,6 +185,6 @@ var _ = require("lodash");
     .then(function () {
       return renderDir("to_generate", "generated/static", "generated/dyn", async);
     })
-    .done(function () { console.log("cool cool cool"); });
+    .done(function () { logger.info("cool cool cool"); });
 
 }());
