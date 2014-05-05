@@ -10,7 +10,7 @@ var _ = require("lodash");
     var deferred = Q.defer();
     Prismic.Api(conf.api, function(err, api) {
       if(err) {
-        console.log("Error while fetching Api at %s", conf.api, err);
+        conf.logger.error("Error while fetching Api at %s", conf.api, err);
         deferred.reject(err);
       }
       else deferred.resolve(api);
@@ -18,15 +18,20 @@ var _ = require("lodash");
     return deferred.promise;
   }
 
-  function initConf(window) {
+  var defaultHelpers = {};
+
+  function initConf(window, logger) {
     var document = window.document;
-    var conf = {};
+    var conf = {
+      helpers: {},
+      logger: logger || window.console
+    };
 
     // The Prismic.io API endpoint
     try {
       conf.api = document.querySelectorAll('head meta[name="prismic-api"]')[0].content;
     } catch(e) {
-      console.error('Please define your api endpoint in the <head> element. For example: <meta name="prismic-api" content="https://lesbonneschoses.prismic.io/api">'); return;
+      conf.logger.error('Please define your api endpoint in the <head> element. For example: <meta name="prismic-api" content="https://lesbonneschoses.prismic.io/api">'); return;
     }
 
     // OAuth client id (optional)
@@ -56,7 +61,7 @@ var _ = require("lodash");
   function initRender(window, opts) {
     if (!opts) { opts = {}; }
     ejs.open = '[%'; ejs.close = '%]';
-    var conf = opts.conf || initConf(window);
+    var conf = opts.conf || initConf(window, opts.logger);
     return render(window, conf, opts.ref, opts.notifyRendered);
   }
 
@@ -74,7 +79,7 @@ var _ = require("lodash");
           return deferred.promise
             .then(
               function (documents) { return [name, documents.results]; },
-              function (err) { console.log("Error while running query: \n%s\n", binding.predicates, err); }
+              function (err) { conf.logger.error("Error while running query: \n%s\n", binding.predicates, err); }
             );
         }))
         .then(function (results) {
@@ -88,6 +93,13 @@ var _ = require("lodash");
           documentSets.loggedIn = !!conf.accessToken;
           documentSets.refs = api.data.refs;
           documentSets.ref = maybeRef || api.master();
+
+          documentSets.url_to = function () {
+            return router.urlTo.apply(router, arguments);
+          };
+
+          _.extend(documentSets, defaultHelpers);
+          if (conf.helpers) { _.extend(documentSets, conf.helpers); }
 
           document.body.innerHTML = ejs.render(conf.tmpl, documentSets);
 

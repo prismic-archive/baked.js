@@ -7,8 +7,9 @@ var dorian = require("dorian");
 (function(window, undefined) {
   "use strict";
 
+  var logger = window.console;
   function prepareConf() {
-    var conf = dorian.initConf(window);
+    var conf = dorian.initConf(window, logger);
     // AccessToken
     conf.accessToken = sessionStorage.getItem('ACCESS_TOKEN');
     return conf;

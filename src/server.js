@@ -85,7 +85,7 @@ var _ = require("lodash");
         if (/\.html$/.test(name)) {
           return withWindow(content).then(function (window) {
             return logAndTime("render file " + src, function () {
-              return dorian.render(window);
+              return dorian.render(window, {logger: logger});
             }).then(function () {
               return [name, content, window.document.innerHTML];
             });
