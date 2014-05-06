@@ -37,6 +37,14 @@ var _ = require("lodash");
     return ejs.render(replaced, env);
   }
 
+  function renderRoute(route, env) {
+    var rx = /\$(([a-z][a-z0-9]*)|\{([a-z][a-z0-9]*)\})/ig;
+    return route.replace(rx, function (str, simple, complex) {
+      var variable = simple || complex;
+      return env && env[variable] || '';
+    });
+  }
+
   function initConf(window, opts) {
     var document = window.document;
     var conf = _.extend({
@@ -134,18 +142,25 @@ var _ = require("lodash");
 
   };
 
-  var parseRoutingInfosRx = /<meta +name="prismic-param-name" +content="([a-z][a-z0-9]*)" *>/ig;
+  var routingInfosParamRx = /<meta +name="prismic-param-name" +content="([a-z][a-z0-9]*)" *>/ig;
+  var routingInfosRouteRx = /<meta +name="prismic-route" +content="([$a-z][\/${}a-z0-9.-_]*)" *>/ig;
   function parseRoutingInfos(content) {
     var match;
-    var params = [];
-    while ((match = parseRoutingInfosRx.exec(content)) !== null) {
-      params.push(match[1]);
+    var res = {
+      params: []
+    };
+    while ((match = routingInfosParamRx.exec(content)) !== null) {
+      res.params.push(match[1]);
     }
-    return {params: params};
+    if ((match = routingInfosRouteRx.exec(content)) !== null) {
+      res.route = match[1];
+    }
+    return res;
   }
 
   Global.render = initRender;
   Global.initConf = initConf;
   Global.parseRoutingInfos = parseRoutingInfos;
+  Global.renderRoute = renderRoute;
 
 }(typeof exports === 'object' && exports ? exports : (typeof module === "object" && module && typeof module.exports === "object" ? module.exports : window)));

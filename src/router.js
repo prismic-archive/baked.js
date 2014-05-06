@@ -1,6 +1,8 @@
 var Q = require("q");
 var _ = require("lodash");
 
+var dorian = require("./dorian");
+
 (function (Global, undefined) {
 
   function log(logger) {
@@ -140,9 +142,13 @@ var _ = require("lodash");
     }
     var params = getParamsFromFile(this, file);
     var path;
-    path = [file].concat(_.map(params.params, function (param) {
-      return args[param];
-    })).join("/") + ".html";
+    if (params.route) {
+      path = dorian.renderRoute(params.route, args);
+    } else {
+      path = [file].concat(_.map(params.params, function (param) {
+        return args[param];
+      })).join("/") + ".html";
+    }
     var diff = pathDiff(
       els((here || '').replace(/(\/[^\/]+)$/, ''), this.dst_dir),
       els(path, this.dst_dir)
