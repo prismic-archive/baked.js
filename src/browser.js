@@ -10,13 +10,32 @@ var Router = require("./router");
   "use strict";
 
   var logger = window.console;
-  var router = Router.create({}, logger);
+  var router = Router.create({}, null, logger);
 
   function prepareConf() {
-    var conf = dorian.initConf(window, logger);
+    var helpers = {};
+
+    var conf = dorian.initConf(window, {logger: logger, helpers: helpers});
+    helpers.url_to = router.urlToCb();
+    var routerInfos = dorian.parseRoutingInfos(window.document.head.innerHTML);
+    conf.args = getArgs(routerInfos);
+
     // AccessToken
     conf.accessToken = sessionStorage.getItem('ACCESS_TOKEN');
     return conf;
+  }
+
+  function getArgs(routerInfos) {
+    function getParameterByName(name) {
+      name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+      var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
+      var results = regex.exec(location.search);
+      return (!results) ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+    return _.reduce(routerInfos.params, function (args, param) {
+      args[param] = getParameterByName(param);
+      return args;
+    }, {});
   }
 
   function notifyRendered(window, conf, maybeRef) {

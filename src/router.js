@@ -87,12 +87,17 @@ var _ = require("lodash");
 
   Router.prototype.urlTo = function (file, args) {
     if (_.isString(args)) { args = {id: args}; }
-    this.addCall(file, args);
-    var params = getParamsFromFile(this, file);
-    var queryString = _.map(params, function (param) {
-      return param + "=" + args[param];
+    var queryString = _.map(args, function (value, name) {
+      return name + "=" + value;
     }).join("&");
     return file + ".html?" + queryString;
+  };
+
+  Router.prototype.urlToCb = function (file, args) {
+    var _this = this;
+    return function () {
+      return _this.urlTo.apply(_this, arguments);
+    };
   };
 
   Router.prototype.urlToStatic = function (file, args) {
