@@ -122,17 +122,7 @@ var _ = require("lodash");
     };
   };
 
-  Router.prototype.filename = function (file, args, here) {
-    function els(path, dst_dir) {
-      return _.compact(path.replace(dst_dir, "").split('/'));
-    }
-    var params = getParamsFromFile(this, file);
-    var path = [file].concat(_.map(params.params, function (param) {
-      return args[param];
-    })).join("/") + ".html";
-    var to = els(path, this.dst_dir);
-    if (!here) here = '';
-    var from = els(here.replace(/(\/[^\/]+)$/, ''), this.dst_dir);
+  function pathDiff(from, to) {
     var diff = [];
     while (_.first(from) == _.first(to)) {
       from = _.rest(from);
@@ -141,7 +131,22 @@ var _ = require("lodash");
     diff = diff.concat(_.map(from, function (e) {
       return "..";
     }));
-    diff = diff.concat(to);
+    return diff.concat(to);
+  }
+
+  Router.prototype.filename = function (file, args, here) {
+    function els(path, dst_dir) {
+      return _.compact(path.replace(dst_dir, "").split('/'));
+    }
+    var params = getParamsFromFile(this, file);
+    var path;
+    path = [file].concat(_.map(params.params, function (param) {
+      return args[param];
+    })).join("/") + ".html";
+    var diff = pathDiff(
+      els((here || '').replace(/(\/[^\/]+)$/, ''), this.dst_dir),
+      els(path, this.dst_dir)
+    );
     return diff.join('/');
   };
 
