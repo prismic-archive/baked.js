@@ -13,12 +13,14 @@ var Router = require("./router");
   var router = Router.create({}, null, logger);
 
   function prepareConf() {
-    var helpers = {};
-
-    var conf = dorian.initConf(window, {logger: logger, helpers: helpers});
-    helpers.url_to = router.urlToCb();
     var routerInfos = dorian.parseRoutingInfos(window.document.head.innerHTML);
-    conf.args = getArgs(routerInfos);
+    var conf = dorian.initConf(window, {
+      logger: logger,
+      helpers: {
+        url_to: router.urlToCb()
+      },
+      args: getArgs(routerInfos)
+    });
 
     // AccessToken
     conf.accessToken = sessionStorage.getItem('ACCESS_TOKEN');

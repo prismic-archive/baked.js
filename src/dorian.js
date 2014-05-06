@@ -26,6 +26,10 @@ var _ = require("lodash");
     return ejs.render(content, env);
   }
 
+  function renderQuery(query, env) {
+    return ejs.render(query, env);
+  }
+
   function initConf(window, opts) {
     var document = window.document;
     var conf = _.extend({
@@ -54,7 +58,7 @@ var _ = require("lodash");
       if (name) {
         conf.bindings[name] = {
           form: node.getAttribute("data-form") || 'everything',
-          predicates: node.textContent
+          predicates: renderQuery(node.textContent, conf.args)
         };
       }
       node.parentNode.removeChild(node);
