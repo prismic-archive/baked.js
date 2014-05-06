@@ -17,7 +17,7 @@ var Router = require("./router");
     var conf = dorian.initConf(window, {
       logger: logger,
       helpers: {
-        url_to: router.urlToCb()
+        url_to: router.urlToDynCb()
       },
       args: getArgs(routerInfos)
     });
