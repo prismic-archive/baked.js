@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Your prismic.io singlepage project</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="prismic-api" content="https://lesbonneschoses-uzbwuqeaafgaxjun.prismic.io/api">
+    <meta name="prismic-oauth-client-id" content="UzHD5AEAAA2GxOTo">
+    <meta name="prismic-route" content="search/$typ/$tag">
+    <meta name="prismic-param-name" content="typ">
+    <meta name="prismic-param-name" content="tag">
+
+    <script src="../../build/dorian.js"></script>
+  </head>
+  <body>
+
+    <script type="text/prismic-query" data-binding="featuredProducts">
+      [
+        [:d = any(document.type, ["$typ"])]
+        [:d = at(document.tags, ["$tag"])]
+      ]
+    </script>
+
+    <h1>[%= featuredProducts.length %] featured products:</h1>
+
+    [% _.each(featuredProducts, function(product) { %]
+
+      <div>
+        <h2>
+          <a href="[%= url_to('product', {id: product.id}) %]">
+            [%= product.getText('product.name') %]
+          </a>
+        </h2>
+        <img data-src="[%= product.getImageView('product.image', 'icon').url %]">
+      </div>
+
+    [% }) %]
+
+    <h1>And this is featured in our blog:</h1>
+
+    <script type="text/prismic-query" data-binding="blogPosts" data-form="blog">
+      [
+        [:d = at(document.tags, ["Featured"])]
+      ]
+    </script>
+
+    [% _.each(blogPosts, function(post) { %]
+
+      <article>
+        <h2>
+          <a href="[%= url_to('blog-post', {id: post.id}) %]">
+            [%= post.getStructuredText("blog-post.body").getTitle().text %]
+          </a>
+        </h2>
+        <p>[%= post.getStructuredText("blog-post.body").getFirstParagraph().text %]</p>
+      </article>
+
+      <hr>
+
+    [% }) %]
+
+    <a href="[%= url_to('index') %]">index</a>
+
+    <p>
+      [% if(loggedIn) { %]
+        <select data-prismic-action="update">
+          [% _.each(refs, function(r) { %]
+            [% if(r.ref == ref) { %]
+              <option value="[%= r.ref %]" selected="selected">[%= r.label %]</option>
+            [% } else { %]
+              <option value="[%= r.ref %]" >[%= r.label %]</option>
+            [% } %]
+          [% }) %]
+        </select>
+        <button data-prismic-action="signout">Sign out</button>
+      [% } else { %]
+        <button data-prismic-action="signin">Sign in</button>
+      [% } %]
+    </p>
+
+  </body>
+</html>
