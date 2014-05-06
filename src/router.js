@@ -90,7 +90,7 @@ var _ = require("lodash");
     var queryString = _.map(args, function (value, name) {
       return name + "=" + value;
     }).join("&");
-    return file + ".html?" + queryString;
+    return file + ".html" + (_.isEmpty(queryString) ? '' : '?' + queryString);
   };
 
   Router.prototype.urlToDynCb = function () {
