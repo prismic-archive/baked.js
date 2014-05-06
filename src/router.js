@@ -8,11 +8,11 @@ var _ = require("lodash");
     if (logger) { logger.info.apply(logger, args); }
   }
 
-  function Router(params, src_dir, logger) {
+  function Router(params, opts) {
     this.params = params;
-    this.src_dir = src_dir;
+    this.src_dir = opts.src_dir;
     this.calls = {};
-    this.logger = logger;
+    this.logger = opts.logger;
   }
 
   Router.prototype.isTemplate = function (file) {

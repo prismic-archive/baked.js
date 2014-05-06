@@ -10,7 +10,7 @@ var Router = require("./router");
   "use strict";
 
   var logger = window.console;
-  var router = Router.create({}, null, logger);
+  var router = Router.create({}, {logger: logger});
 
   function prepareConf() {
     var routerInfos = dorian.parseRoutingInfos(window.document.head.innerHTML);

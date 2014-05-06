@@ -285,7 +285,10 @@ var Router = require("./router");
 
   function buildRouter(dir) {
     return buildRouterForDir(dir).then(function (params) {
-      return Router.create(params, dir, logger);
+      return Router.create(params, {
+        src_dir: src_dir,
+        logger: logger
+      });
     });
   }
 
