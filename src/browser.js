@@ -36,7 +36,11 @@ var Router = require("./router");
     var signout = function() {
       sessionStorage.removeItem('ACCESS_TOKEN');
       conf.accessToken = undefined;
-      dorian.render(window, conf, {notifyRendered: notifyRendered}).done();
+      dorian
+        .render(window, {conf: conf, notifyRendered: notifyRendered})
+        .done(undefined, function (err) {
+          logger.error(err.message);
+        });
     };
 
     var maybeSignInButton = document.querySelectorAll('[data-prismic-action="signin"]')[0];
@@ -52,7 +56,11 @@ var Router = require("./router");
     var maybeUpdateButton = document.querySelectorAll('[data-prismic-action="update"]')[0];
     if(maybeUpdateButton) {
       maybeUpdateButton.addEventListener("change", function(e) {
-        dorian.render(window, conf, {ref: e.target.value, notifyRendered: notifyRendered}).done();
+        dorian
+          .render(window, {conf: conf, ref: e.target.value, notifyRendered: notifyRendered})
+          .done(undefined, function (err) {
+            logger.error(err.message);
+          });
       });
     }
 
@@ -84,7 +92,9 @@ var Router = require("./router");
     if (!conf) { window.prismicSinglePage = conf = prepareConf(); }
     dorian.render(window, router, {conf: conf, notifyRendered: notifyRendered})
       .fin(function() { HTML.style.display = ''; })
-      .done();
+      .done(undefined, function (err) {
+        logger.error(err.message);
+      });
 
   });
 
