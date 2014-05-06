@@ -6,6 +6,8 @@ var _ = require("lodash");
 (function (Global, undefined) {
   "use strict";
 
+  ejs.open = '[%'; ejs.close = '%]';
+
   function getAPI(conf) {
     var deferred = Q.defer();
     Prismic.Api(conf.api, function(err, api) {
@@ -19,6 +21,10 @@ var _ = require("lodash");
   }
 
   var defaultHelpers = {};
+
+  function renderContent(content, env) {
+    return ejs.render(content, env);
+  }
 
   function initConf(window, opts) {
     var document = window.document;
@@ -61,7 +67,6 @@ var _ = require("lodash");
 
   function initRender(window, router, opts) {
     if (!opts) { opts = {}; }
-    ejs.open = '[%'; ejs.close = '%]';
     var conf = opts.conf || initConf(window, opts);
     return render(window, router, conf, opts.ref, opts.notifyRendered);
   }
@@ -100,7 +105,7 @@ var _ = require("lodash");
 
           _.extend(documentSets, conf.args);
 
-          document.body.innerHTML = ejs.render(conf.tmpl, documentSets);
+          document.body.innerHTML = renderContent(conf.tmpl, documentSets);
 
           var imagesSrc = document.querySelectorAll('img[data-src]');
           _.each(imagesSrc, function(imageSrc) {
