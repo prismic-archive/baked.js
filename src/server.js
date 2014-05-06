@@ -246,14 +246,8 @@ var Router = require("./router");
         return Q
           .ninvoke(fs, 'readFile', src, "utf8")
           .then(function (content) {
-            var rx = /<meta +name="prismic-param-name" +content="([a-z][a-z0-9]+)" *>/ig;
-            var match;
-            var params = [];
-            while ((match = rx.exec(content)) !== null) {
-              params.push(match[1]);
-            }
             var result = {};
-            result[src] = params;
+            result[src] = dorian.parseRoutingInfos(content);
             return result;
           });
       } else {

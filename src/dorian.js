@@ -118,7 +118,18 @@ var _ = require("lodash");
 
   };
 
+  var parseRoutingInfosRx = /<meta +name="prismic-param-name" +content="([a-z][a-z0-9]*)" *>/ig;
+  function parseRoutingInfos(content) {
+    var match;
+    var params = [];
+    while ((match = parseRoutingInfosRx.exec(content)) !== null) {
+      params.push(match[1]);
+    }
+    return {params: params};
+  }
+
   Global.render = initRender;
   Global.initConf = initConf;
+  Global.parseRoutingInfos = parseRoutingInfos;
 
 }(typeof exports === 'object' && exports ? exports : (typeof module === "object" && module && typeof module.exports === "object" ? module.exports : window)));

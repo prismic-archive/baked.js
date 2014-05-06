@@ -22,12 +22,12 @@ var _ = require("lodash");
   };
 
   Router.prototype.isDynamic = function (file) {
-    return !_.isEmpty(this.params[file]);
+    return this.isTemplate(file) && !_.isEmpty(this.params[file].params);
   };
 
   Router.prototype.dynamicTemplates = function () {
     return _.omit(this.params, function (params) {
-      return _.isEmpty(params);
+      return _.isEmpty(params.params);
     });
   };
 
@@ -103,7 +103,7 @@ var _ = require("lodash");
     var params = getParamsFromFile(this, file);
     if (!params) {
       throw "Bad arguments (file '" + file + "' not found)";
-    } else if (_.all(params, function (param) { return !!parsedArgs[param]; })) {
+    } else if (_.all(params.params, function (param) { return !!parsedArgs[param]; })) {
       this.addCall(file, parsedArgs);
       return this.filename(file, parsedArgs);
     } else {
@@ -120,7 +120,7 @@ var _ = require("lodash");
 
   Router.prototype.filename = function (file, args) {
     var params = getParamsFromFile(this, file);
-    var path = _.map(params, function (param) { return args[param]; }).join("/");
+    var path = _.map(params.params, function (param) { return args[param]; }).join("/");
     return file + "/" + path + ".html";
   };
 
