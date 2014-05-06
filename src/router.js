@@ -43,7 +43,7 @@ var _ = require("lodash");
     if (!call) {
       call = {
         args: args,
-        generated: false
+        generated: !router.isDynamic(srcForFile(router, file))
       };
       calls.push(call);
     }
