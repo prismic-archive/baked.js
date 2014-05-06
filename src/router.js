@@ -15,8 +15,6 @@ var _ = require("lodash");
     this.logger = logger;
   }
 
-  Router.prototype.log = function (str) {};
-
   Router.prototype.isTemplate = function (file) {
     return !!this.params[file];
   };
