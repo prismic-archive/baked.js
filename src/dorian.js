@@ -142,8 +142,8 @@ var _ = require("lodash");
 
   };
 
-  var routingInfosParamRx = /<meta +name="prismic-param-name" +content="([a-z][a-z0-9]*)" *>/ig;
-  var routingInfosRouteRx = /<meta +name="prismic-route" +content="([$a-z][\/${}a-z0-9.-_]*)" *>/ig;
+  var routingInfosParamRx = /<meta +name="prismic-routing-param" +content="([a-z][a-z0-9]*)" *>/ig;
+  var routingInfosPatternRx = /<meta +name="prismic-routing-pattern" +content="([$a-z][\/${}a-z0-9.-_]*)" *>/ig;
   function parseRoutingInfos(content) {
     var match;
     var res = {
@@ -152,7 +152,7 @@ var _ = require("lodash");
     while ((match = routingInfosParamRx.exec(content)) !== null) {
       res.params.push(match[1]);
     }
-    if ((match = routingInfosRouteRx.exec(content)) !== null) {
+    if ((match = routingInfosPatternRx.exec(content)) !== null) {
       res.route = match[1];
     }
     return res;
