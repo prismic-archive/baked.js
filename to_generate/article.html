@@ -10,11 +10,14 @@
     <meta name="prismic-oauth-client-id" content="UzHD5AEAAA2GxOTo">
     <meta name="prismic-param-name" content="id">
 
-    <script src="../build/dorian.js"></script>
+    <script src="../../build/dorian.js"></script>
   </head>
   <body>
 
-    <a href="[%= url_to('product', 'UjHnwMuvzUcAPLxi') %]">[%= url_to('product', 'UjHnwMuvzUcAPLxi') %]</a>
+    <div>[%= id %]</div>
+    <div><a href="[%= url_to('product', {category: 'post', name: 'toto'}) %]">
+      [%= url_to('product', {category: 'post', name: 'toto'}) %]
+    </a></div>
 
     <div> </div><div> </div>
 

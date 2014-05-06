@@ -11,7 +11,7 @@
     <meta name="prismic-param-name" content="category">
     <meta name="prismic-param-name" content="name">
 
-    <script src="../build/dorian.js"></script>
+    <script src="../../build/dorian.js"></script>
   </head>
   <body>
 
@@ -20,16 +20,6 @@
     <div><a href="[%= url_to('article', 'UjHnwMuvzUcAPLxi') %]">[%= url_to('article', 'UjHnwMuvzUcAPLxi') %]</a></div>
 
     <div> </div><div> </div>
-
-    <script type="text/prismic-query" data-binding="myTest">
-      [
-        [:d = any(document.id, ["UjHnwMuvzUcAPLxi"])]
-      ]
-    </script>
-
-    [% myTest.forEach(function(obj) { %]
-      <div>[%= JSON.stringify(obj) %]</div>
-    [% }) %]
 
     <script type="text/prismic-query" data-binding="featuredProducts">
       [
