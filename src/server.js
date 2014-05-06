@@ -122,7 +122,7 @@ var Router = require("./router");
         return dorian.render(window, router, {
           logger: logger,
           args: args,
-          helpers: {url_to: router.urlToStaticCb()}
+          helpers: {url_to: router.urlToStaticCb(dst)}
         });
       }).then(function () {
         return logAndTime("generate file '" + src + "' => '" + dst + "'", function () {
@@ -283,10 +283,11 @@ var Router = require("./router");
     });
   }
 
-  function buildRouter(dir) {
-    return buildRouterForDir(dir).then(function (params) {
+  function buildRouter(src_dir, dst_dir) {
+    return buildRouterForDir(src_dir).then(function (params) {
       return Router.create(params, {
         src_dir: src_dir,
+        dst_dir: dst_dir,
         logger: logger
       });
     });
@@ -313,7 +314,7 @@ var Router = require("./router");
   return logAndTime("Generation", function () {
     return createDir(["generated"])
       .then(function () {
-        return buildRouter("to_generate");
+        return buildRouter("to_generate", "generated/static");
       })
       .then(function (router) {
         return renderDir("to_generate", "generated/static", "generated/dyn", router, async)

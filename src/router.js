@@ -11,6 +11,7 @@ var _ = require("lodash");
   function Router(params, opts) {
     this.params = params;
     this.src_dir = opts.src_dir;
+    this.dst_dir = opts.dst_dir;
     this.calls = {};
     this.logger = opts.logger;
   }
@@ -100,7 +101,7 @@ var _ = require("lodash");
     };
   };
 
-  Router.prototype.urlToStatic = function (file, args) {
+  Router.prototype.urlToStatic = function (file, args, here) {
     var parsedArgs = args;
     if (_.isString(parsedArgs)) { parsedArgs = {id: parsedArgs}; }
     var params = getParamsFromFile(this, file);
@@ -108,23 +109,40 @@ var _ = require("lodash");
       throw "Bad arguments (file '" + file + "' not found)";
     } else if (_.all(params.params, function (param) { return !!parsedArgs[param]; })) {
       this.addCall(file, parsedArgs);
-      return this.filename(file, parsedArgs);
+      return this.filename(file, parsedArgs, here);
     } else {
       throw "Bad arguments (bad arguments " + JSON.stringify(args) + " for file '" + file + "')";
     }
   };
 
-  Router.prototype.urlToStaticCb = function () {
+  Router.prototype.urlToStaticCb = function (here) {
     var _this = this;
-    return function () {
-      return _this.urlToStatic.apply(_this, arguments);
+    return function (file, args) {
+      return _this.urlToStatic(file, args, here);
     };
   };
 
-  Router.prototype.filename = function (file, args) {
+  Router.prototype.filename = function (file, args, here) {
+    function els(path, dst_dir) {
+      return _.compact(path.replace(dst_dir, "").split('/'));
+    }
     var params = getParamsFromFile(this, file);
-    var path = _.map(params.params, function (param) { return args[param]; }).join("/");
-    return file + "/" + path + ".html";
+    var path = [file].concat(_.map(params.params, function (param) {
+      return args[param];
+    })).join("/") + ".html";
+    var to = els(path, this.dst_dir);
+    if (!here) here = '';
+    var from = els(here.replace(/(\/[^\/]+)$/, ''), this.dst_dir);
+    var diff = [];
+    while (_.first(from) == _.first(to)) {
+      from = _.rest(from);
+      to = _.rest(to);
+    }
+    diff = diff.concat(_.map(from, function (e) {
+      return "..";
+    }));
+    diff = diff.concat(to);
+    return diff.join('/');
   };
 
   Router.prototype.filenameForCall = function (call) {
