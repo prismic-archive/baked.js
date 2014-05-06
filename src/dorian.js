@@ -27,7 +27,12 @@ var _ = require("lodash");
   }
 
   function renderQuery(query, env) {
-    return ejs.render(query, env);
+    var rx = /\$(([a-z][a-z0-9]*)|\{([a-z][a-z0-9]*)\})/ig;
+    var replaced = query.replace(rx, function (str, simple, complex) {
+      var variable = simple || complex;
+      return env && env[variable] || '';
+    }).replace(/\$\$/g, '$');
+    return ejs.render(replaced, env);
   }
 
   function initConf(window, opts) {
