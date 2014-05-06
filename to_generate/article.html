@@ -27,7 +27,7 @@
       ]
     </script>
 
-    [% myTest.forEach(function(obj) { %]
+    [% _.each(myTest, function(obj) { %]
       <div>[%= JSON.stringify(obj) %]</div>
     [% }) %]
 

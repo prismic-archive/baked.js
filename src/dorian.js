@@ -20,7 +20,9 @@ var _ = require("lodash");
     return deferred.promise;
   }
 
-  var defaultHelpers = {};
+  var defaultHelpers = {
+    _: _
+  };
 
   function renderContent(content, env) {
     return ejs.render(content, env);

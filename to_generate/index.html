@@ -46,7 +46,7 @@
 
     <h1>[%= featuredProducts.length %] featured products:</h1>
 
-    [% featuredProducts.forEach(function(product) { %]
+    [% _.each(featuredProducts, function(product) { %]
 
       <div>
           <h2>[%= product.getText('product.name') %]</h2>
@@ -63,7 +63,7 @@
       ]
     </script>
 
-    [% blogPosts.forEach(function(post) { %]
+    [% _.each(blogPosts, function(post) { %]
 
       <article>
           <h2>[%= post.getStructuredText("blog-post.body").getTitle().text %]</h2>
@@ -77,7 +77,7 @@
     <p>
       [% if(loggedIn) { %]
         <select data-prismic-action="update">
-          [% refs.forEach(function(r) { %]
+          [% _.each(refs, function(r) { %]
             [% if(r.ref == ref) { %]
               <option value="[%= r.ref %]" selected="selected">[%= r.label %]</option>
             [% } else { %]
