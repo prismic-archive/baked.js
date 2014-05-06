@@ -13,30 +13,6 @@
   </head>
   <body>
 
-    <div><a href="[%= url_to('article', {id: 'UjHnwMuvzUcAPLxi'}) %]">
-      [%= url_to('article', {id: 'UjHnwMuvzUcAPLxi'}) %]
-    </a></div>
-    <div><a href="[%= url_to('article', 'UjHnwMuvzUcAPLxi') %]">
-      [%= url_to('article', 'UjHnwMuvzUcAPLxi') %]
-    </a></div>
-    <div><a href="[%= url_to('article', 'otherId') %]">
-      [%= url_to('article', 'otherId') %]
-    </a></div>
-
-    <div><a href="[%= url_to('product', {category: 'post', name: 'toto'}) %]">
-      [%= url_to('product', {category: 'post', name: 'toto'}) %]
-    </a></div>
-    <div><a href="[%= url_to('product', {category: 'post', name: 'tata'}) %]">
-      [%= url_to('product', {category: 'post', name: 'tata'}) %]
-    </a></div>
-    <div><a href="[%= url_to('product', {category: 'blog', name: 'toto'}) %]">
-      [%= url_to('product', {category: 'blog', name: 'toto'}) %]
-    </a></div>
-    <div><a href="[%= url_to('product', {category: 'post', name: 'toto'}) %]">
-      [%= url_to('product', {category: 'post', name: 'toto'}) %]
-    </a></div>
-
-
     <script type="text/prismic-query" data-binding="featuredProducts">
       [
         [:d = any(document.type, ["product"])]
@@ -49,8 +25,12 @@
     [% _.each(featuredProducts, function(product) { %]
 
       <div>
-          <h2>[%= product.getText('product.name') %]</h2>
-          <img data-src="[%= product.getImageView('product.image', 'icon').url %]">
+        <h2>
+          <a href="[%= url_to('product', {id: product.id}) %]">
+            [%= product.getText('product.name') %]
+          </a>
+        </h2>
+        <img data-src="[%= product.getImageView('product.image', 'icon').url %]">
       </div>
 
     [% }) %]
@@ -66,13 +46,19 @@
     [% _.each(blogPosts, function(post) { %]
 
       <article>
-          <h2>[%= post.getStructuredText("blog-post.body").getTitle().text %]</h2>
-          <p>[%= post.getStructuredText("blog-post.body").getFirstParagraph().text %]</p>
+        <h2>
+          <a href="[%= url_to('blog-post', {id: post.id}) %]">
+            [%= post.getStructuredText("blog-post.body").getTitle().text %]
+          </a>
+        </h2>
+        <p>[%= post.getStructuredText("blog-post.body").getFirstParagraph().text %]</p>
       </article>
 
       <hr>
 
     [% }) %]
+
+    <a href="[%= url_to('index') %]">index</a>
 
     <p>
       [% if(loggedIn) { %]

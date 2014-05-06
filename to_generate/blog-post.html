@@ -14,19 +14,19 @@
   </head>
   <body>
 
-    <script type="text/prismic-query" data-binding="product">
+    <script type="text/prismic-query" data-binding="blogPost">
       [
         [:d = any(document.id, ["$id"])]
       ]
     </script>
 
-    [% product = product[0]; %]
+    [% blogPost = blogPost[0]; %]
 
-    <h1>[%= product.getText('product.name') %]</h1>
+    <h1>[%= blogPost.getStructuredText("blog-post.body").getTitle().text %]</h1>
 
-    <div>
-      <img data-src="[%= product.getImageView('product.image', 'icon').url %]">
-    </div>
+    <article>
+      [%= blogPost.getStructuredText("blog-post.body").getFirstParagraph().text %]
+    </article>
 
     <a href="[%= url_to('index') %]">index</a>
 
