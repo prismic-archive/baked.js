@@ -70,13 +70,15 @@ var Router = require("./router");
     return deferred.promise;
   }
 
-  function createDir(dirs, async) {
-    return sequence(dirs, function (dir) {
-      return Q
-        .ninvoke(fs, 'mkdir', dir).catch(function (err) {
-          if (!err || err.code != 'EEXIST') { throw err; }
-        });
-    }, async);
+  function createDir(dir) {
+    return Q
+      .ninvoke(fs, 'mkdir', dir).catch(function (err) {
+        if (!err || err.code != 'EEXIST') { throw err; }
+      });
+  }
+
+  function createDirs(dirs, async) {
+    return sequence(_.compact(dirs), createDir, async);
   }
 
   function createPath(dir, async) {
@@ -87,16 +89,14 @@ var Router = require("./router");
       } else {
         var dir = (created ? created + "/" : '') + toCreate[0];
         var rest = _.rest(toCreate);
-        return Q
-          .ninvoke(fs, 'mkdir', dir).catch(function (err) {
-            if (!err || err.code != 'EEXIST') { throw err; }
-          })
-          .then(function () {
-            return loop(rest, dir);
-          });
+        return createDir(dir).then(function () { return loop(rest, dir); });
       }
     }
     return loop(split);
+  }
+
+  function createPaths(dirs, async) {
+    return sequence(_.compact(dirs), createPath, async);
   }
 
   function logAndTime(name, fn) {
@@ -199,7 +199,7 @@ var Router = require("./router");
 
   function renderDir(src_dir, dst_static_dir, dst_dyn_dir, router, async) {
     return logAndTime("render dir '" + src_dir + "'", function () {
-      return createDir([dst_static_dir, dst_dyn_dir], async)
+      return createDirs([dst_static_dir, dst_dyn_dir], async)
         .then(function () {
           return Q.ninvoke(fs, 'readdir', src_dir);
         })
@@ -355,7 +355,7 @@ var Router = require("./router");
   }
 
   return logAndTime("Generation", function () {
-    return createDir(["generated"])
+    return createPaths([dst_static, dst_dynamic])
       .then(function () {
         return buildRouter(src_dir, dst_static);
       })
