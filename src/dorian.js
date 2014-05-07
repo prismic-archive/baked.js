@@ -142,17 +142,17 @@ var _ = require("lodash");
 
   };
 
-  var routingInfosParamRx = /<meta +name="prismic-routing-param" +content="([a-z][a-z0-9]*)" *>/ig;
-  var routingInfosPatternRx = /<meta +name="prismic-routing-pattern" +content="([$a-z][\/${}a-z0-9.-_]*)" *>/ig;
   function parseRoutingInfos(content) {
+    var rxParam = /<meta +name="prismic-routing-param" +content="([a-z][a-z0-9]*)" *>/ig;
+    var rxPattern = /<meta +name="prismic-routing-pattern" +content="([$a-z][\/${}a-z0-9.-_]*)" *>/ig;
     var match;
     var res = {
       params: []
     };
-    while ((match = routingInfosParamRx.exec(content)) !== null) {
+    while ((match = rxParam.exec(content)) !== null) {
       res.params.push(match[1]);
     }
-    if ((match = routingInfosPatternRx.exec(content)) !== null) {
+    if ((match = rxPattern.exec(content)) !== null) {
       res.route = match[1];
     }
     return res;
