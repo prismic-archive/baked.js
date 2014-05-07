@@ -306,8 +306,20 @@ var Router = require("./router");
     });
   }
 
+  function usage() {
+    var pwd = '/' + _.compact((process.env.PWD || '').split('/')).join('/') + '/';
+    var name = _.first(process.argv, 2).join(' ').replace(pwd, '');
+    var msg =
+      "usage: " + name + " [opts] <src> <dst static> <dst dynamic>\n" +
+      "\n" +
+      "opts:\n" +
+      "  --[no-]async    -- Run asynchronously (default: true)\n" +
+      "  --[no-]debug    -- Better stacktraces (default: false)\n";
+    console.log(msg);
+  }
 
-  function die(msg) {
+  function die(msg, showUsage) {
+    if (showUsage) { usage(); }
     console.warn("Error:", msg);
     process.exit(1);
   }
@@ -339,13 +351,13 @@ var Router = require("./router");
   });
 
   if (!src_dir) {
-    die("Missing source dir");
+    die("Missing source dir", true);
   }
   if (!dst_static) {
-    die("Missing static generation dir");
+    die("Missing static generation dir", true);
   }
   if (!dst_dynamic) {
-    die("Missing dynamic generation dir");
+    die("Missing dynamic generation dir", true);
   }
 
   logger.info("async =", async);
