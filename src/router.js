@@ -156,8 +156,16 @@ var dorian = require("./dorian");
     return diff.join('/');
   };
 
+  Router.prototype.globalFilename = function (file, args, here) {
+    return [this.dst_dir].concat(this.filename(file, args, here)).join('/');
+  };
+
   Router.prototype.filenameForCall = function (call) {
     return this.filename(call.file, call.args);
+  };
+
+  Router.prototype.globalFilenameForCall = function (call) {
+    return this.globalFilename(call.file, call.args);
   };
 
   function create(params, src_dir, logger) {

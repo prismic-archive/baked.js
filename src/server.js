@@ -158,7 +158,12 @@ var Router = require("./router");
           if (!router.isTemplate(src)) {
             return copyFile(name, src, content, dst, router, async);
           } else if (!router.isDynamic(src)) {
-            return generateFile(name, src, content, args, dst, router, async);
+            var file = src
+              .replace(router.src_dir, '')
+              .replace(/\.html$/, '')
+              .replace(/^\//, '');
+            var customDst = router.globalFilename(file, args);
+            return generateFile(name, src, content, args, customDst, router, async);
           } else if (args) {
             return generateFile(name, src, content, args, dst, router, async);
           } else {
@@ -227,8 +232,7 @@ var Router = require("./router");
 
   function renderDynamicCall(call, dst_dir, router, async) {
     var src = router.srcForCall(call);
-    var filename = router.filenameForCall(call);
-    var dst = dst_dir + "/" + filename;
+    var dst = router.globalFilenameForCall(call);
     return createPath(dst, async).then(function () {
       return renderStaticFile(call.file, src, dst, call.args, router, async);
     });
