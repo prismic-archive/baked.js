@@ -8,33 +8,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="prismic-api" content="https://lesbonneschoses-uzbwuqeaafgaxjun.prismic.io/api">
     <meta name="prismic-oauth-client-id" content="UzHD5AEAAA2GxOTo">
-    <meta name="prismic-routing-pattern" content="blogs/$id">
-    <meta name="prismic-routing-param" content="id">
+    <meta name="prismic-routing-pattern" content="blog.html">
 
-    <script src="../../build/dorian.js"></script>
+    <script src="../../../build/dorian.js"></script>
   </head>
   <body>
 
-    <script type="text/prismic-query" data-binding="blogPost">
+    <h1>Blog</h1>
+
+    <script type="text/prismic-query" data-binding="blogPosts" data-form="blog">
       [
-        [:d = any(document.id, ["$id"])]
+        [:d = at(document.tags, ["Featured"])]
       ]
     </script>
 
-    [% blogPost = blogPost[0]; %]
+    [% _.each(blogPosts, function(post) { %]
 
-    <h1>[%= blogPost.getStructuredText("blog-post.body").getTitle().text %]</h1>
+      <article>
+        <h2>
+          <a href="[%= url_to('post', {id: post.id}) %]">
+            [%= post.getStructuredText("blog-post.body").getTitle().text %]
+          </a>
+        </h2>
+        <p>[%= post.getStructuredText("blog-post.body").getFirstParagraph().text %]</p>
+      </article>
 
-    <article>
-      [%= blogPost.getStructuredText("blog-post.body").getFirstParagraph().text %]
-    </article>
+      <hr>
 
-    <a href="[%= url_to('index') %]">index</a>
+    [% }) %]
+
+    <a href="[%= url_to('../index') %]">index</a>
 
     <p>
       [% if(loggedIn) { %]
         <select data-prismic-action="update">
-          [% refs.forEach(function(r) { %]
+          [% _.each(refs, function(r) { %]
             [% if(r.ref == ref) { %]
               <option value="[%= r.ref %]" selected="selected">[%= r.label %]</option>
             [% } else { %]

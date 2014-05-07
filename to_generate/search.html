@@ -50,7 +50,7 @@
 
       <article>
         <h2>
-          <a href="[%= url_to('blog-post', {id: post.id}) %]">
+          <a href="[%= url_to('blog/post', {id: post.id}) %]">
             [%= post.getStructuredText("blog-post.body").getTitle().text %]
           </a>
         </h2>

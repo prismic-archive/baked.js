@@ -8,23 +8,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="prismic-api" content="https://lesbonneschoses-uzbwuqeaafgaxjun.prismic.io/api">
     <meta name="prismic-oauth-client-id" content="UzHD5AEAAA2GxOTo">
+    <meta name="prismic-routing-pattern" content="blogs/$id">
+    <meta name="prismic-routing-param" content="id">
 
-    <script src="../../build/dorian.js"></script>
+    <script src="../../../build/dorian.js"></script>
   </head>
   <body>
 
-    <div><a href="[%= url_to('search', {typ: 'product', tag: 'Featured'}) %]">
-      Search
-    </a></div>
+    <script type="text/prismic-query" data-binding="blogPost">
+      [
+        [:d = any(document.id, ["$id"])]
+      ]
+    </script>
 
-    <div><a href="[%= url_to('blog/index') %]">blog</a></div>
+    [% blogPost = blogPost[0]; %]
 
-    <div><a href="[%= url_to('index') %]">index</a></div>
+    <h1>[%= blogPost.getStructuredText("blog-post.body").getTitle().text %]</h1>
+
+    <article>
+      [%= blogPost.getStructuredText("blog-post.body").getFirstParagraph().text %]
+    </article>
+
+    <a href="[%= url_to('../index') %]">index</a>
 
     <p>
       [% if(loggedIn) { %]
         <select data-prismic-action="update">
-          [% _.each(refs, function(r) { %]
+          [% refs.forEach(function(r) { %]
             [% if(r.ref == ref) { %]
               <option value="[%= r.ref %]" selected="selected">[%= r.label %]</option>
             [% } else { %]
