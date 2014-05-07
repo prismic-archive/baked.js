@@ -10,7 +10,10 @@ var dorian = require("./dorian");
     if (logger) { logger.info.apply(logger, args); }
   }
 
-  function els(path) {
+  function els(path, dir) {
+    if (dir) {
+      path = [''].concat(_.compact(path.split('/'))).join('/').replace(/\/[^\/]*$/, '');
+    }
     return _.compact(path.split('/'));
   }
 
@@ -109,7 +112,7 @@ var dorian = require("./dorian");
 
   function findFileFromHere(router, file, here) {
     fileEls = els(file);
-    hereEls = els(here.replace(/(\/[^\/]*)$/, ''));
+    hereEls = els(here, true);
     while (_.first(fileEls) == '..') {
       fileEls.shift();
       hereEls.pop();
@@ -164,7 +167,7 @@ var dorian = require("./dorian");
       })).join("/") + ".html";
     }
     var diff = pathDiff(
-      els((here || '').replace(/(\/[^\/]+)$/, '')),
+      els(here || '', true),
       els(path)
     );
     return diff.join('/');
