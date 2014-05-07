@@ -87,7 +87,7 @@ var Router = require("./router");
       if (_.isEmpty(toCreate)) {
         return Q.fcall(function () { return dir; });
       } else {
-        var dir = (created ? created + "/" : '') + toCreate[0];
+        dir = (created ? created + "/" : '') + toCreate[0];
         var rest = _.rest(toCreate);
         return createDir(dir).then(function () { return loop(rest, dir); });
       }
