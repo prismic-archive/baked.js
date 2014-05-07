@@ -161,6 +161,10 @@ var dorian = require("./dorian");
     var path;
     if (params.route) {
       path = dorian.renderRoute(params.route, args);
+      if (!/^\//.test(path)) {
+        dir = els(file, true);
+        path = dir.concat(els(path)).join('/');
+      }
     } else {
       path = [file].concat(_.map(params.params, function (param) {
         return args[param];

@@ -144,7 +144,7 @@ var _ = require("lodash");
 
   function parseRoutingInfos(content) {
     var rxParam = /<meta +name="prismic-routing-param" +content="([a-z][a-z0-9]*)" *>/ig;
-    var rxPattern = /<meta +name="prismic-routing-pattern" +content="([$a-z][\/${}a-z0-9.-_]*)" *>/ig;
+    var rxPattern = /<meta +name="prismic-routing-pattern" +content="([\/$a-z][\/${}a-z0-9.-_]*)" *>/ig;
     var match;
     var res = {
       params: []
