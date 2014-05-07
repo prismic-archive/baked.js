@@ -17,6 +17,10 @@ var dorian = require("./dorian");
     return _.compact(path.split('/'));
   }
 
+  function isGlobal(path) {
+    return /^\//.test(path);
+  }
+
   function Router(params, opts) {
     this.params = params;
     this.src_dir = opts.src_dir;
@@ -161,7 +165,7 @@ var dorian = require("./dorian");
     var path;
     if (params.route) {
       path = dorian.renderRoute(params.route, args);
-      if (!/^\//.test(path)) {
+      if (!isGlobal(path)) {
         dir = els(file, true);
         path = dir.concat(els(path)).join('/');
       }
