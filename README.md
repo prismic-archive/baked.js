@@ -55,4 +55,4 @@ strong Faustian theme.
 	- `url_to` have to be relative (how to link to a global file without knowning what is the origin point?)
 	- the custom routes can't be honored, even simple rename (how can we know which route should be used without reading the called file?)
 - the server build a DOM structure (using JSDOM) in order to navigate inside it, so:
-	- The tags `<% %>` can't be used, because JSDOM don't like them
+	- The tags `<% %>` can't be used, because JSDOM doesn't like them
