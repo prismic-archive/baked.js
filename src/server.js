@@ -191,10 +191,15 @@ var Router = require("./router");
   }
 
   function renderFile(name, src, args, dst_static, dst_dyn, router, async) {
-    return sequence([
-      function () { return renderStaticFile(name, src, dst_static, args, router, async); },
-      function () { return renderDynamicFile(name, src, dst_dyn, router, async); }
-    ], function (f) { return f(); }, async);
+    var renders = [
+      function () { return renderStaticFile(name, src, dst_static, args, router, async); }
+    ];
+    if (dst_dyn) {
+      renders.push(
+        function () { return renderDynamicFile(name, src, dst_dyn, router, async); }
+      );
+    }
+    return sequence(renders, function (f) { return f(); }, async);
   }
 
   function renderDir(src_dir, dst_static_dir, dst_dyn_dir, router, async) {
@@ -207,7 +212,7 @@ var Router = require("./router");
           return sequence(names, function (name) {
             var src = src_dir + "/" + name;
             var dst_static = dst_static_dir + "/" + name;
-            var dst_dyn = dst_dyn_dir + "/" + name;
+            var dst_dyn = dst_dyn_dir && dst_dyn_dir + "/" + name;
             return Q
               .ninvoke(fs, 'lstat', src)
               .then(function (stats) {
@@ -355,9 +360,6 @@ var Router = require("./router");
   }
   if (!dst_static) {
     die("Missing static generation dir", true);
-  }
-  if (!dst_dynamic) {
-    die("Missing dynamic generation dir", true);
   }
 
   logger.info("async =", async);
