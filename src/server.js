@@ -1,4 +1,5 @@
 var fs = require("fs");
+var util = require("util");
 
 var Q = require("q");
 var _ = require("lodash");
@@ -305,8 +306,17 @@ var Router = require("./router");
     });
   }
 
+
+  function die(msg) {
+    console.warn("Error:", msg);
+    process.exit(1);
+  }
+
   var async = true;
   var debug = false;
+  var src_dir;
+  var dst_static;
+  var dst_dynamic;
   _.each(process.argv.slice(2), function (arg) {
     switch (arg) {
       case '--async' : async = true; break;
@@ -314,8 +324,29 @@ var Router = require("./router");
       case '-d' :
       case '--debug' : debug = true; break;
       case '--no-debug' : debug = false; break;
+      default :
+        if (!src_dir) {
+          src_dir = arg;
+        } else if (!dst_static) {
+          dst_static = arg;
+        } else if (!dst_dynamic) {
+          dst_dynamic = arg;
+        } else {
+          usage();
+          die("Bad argument:" + arg);
+        }
     }
   });
+
+  if (!src_dir) {
+    die("Missing source dir");
+  }
+  if (!dst_static) {
+    die("Missing static generation dir");
+  }
+  if (!dst_dynamic) {
+    die("Missing dynamic generation dir");
+  }
 
   logger.info("async =", async);
   if (debug) {
@@ -326,14 +357,14 @@ var Router = require("./router");
   return logAndTime("Generation", function () {
     return createDir(["generated"])
       .then(function () {
-        return buildRouter("to_generate", "generated/static");
+        return buildRouter(src_dir, dst_static);
       })
       .then(function (router) {
-        return renderDir("to_generate", "generated/static", "generated/dyn", router, async)
+        return renderDir(src_dir, dst_static, dst_dynamic, router, async)
           .then(function () { return router; });
       })
       .then(function (router) {
-        return renderStackedCalls(router, "generated/static", async);
+        return renderStackedCalls(router, dst_static, async);
       });
   }).done(
     function () { logger.info("cool cool cool"); },
