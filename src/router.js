@@ -10,6 +10,10 @@ var dorian = require("./dorian");
     if (logger) { logger.info.apply(logger, args); }
   }
 
+  function els(path) {
+    return _.compact(path.split('/'));
+  }
+
   function Router(params, opts) {
     this.params = params;
     this.src_dir = opts.src_dir;
@@ -103,24 +107,37 @@ var dorian = require("./dorian");
     };
   };
 
-  Router.prototype.urlToStatic = function (file, args, here) {
+  function findFileFromHere(router, file, here) {
+    fileEls = els(file);
+    hereEls = els(here.replace(/(\/[^\/]*)$/, ''));
+    while (_.first(fileEls) == '..') {
+      fileEls.shift();
+      hereEls.pop();
+    }
+    return hereEls.concat(fileEls).join('/');
+  }
+
+  Router.prototype.urlToStatic = function (file, args, here_src, here_dst) {
     var parsedArgs = args;
+    if (here_src) { here_src = here_src.replace(this.src_dir, ''); }
+    if (here_dst) { here_dst = here_dst.replace(this.dst_dir, ''); }
+    var fileFromHere = findFileFromHere(this, file, here_src);
     if (_.isString(parsedArgs)) { parsedArgs = {id: parsedArgs}; }
-    var params = getParamsFromFile(this, file);
+    var params = getParamsFromFile(this, fileFromHere);
     if (!params) {
       throw "Bad arguments (file '" + file + "' not found)";
-    } else if (_.all(params.params, function (param) { return !!parsedArgs[param]; })) {
-      this.addCall(file, parsedArgs);
-      return this.filename(file, parsedArgs, here);
+    } else if (_.all(params.params, function (param) { return parsedArgs && !!parsedArgs[param]; })) {
+      this.addCall(fileFromHere, parsedArgs);
+      return this.filename(fileFromHere, parsedArgs, here_dst);
     } else {
       throw "Bad arguments (bad arguments " + JSON.stringify(args) + " for file '" + file + "')";
     }
   };
 
-  Router.prototype.urlToStaticCb = function (here) {
+  Router.prototype.urlToStaticCb = function (here_src, here_dst) {
     var _this = this;
     return function (file, args) {
-      return _this.urlToStatic(file, args, here);
+      return _this.urlToStatic(file, args, here_src, here_dst);
     };
   };
 
@@ -137,9 +154,6 @@ var dorian = require("./dorian");
   }
 
   Router.prototype.filename = function (file, args, here) {
-    function els(path, dst_dir) {
-      return _.compact(path.replace(dst_dir, "").split('/'));
-    }
     var params = getParamsFromFile(this, file);
     var path;
     if (params.route) {
@@ -150,8 +164,8 @@ var dorian = require("./dorian");
       })).join("/") + ".html";
     }
     var diff = pathDiff(
-      els((here || '').replace(/(\/[^\/]+)$/, ''), this.dst_dir),
-      els(path, this.dst_dir)
+      els((here || '').replace(/(\/[^\/]+)$/, '')),
+      els(path)
     );
     return diff.join('/');
   };

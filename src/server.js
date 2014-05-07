@@ -122,7 +122,7 @@ var Router = require("./router");
         return dorian.render(window, router, {
           logger: logger,
           args: args,
-          helpers: {url_to: router.urlToStaticCb(dst)}
+          helpers: {url_to: router.urlToStaticCb(src, dst)}
         }).then(function () {
           var metas = window.document.querySelectorAll("meta");
           _.each(metas, function (meta) {
