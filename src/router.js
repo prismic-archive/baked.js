@@ -4,6 +4,7 @@ var _ = require("lodash");
 var dorian = require("./dorian");
 
 (function (Global, undefined) {
+  "use strict";
 
   function log(logger) {
     var args = _.rest(arguments, 1);
