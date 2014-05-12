@@ -115,8 +115,8 @@ var dorian = require("./dorian");
   };
 
   function findFileFromHere(router, file, here) {
-    fileEls = els(file);
-    hereEls = els(here, true);
+    var fileEls = els(file);
+    var hereEls = els(here, true);
     while (_.first(fileEls) == '..') {
       fileEls.shift();
       hereEls.pop();
@@ -166,7 +166,7 @@ var dorian = require("./dorian");
     if (params.route) {
       path = dorian.renderRoute(params.route, args);
       if (!isGlobal(path)) {
-        dir = els(file, true);
+        var dir = els(file, true);
         path = dir.concat(els(path)).join('/');
       }
     } else {
