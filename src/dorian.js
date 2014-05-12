@@ -22,11 +22,11 @@ var _ = require("lodash");
   };
 
   function renderTemplate(content, env) {
-    return _.template(content, env, {
+    return _.template(content, null, {
       escape: /\[%-([\s\S]+?)%\]/g,
       evaluate: /\[%([\s\S]+?)%\]/g,
       interpolate: /\[%=([\s\S]+?)%\]/g,
-    });
+    }).call(env, env);
   }
 
   function renderContent(content, env) {
