@@ -14,7 +14,7 @@ var Router = require("./router");
 
   function prepareConf() {
     var routerInfos = dorian.parseRoutingInfos(window.document.head.innerHTML);
-    var conf = dorian.initConf(window, {
+    var conf = dorian.initConf(window, window, {
       logger: logger,
       helpers: {
         url_to: router.urlToDynCb()
@@ -58,7 +58,7 @@ var Router = require("./router");
       sessionStorage.removeItem('ACCESS_TOKEN');
       conf.accessToken = undefined;
       dorian
-        .render(window, {conf: conf, notifyRendered: notifyRendered})
+        .render(window, {conf: conf, notifyRendered: notifyRendered}, window)
         .done(undefined, function (err) {
           logger.error(err.message);
         });
@@ -78,7 +78,7 @@ var Router = require("./router");
     if(maybeUpdateButton) {
       maybeUpdateButton.addEventListener("change", function(e) {
         dorian
-          .render(window, {conf: conf, ref: e.target.value, notifyRendered: notifyRendered})
+          .render(window, {conf: conf, ref: e.target.value, notifyRendered: notifyRendered}, window)
           .done(undefined, function (err) {
             logger.error(err.message);
           });
@@ -111,7 +111,7 @@ var Router = require("./router");
 
     var conf = window.prismicSinglePage;
     if (!conf) { window.prismicSinglePage = conf = prepareConf(); }
-    dorian.render(window, router, {conf: conf, notifyRendered: notifyRendered})
+    dorian.render(window, router, {conf: conf, notifyRendered: notifyRendered}, window)
       .fin(function() { HTML.style.display = ''; })
       .done(undefined, function (err) {
         logger.error(err.message);

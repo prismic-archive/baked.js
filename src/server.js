@@ -9,7 +9,7 @@ var winston = require('winston');
 var dorian = require("./dorian");
 var Router = require("./router");
 
-(function (undefined) {
+(function (global, undefined) {
   "use strict";
 
   var logger = new (winston.Logger)({
@@ -124,7 +124,7 @@ var Router = require("./router");
           logger: logger,
           args: args,
           helpers: {url_to: router.urlToStaticCb(src, dst)}
-        }).then(function () {
+        }, global).then(function () {
           var metas = window.document.querySelectorAll("meta");
           _.each(metas, function (meta) {
             var name = meta.getAttribute('name');
@@ -385,4 +385,4 @@ var Router = require("./router");
     function (err) { logger.error(err.stack); }
   );
 
-}());
+}(global));

@@ -21,25 +21,37 @@ var _ = require("lodash");
     _: _
   };
 
-  function renderTemplate(content, env) {
+  function cleanEnv(global) {
+    var cleaned = {};
+    // _.each skips some keys (like console)...
+    for (var prop in global) {
+      if (global.hasOwnProperty(prop)) {
+        cleaned[prop] = undefined;
+      }
+    }
+    return cleaned;
+  }
+
+  function renderTemplate(content, env, global) {
+    var clean = cleanEnv(global);
     return _.template(content, null, {
       escape: /\[%-([\s\S]+?)%\]/g,
       evaluate: /\[%([\s\S]+?)%\]/g,
       interpolate: /\[%=([\s\S]+?)%\]/g,
-    }).call(env, env);
+    }).call(env, _.defaults(env, clean));
   }
 
-  function renderContent(content, env) {
-    return renderTemplate(content, env);
+  function renderContent(global, content, env) {
+    return renderTemplate(content, env, global);
   }
 
-  function renderQuery(query, env) {
+  function renderQuery(global, query, env) {
     var rx = /\$(([a-z][a-z0-9]*)|\{([a-z][a-z0-9]*)\})/ig;
     var replaced = query.replace(rx, function (str, simple, complex) {
       var variable = simple || complex;
       return env && env[variable] || '';
     }).replace(/\$\$/g, '$');
-    return renderTemplate(replaced, env);
+    return renderTemplate(replaced, env, global);
   }
 
   function renderRoute(route, env) {
@@ -50,9 +62,10 @@ var _ = require("lodash");
     });
   }
 
-  function initConf(window, opts) {
+  function initConf(global, window, opts) {
     var document = window.document;
     var conf = _.extend({
+      env: opts.env || {},
       helpers: opts.helpers || {},
       logger: opts.logger || window.console,
       args: opts.args || {}
@@ -78,7 +91,7 @@ var _ = require("lodash");
       if (name) {
         conf.bindings[name] = {
           form: node.getAttribute("data-form") || 'everything',
-          predicates: renderQuery(node.textContent, conf.args)
+          predicates: renderQuery(global, node.textContent, conf.args)
         };
       }
       node.parentNode.removeChild(node);
@@ -89,13 +102,13 @@ var _ = require("lodash");
     return conf;
   }
 
-  function initRender(window, router, opts) {
+  function initRender(window, router, opts, global) {
     if (!opts) { opts = {}; }
-    var conf = opts.conf || initConf(window, opts);
-    return render(window, router, conf, opts.ref, opts.notifyRendered);
+    var conf = opts.conf || initConf(global, window, opts);
+    return render(window, router, conf, opts.ref, opts.notifyRendered, global);
   }
 
-  var render = function(window, router, conf, maybeRef, notifyRendered) {
+  var render = function(window, router, conf, maybeRef, notifyRendered, global) {
     var document = window.document;
     return getAPI(conf).then(function(api) {
       return Q
@@ -118,7 +131,7 @@ var _ = require("lodash");
               documentSets[res[0]] = res[1];
             }
             return documentSets;
-          }, {});
+          }, conf.env || {});
         }).then(function(documentSets) {
           documentSets.loggedIn = !!conf.accessToken;
           documentSets.refs = api.data.refs;
@@ -126,10 +139,9 @@ var _ = require("lodash");
 
           _.extend(documentSets, defaultHelpers);
           if (conf.helpers) { _.extend(documentSets, conf.helpers); }
-
           _.extend(documentSets, conf.args);
 
-          document.body.innerHTML = renderContent(conf.tmpl, documentSets);
+          document.body.innerHTML = renderContent(global, conf.tmpl, documentSets);
 
           var imagesSrc = document.querySelectorAll('img[data-src]');
           _.each(imagesSrc, function(imageSrc) {
