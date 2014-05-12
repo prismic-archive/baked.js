@@ -3,7 +3,7 @@ var ejs = require("ejs");
 var Q = require("q");
 var _ = require("lodash");
 
-(function (Global, undefined) {
+(function (exporter, undefined) {
   "use strict";
 
   ejs.open = '[%'; ejs.close = '%]';
@@ -158,9 +158,9 @@ var _ = require("lodash");
     return res;
   }
 
-  Global.render = initRender;
-  Global.initConf = initConf;
-  Global.parseRoutingInfos = parseRoutingInfos;
-  Global.renderRoute = renderRoute;
+  exporter.render = initRender;
+  exporter.initConf = initConf;
+  exporter.parseRoutingInfos = parseRoutingInfos;
+  exporter.renderRoute = renderRoute;
 
 }(typeof exports === 'object' && exports ? exports : (typeof module === "object" && module && typeof module.exports === "object" ? module.exports : window)));
