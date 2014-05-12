@@ -65,9 +65,9 @@ var dorian = require("./dorian");
     return call;
   }
 
-  Router.prototype.addCall = function (file, args) {
-    findOrCreateCall(this, file, args);
-  };
+  function addCall(router, file, args) {
+    return findOrCreateCall(router, file, args);
+  }
 
   Router.prototype.lastCalls = function () {
     return _.chain(this.calls)
@@ -135,7 +135,7 @@ var dorian = require("./dorian");
     if (!params) {
       throw "Bad arguments (file '" + file + "' not found)";
     } else if (_.all(params.params, function (param) { return parsedArgs && !!parsedArgs[param]; })) {
-      this.addCall(fileFromHere, parsedArgs);
+      addCall(this, fileFromHere, parsedArgs);
       return this.filename(fileFromHere, parsedArgs, here_dst);
     } else {
       throw "Bad arguments (bad arguments " + JSON.stringify(args) + " for file '" + file + "')";
