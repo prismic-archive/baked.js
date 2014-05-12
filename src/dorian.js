@@ -50,7 +50,7 @@ var _ = require("lodash");
     var conf = _.extend({
       helpers: opts.helpers || {},
       logger: opts.logger || window.console,
-      args: opts.args
+      args: opts.args || {}
     }, conf);
 
     // The Prismic.io API endpoint
