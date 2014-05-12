@@ -1,12 +1,9 @@
 var Prismic = require("prismic.io").Prismic;
-var ejs = require("ejs");
 var Q = require("q");
 var _ = require("lodash");
 
 (function (exporter, undefined) {
   "use strict";
-
-  ejs.open = '[%'; ejs.close = '%]';
 
   function getAPI(conf) {
     var deferred = Q.defer();
@@ -24,8 +21,16 @@ var _ = require("lodash");
     _: _
   };
 
+  function renderTemplate(content, env) {
+    return _.template(content, env, {
+      escape: /\[%-([\s\S]+?)%\]/g,
+      evaluate: /\[%([\s\S]+?)%\]/g,
+      interpolate: /\[%=([\s\S]+?)%\]/g,
+    });
+  }
+
   function renderContent(content, env) {
-    return ejs.render(content, env);
+    return renderTemplate(content, env);
   }
 
   function renderQuery(query, env) {
@@ -34,7 +39,7 @@ var _ = require("lodash");
       var variable = simple || complex;
       return env && env[variable] || '';
     }).replace(/\$\$/g, '$');
-    return ejs.render(replaced, env);
+    return renderTemplate(replaced, env);
   }
 
   function renderRoute(route, env) {
