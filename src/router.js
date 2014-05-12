@@ -115,7 +115,7 @@ var dorian = require("./dorian");
     };
   };
 
-  function findFileFromHere(router, file, here) {
+  function findFileFromHere(file, here) {
     var fileEls = els(file);
     var hereEls = els(here, true);
     while (_.first(fileEls) == '..') {
@@ -129,7 +129,7 @@ var dorian = require("./dorian");
     var parsedArgs = args;
     if (here_src) { here_src = here_src.replace(this.src_dir, ''); }
     if (here_dst) { here_dst = here_dst.replace(this.dst_dir, ''); }
-    var fileFromHere = findFileFromHere(this, file, here_src);
+    var fileFromHere = findFileFromHere(file, here_src);
     if (_.isString(parsedArgs)) { parsedArgs = {id: parsedArgs}; }
     var params = getParamsFromFile(this, fileFromHere);
     if (!params) {
