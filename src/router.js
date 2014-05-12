@@ -28,6 +28,7 @@ var dorian = require("./dorian");
     this.dst_dir = opts.dst_dir;
     this.calls = {};
     this.logger = opts.logger;
+    this.generatedRoutes = {};
   }
 
   Router.prototype.isTemplate = function (file) {
@@ -125,6 +126,26 @@ var dorian = require("./dorian");
     return hereEls.concat(fileEls).join('/');
   }
 
+  function addGeneratedRoute(router, relativePath, call, here, file, here_src) {
+    var globalPath = '/' + findFileFromHere(relativePath, here);
+    var infos = {
+      args: call.args,
+      by: here_src,
+      to: (file + '.html'),
+    };
+    if (router.generatedRoutes[globalPath]) {
+      var existing = router.generatedRoutes[globalPath];
+      if (!_.isEqual(existing.to, infos.to) || !_.isEqual(existing.args, infos.args)) {
+        throw "The URL " + globalPath +
+              " (by: " + infos.by + " to:" + infos.to + " args:" + JSON.stringify(infos.args) + ")" +
+              " has been already generated" +
+              " (by: " + existing.by + " to:" + existing.to + " args:" + JSON.stringify(existing.args) + ")";
+      }
+    } else {
+      router.generatedRoutes[globalPath] = infos;
+    }
+  }
+
   Router.prototype.urlToStatic = function (file, args, here_src, here_dst) {
     var parsedArgs = args || {};
     if (here_src) { here_src = here_src.replace(this.src_dir, ''); }
@@ -135,8 +156,10 @@ var dorian = require("./dorian");
     if (!params) {
       throw "Bad arguments (file '" + file + "' not found)";
     } else if (_.all(params.params, function (param) { return parsedArgs && !!parsedArgs[param]; })) {
-      addCall(this, fileFromHere, parsedArgs);
-      return this.filename(fileFromHere, parsedArgs, here_dst);
+      var call = addCall(this, fileFromHere, parsedArgs);
+      var filename = this.filename(fileFromHere, parsedArgs, here_dst);
+      addGeneratedRoute(this, filename, call, here_dst, fileFromHere, here_src);
+      return filename;
     } else {
       throw "Bad arguments (bad arguments " + JSON.stringify(args) + " for file '" + file + "')";
     }
