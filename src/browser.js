@@ -58,7 +58,7 @@ var Router = require("./router");
       sessionStorage.removeItem('ACCESS_TOKEN');
       conf.accessToken = undefined;
       dorian
-        .render(window, {conf: conf, notifyRendered: notifyRendered}, window)
+        .render(window, router, {conf: conf, notifyRendered: notifyRendered}, window)
         .done(undefined, function (err) {
           logger.error(err.message);
         });
@@ -78,7 +78,7 @@ var Router = require("./router");
     if(maybeUpdateButton) {
       maybeUpdateButton.addEventListener("change", function(e) {
         dorian
-          .render(window, {conf: conf, ref: e.target.value, notifyRendered: notifyRendered}, window)
+          .render(window, router, {conf: conf, ref: e.target.value, notifyRendered: notifyRendered}, window)
           .done(undefined, function (err) {
             logger.error(err.message);
           });
