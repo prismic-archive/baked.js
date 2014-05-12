@@ -126,7 +126,7 @@ var dorian = require("./dorian");
   }
 
   Router.prototype.urlToStatic = function (file, args, here_src, here_dst) {
-    var parsedArgs = args;
+    var parsedArgs = args || {};
     if (here_src) { here_src = here_src.replace(this.src_dir, ''); }
     if (here_dst) { here_dst = here_dst.replace(this.dst_dir, ''); }
     var fileFromHere = findFileFromHere(file, here_src);
