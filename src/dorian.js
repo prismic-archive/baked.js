@@ -38,7 +38,7 @@ var _ = require("lodash");
       escape: /\[%-([\s\S]+?)%\]/g,
       evaluate: /\[%([\s\S]+?)%\]/g,
       interpolate: /\[%=([\s\S]+?)%\]/g,
-    }).call(env, _.defaults(env, clean));
+    }).call(env, _.assign({}, clean, env));
   }
 
   function renderContent(global, content, env) {
