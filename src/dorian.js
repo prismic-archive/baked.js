@@ -47,11 +47,10 @@ var _ = require("lodash");
 
   function renderQuery(global, query, env) {
     var rx = /\$(([a-z][a-z0-9]*)|\{([a-z][a-z0-9]*)\})/ig;
-    var replaced = query.replace(rx, function (str, simple, complex) {
+    return query.replace(rx, function (str, simple, complex) {
       var variable = simple || complex;
       return env && env[variable] || '';
     }).replace(/\$\$/g, '$');
-    return renderTemplate(replaced, env, global);
   }
 
   function renderRoute(route, env) {
