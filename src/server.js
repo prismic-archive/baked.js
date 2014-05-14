@@ -6,7 +6,7 @@ var _ = require("lodash");
 var moment = require("moment");
 var winston = require('winston');
 
-var dorian = require("./dorian");
+var baked = require("./baked");
 var Router = require("./router");
 
 (function (global, undefined) {
@@ -58,7 +58,7 @@ var Router = require("./router");
             var scripts = window.document.querySelectorAll("script");
             _.each(scripts, function (script) {
               var src = script.getAttribute('src');
-              if (src && src.match(/^(.*\/)?dorian.js$/)) {
+              if (src && src.match(/^(.*\/)?baked.js$/)) {
                 script.parentNode.removeChild(script);
               }
             });
@@ -120,7 +120,7 @@ var Router = require("./router");
   function generateFile(name, src, content, args, dst, router, async) {
     return withWindow(content).then(function (window) {
       return logAndTime("render file '" + src + "' " + JSON.stringify(args), function () {
-        return dorian.render(window, router, {
+        return baked.render(window, router, {
           logger: logger,
           args: args,
           helpers: {url_to: router.urlToStaticCb(src, dst)}
@@ -265,7 +265,7 @@ var Router = require("./router");
           .ninvoke(fs, 'readFile', src, "utf8")
           .then(function (content) {
             var result = {};
-            result[src] = dorian.parseRoutingInfos(content);
+            result[src] = baked.parseRoutingInfos(content);
             return result;
           });
       } else {
@@ -381,7 +381,7 @@ var Router = require("./router");
         return renderStackedCalls(router, dst_static, async);
       });
   }).done(
-    function () { logger.info("cool cool cool"); },
+    function () { logger.info("Ne mangez pas trop vite"); },
     function (err) { logger.error(err.stack); }
   );
 

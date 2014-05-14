@@ -1,7 +1,7 @@
 var Q = require("q");
 var _ = require("lodash");
 
-var dorian = require("./dorian");
+var baked = require("./baked");
 
 (function (Global, undefined) {
   "use strict";
@@ -188,7 +188,7 @@ var dorian = require("./dorian");
     var params = getParamsFromFile(this, file);
     var path;
     if (params.route) {
-      path = dorian.renderRoute(params.route, args);
+      path = baked.renderRoute(params.route, args);
       if (!isGlobal(path)) {
         var dir = els(file, true);
         path = dir.concat(els(path)).join('/');

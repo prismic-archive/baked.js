@@ -1,11 +1,7 @@
 {
-  "name": "dorian",
-  "description": "A singlepage framework for prismic.io",
+  "name": "baked",
+  "description": "A singlepage static builder for prismic.io",
   "version": "0.0.1",
-  "main": "./lib/dorian",
-  "directories": {
-    "lib": "./lib"
-  },
   "engines": [
     "node >=0.5.0"
   ],

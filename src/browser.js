@@ -3,7 +3,7 @@ var ejs = require("ejs");
 var Q = require("q");
 var _ = require("lodash");
 
-var dorian = require("./dorian");
+var baked = require("./baked");
 var Router = require("./router");
 
 (function(window, undefined) {
@@ -13,8 +13,8 @@ var Router = require("./router");
   var router = Router.create({}, {logger: logger});
 
   function prepareConf() {
-    var routerInfos = dorian.parseRoutingInfos(window.document.head.innerHTML);
-    var conf = dorian.initConf(window, window, {
+    var routerInfos = baked.parseRoutingInfos(window.document.head.innerHTML);
+    var conf = baked.initConf(window, window, {
       logger: logger,
       helpers: {
         url_to: router.urlToDynCb()
@@ -57,7 +57,7 @@ var Router = require("./router");
     var signout = function() {
       sessionStorage.removeItem('ACCESS_TOKEN');
       conf.accessToken = undefined;
-      dorian
+      baked
         .render(window, router, {conf: conf, notifyRendered: notifyRendered}, window)
         .done(undefined, function (err) {
           logger.error(err.message);
@@ -77,7 +77,7 @@ var Router = require("./router");
     var maybeUpdateButton = document.querySelectorAll('[data-prismic-action="update"]')[0];
     if(maybeUpdateButton) {
       maybeUpdateButton.addEventListener("change", function(e) {
-        dorian
+        baked
           .render(window, router, {conf: conf, ref: e.target.value, notifyRendered: notifyRendered}, window)
           .done(undefined, function (err) {
             logger.error(err.message);
@@ -111,7 +111,7 @@ var Router = require("./router");
 
     var conf = window.prismicSinglePage;
     if (!conf) { window.prismicSinglePage = conf = prepareConf(); }
-    dorian.render(window, router, {conf: conf, notifyRendered: notifyRendered}, window)
+    baked.render(window, router, {conf: conf, notifyRendered: notifyRendered}, window)
       .fin(function() { HTML.style.display = ''; })
       .done(undefined, function (err) {
         logger.error(err.message);

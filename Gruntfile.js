@@ -10,7 +10,7 @@ module.exports = function(grunt) {
     browserify: {
       dist: {
         files: {
-          'build/<%= pkg.name %>.js': ['src/router.js', 'src/dorian.js', 'src/browser.js'],
+          'build/<%= pkg.name %>.js': ['src/router.js', 'src/baked.js', 'src/browser.js'],
         },
         options: {
           alias: ['./src/fake:canvas']
