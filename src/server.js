@@ -164,17 +164,26 @@ var Router = require("./router");
               .replace(/\.html$/, '')
               .replace(/^\//, '');
             var customDst = router.globalFilename(file, args);
-            return generateFile(name, src, content, args, customDst, router, ctx);
+            return saveTemplate(name, src, content, dst, ctx).then(function () {
+              return generateFile(name, src, content, args, customDst, router, ctx);
+            });
           } else if (args) {
             return generateFile(name, src, content, args, dst, router, ctx);
           } else {
-            return Q.fcall(function () { return; });
+            return saveTemplate(name, src, content, dst, ctx);
           }
         });
     }, ctx).catch(function (err) {
       ctx.logger.error(err.stack || err);
       return [];
     });
+  }
+
+  function saveTemplate(name, src, content, dst, ctx) {
+    var tmpl_dst = dst + ".tmpl";
+    return logAndTime("create template '" + src + "' => '" + tmpl_dst + "'", function () {
+      return copyFile(name, src, content, tmpl_dst, ctx);
+    }, ctx);
   }
 
   function renderFile(name, src, args, dst, router, ctx) {
