@@ -1,5 +1,4 @@
 var Prismic = require("prismic.io").Prismic;
-var ejs = require("ejs");
 var Q = require("q");
 var _ = require("lodash");
 
