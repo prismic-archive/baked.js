@@ -192,6 +192,9 @@ var baked = require("./baked");
       if (!isGlobal(path)) {
         var dir = els(file, true);
         path = dir.concat(els(path)).join('/');
+        if (!/\.html$/.test(path)) {
+          path += '.html';
+        }
       }
     } else {
       path = [file].concat(_.map(params.params, function (param) {
