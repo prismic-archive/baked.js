@@ -145,7 +145,7 @@ var Router = require("./router");
     });
   }
 
-  function copyFile(name, src, content, dst, router, ctx) {
+  function copyFile(name, src, content, dst, ctx) {
     return logAndTime("copy file '" + src + "' => '" + dst + "'", function () {
       return Q.ninvoke(fs, 'writeFile', dst, content, "utf8");
     }, ctx).thenResolve(dst);
@@ -157,7 +157,7 @@ var Router = require("./router");
         .ninvoke(fs, 'readFile', src, "utf8")
         .then(function (content) {
           if (!router.isTemplate(src)) {
-            return copyFile(name, src, content, dst, router, ctx);
+            return copyFile(name, src, content, dst, ctx);
           } else if (!router.isDynamic(src)) {
             var file = src
               .replace(router.src_dir, '')
