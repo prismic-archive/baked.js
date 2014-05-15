@@ -1,0 +1,157 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Baked.js by prismicio</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">Baked.js</h1>
+        <p class="header">A static website generator in JS, powerered by prismic.io</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/prismicio/baked.js/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/prismicio/baked.js/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/prismicio/baked.js">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/prismicio">prismicio</a></p>
+
+
+      </header>
+      <section>
+        <h2>
+<a name="install" class="anchor" href="#install"><span class="octicon octicon-link"></span></a>Install</h2>
+
+<p>To use it, you first need to install its dependencies</p>
+
+<div class="highlight highlight-sh"><pre>git clone https://github.com/prismicio/baked.js.git
+<span class="nb">cd </span>baked.js
+npm install
+</pre></div>
+
+<h2>
+<a name="use" class="anchor" href="#use"><span class="octicon octicon-link"></span></a>Use</h2>
+
+<p>Run baked.js with the command:</p>
+
+<div class="highlight highlight-sh"><pre>node src/server.js &lt;src_dir&gt; &lt;dest_dir&gt;
+</pre></div>
+
+<p>It displays a lot of informations, explaining what it's doing, which file it's trying to render, and describing errors that could occur.</p>
+
+<p><strong>Tips</strong>: you can use the <code>--no-async</code> argument to make the displayed informations more readable. It will run slower though.</p>
+
+<p>When it's finished, just copy the generated files into your favorite HTTP server (or you can open them directly in your browser if you like).</p>
+
+<h2>
+<a name="page-parameters" class="anchor" href="#page-parameters"><span class="octicon octicon-link"></span></a>Page parameters</h2>
+
+<p>Some pages (like articles of a blog) can be done by creating one file and specify parameter, like the ID of the article.</p>
+
+<p>The problem (that classic static generator engine haven't) is that these parameters are generally not known before parsing other pages. For instance the main blog page lists some articles (displays a preview) and give links to them. That's how we know that there are articles of these specific IDs.</p>
+
+<p>The reality is the opposite of what we could imagine: we need to know that a page is needed in order to be able to create it!</p>
+
+<p>First, add a <code>&lt;meta&gt;</code> tag per parameter in the page's header.</p>
+
+<div class="highlight highlight-html"><pre><span class="nt">&lt;meta</span> <span class="na">name=</span><span class="s">"prismic-routing-param"</span> <span class="na">content=</span><span class="s">"id"</span><span class="nt">&gt;</span>
+</pre></div>
+
+<p>Then use theses parameters in your query, by using the syntax <code>$name</code> or <code>${name}.</code>`</p>
+
+<div class="highlight highlight-html"><pre><span class="nt">&lt;script </span><span class="na">type=</span><span class="s">"text/prismic-query"</span> <span class="na">data-binding=</span><span class="s">"product"</span><span class="nt">&gt;</span>
+  <span class="p">[</span>
+    <span class="p">[</span><span class="o">:</span><span class="nx">d</span> <span class="o">=</span> <span class="nx">any</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span> <span class="p">[</span><span class="s2">"$id"</span><span class="p">])]</span>
+  <span class="p">]</span>
+<span class="nt">&lt;/script&gt;</span>
+</pre></div>
+
+<p>To create links to this page, use the helper <code>url_to</code>, and specify the file name (without the “.html” part) and the arguments.</p>
+
+<div class="highlight highlight-html"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"[%= url_to('product', {id: product.id}) %]"</span><span class="nt">&gt;</span>
+    [%= product.getText('product.name') %]
+<span class="nt">&lt;/a&gt;</span>
+</pre></div>
+
+<p><strong>Bonus</strong>: if your only argument is “<code>id</code>”, you can give it directly, without wrap it in a “<code>{id: "xxx"}</code>” structure.</p>
+
+<div class="highlight highlight-html"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"[%= url_to('product', product.id) %]"</span><span class="nt">&gt;</span>
+    [%= product.getText('product.name') %]
+<span class="nt">&lt;/a&gt;</span>
+</pre></div>
+
+<p>You can also use the helper without providing any argument.</p>
+
+<div class="highlight highlight-html"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"[%= url_to('index' %]"</span><span class="nt">&gt;</span>index<span class="nt">&lt;/a&gt;</span>
+</pre></div>
+
+<p><strong>Note</strong>: remember: if nobody call a page (using the <code>url_to</code> helper) it won't be generated.</p>
+
+<h3>
+<a name="custom-url" class="anchor" href="#custom-url"><span class="octicon octicon-link"></span></a>Custom URL</h3>
+
+<p>It is possible to customize the URL as well. To do so, just add a <code>&lt;meta&gt;</code> tag “<code>prismic-routing-pattern</code>” in your page's header.</p>
+
+<div class="highlight highlight-html"><pre><span class="nt">&lt;meta</span> <span class="na">name=</span><span class="s">"prismic-routing-pattern"</span> <span class="na">content=</span><span class="s">"product/$id"</span><span class="nt">&gt;</span>
+</pre></div>
+
+<p><strong>Warning</strong>: be sure to specify every routing params in the URL! If you don't, we can't guarantee that there won't be URL conflict.</p>
+
+<h2>
+<a name="dev-mode" class="anchor" href="#dev-mode"><span class="octicon octicon-link"></span></a>Dev mode</h2>
+
+<p>It's possible to directly open the sources file in your browser. The rendering lib will run as seen in the last blog article (+ the <code>url_to</code> helper is working).</p>
+
+<h2>
+<a name="internals" class="anchor" href="#internals"><span class="octicon octicon-link"></span></a>Internals</h2>
+
+<p>baked.js is built on top of <a href="nodejs.org">Node.js</a> and use <a href="https://github.com/andreasgal/dom.js/">dom.js</a> to emulate the DOM.</p>
+
+<p>It intensively uses <a href="https://github.com/kriskowal/q">Q</a> and <a href="http://lodash.com">lodash</a>, and let <a href="http://gruntjs.com/">Grunt</a> and <a href="browserify.org">browserify</a> handle the generation of the browser library.</p>
+
+<h2>
+<a name="notes" class="anchor" href="#notes"><span class="octicon octicon-link"></span></a>Notes</h2>
+
+<ul>
+<li>page in dev mode don't have the global map of exiting pages, so:
+
+<ul>
+<li>the page a URL <code>http://host/foo/bar.html</code> could be
+
+<ul>
+<li>the file <code>foo/bar.html</code> (if the generated files are put at the root of <code>host</code>)</li>
+<li>the file <code>bar.html</code> (if the generated files are put in the dir <code>foo</code> of <code>host</code>)</li>
+</ul>
+</li>
+<li>
+<code>url_to</code> have to be relative (how to link to a global file without knowning what is the origin point?)</li>
+<li>the custom routes can't be honored, even simple rename (how can we know which route should be used without reading the called file?)</li>
+</ul>
+</li>
+<li>the server build a DOM structure (using JSDOM) in order to navigate inside it, so:
+
+<ul>
+<li>The tags <code>&lt;% %&gt;</code> can't be used, because JSDOM doesn't like them</li>
+</ul>
+</li>
+</ul>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="http://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
+  </body>
+</html>
