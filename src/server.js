@@ -177,34 +177,16 @@ var Router = require("./router");
     });
   }
 
-  function renderDynamicFile(name, src, dst, router, async) {
-    return logAndTime("dynamic render file '" + src + "'", function () {
-      return Q
-        .ninvoke(fs, 'readFile', src, "utf8")
-        .then(function (content) {
-          return copyFile(name, src, content, dst, router, async);
-        });
-    }).catch(function (err) {
-      logger.error(err.stack || err);
-      return [];
-    });
-  }
-
-  function renderFile(name, src, args, dst_static, dst_dyn, router, async) {
+  function renderFile(name, src, args, dst_static, router, async) {
     var renders = [
       function () { return renderStaticFile(name, src, dst_static, args, router, async); }
     ];
-    if (dst_dyn) {
-      renders.push(
-        function () { return renderDynamicFile(name, src, dst_dyn, router, async); }
-      );
-    }
     return sequence(renders, function (f) { return f(); }, async);
   }
 
-  function renderDir(src_dir, dst_static_dir, dst_dyn_dir, router, async) {
+  function renderDir(src_dir, dst_static_dir, router, async) {
     return logAndTime("render dir '" + src_dir + "'", function () {
-      return createDirs([dst_static_dir, dst_dyn_dir], async)
+      return createDirs([dst_static_dir], async)
         .then(function () {
           return Q.ninvoke(fs, 'readdir', src_dir);
         })
@@ -212,14 +194,13 @@ var Router = require("./router");
           return sequence(names, function (name) {
             var src = src_dir + "/" + name;
             var dst_static = dst_static_dir + "/" + name;
-            var dst_dyn = dst_dyn_dir && dst_dyn_dir + "/" + name;
             return Q
               .ninvoke(fs, 'lstat', src)
               .then(function (stats) {
                 if (stats.isFile()) {
-                  return renderFile(name, src, null, dst_static, dst_dyn, router, async);
+                  return renderFile(name, src, null, dst_static, router, async);
                 } else if (stats.isDirectory()) {
-                  return renderDir(src, dst_static, dst_dyn, router, async);
+                  return renderDir(src, dst_static, router, async);
                 } else {
                   var typ;
                   if (stats.isBlockDevice()) { typ = "BlockDevice"; }
@@ -315,7 +296,7 @@ var Router = require("./router");
     var pwd = '/' + _.compact((process.env.PWD || '').split('/')).join('/') + '/';
     var name = _.first(process.argv, 2).join(' ').replace(pwd, '');
     var msg =
-      "usage: " + name + " [opts] <src> <dst static> <dst dynamic>\n" +
+      "usage: " + name + " [opts] <src> <dest>\n" +
       "\n" +
       "opts:\n" +
       "  --[no-]async    -- Run asynchronously (default: true)\n" +
@@ -333,7 +314,6 @@ var Router = require("./router");
   var debug = false;
   var src_dir;
   var dst_static;
-  var dst_dynamic;
   _.each(process.argv.slice(2), function (arg) {
     switch (arg) {
       case '--async' : async = true; break;
@@ -346,8 +326,6 @@ var Router = require("./router");
           src_dir = arg;
         } else if (!dst_static) {
           dst_static = arg;
-        } else if (!dst_dynamic) {
-          dst_dynamic = arg;
         } else {
           usage();
           die("Bad argument:" + arg);
@@ -369,12 +347,12 @@ var Router = require("./router");
   }
 
   return logAndTime("Generation", function () {
-    return createPaths([dst_static, dst_dynamic])
+    return createPaths([dst_static])
       .then(function () {
         return buildRouter(src_dir, dst_static);
       })
       .then(function (router) {
-        return renderDir(src_dir, dst_static, dst_dynamic, router, async)
+        return renderDir(src_dir, dst_static, router, async)
           .then(function () { return router; });
       })
       .then(function (router) {
