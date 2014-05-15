@@ -177,30 +177,30 @@ var Router = require("./router");
     });
   }
 
-  function renderFile(name, src, args, dst_static, router, async) {
+  function renderFile(name, src, args, dst, router, async) {
     var renders = [
-      function () { return renderStaticFile(name, src, dst_static, args, router, async); }
+      function () { return renderStaticFile(name, src, dst, args, router, async); }
     ];
     return sequence(renders, function (f) { return f(); }, async);
   }
 
-  function renderDir(src_dir, dst_static_dir, router, async) {
+  function renderDir(src_dir, dst_dir, router, async) {
     return logAndTime("render dir '" + src_dir + "'", function () {
-      return createDirs([dst_static_dir], async)
+      return createDirs([dst_dir], async)
         .then(function () {
           return Q.ninvoke(fs, 'readdir', src_dir);
         })
         .then(function (names) {
           return sequence(names, function (name) {
             var src = src_dir + "/" + name;
-            var dst_static = dst_static_dir + "/" + name;
+            var dst = dst_dir + "/" + name;
             return Q
               .ninvoke(fs, 'lstat', src)
               .then(function (stats) {
                 if (stats.isFile()) {
-                  return renderFile(name, src, null, dst_static, router, async);
+                  return renderFile(name, src, null, dst, router, async);
                 } else if (stats.isDirectory()) {
-                  return renderDir(src, dst_static, router, async);
+                  return renderDir(src, dst, router, async);
                 } else {
                   var typ;
                   if (stats.isBlockDevice()) { typ = "BlockDevice"; }
@@ -313,7 +313,7 @@ var Router = require("./router");
   var async = true;
   var debug = false;
   var src_dir;
-  var dst_static;
+  var dst_dir;
   _.each(process.argv.slice(2), function (arg) {
     switch (arg) {
       case '--async' : async = true; break;
@@ -324,8 +324,8 @@ var Router = require("./router");
       default :
         if (!src_dir) {
           src_dir = arg;
-        } else if (!dst_static) {
-          dst_static = arg;
+        } else if (!dst_dir) {
+          dst_dir = arg;
         } else {
           usage();
           die("Bad argument:" + arg);
@@ -336,7 +336,7 @@ var Router = require("./router");
   if (!src_dir) {
     die("Missing source dir", true);
   }
-  if (!dst_static) {
+  if (!dst_dir) {
     die("Missing static generation dir", true);
   }
 
@@ -347,16 +347,16 @@ var Router = require("./router");
   }
 
   return logAndTime("Generation", function () {
-    return createPaths([dst_static])
+    return createPaths([dst_dir])
       .then(function () {
-        return buildRouter(src_dir, dst_static);
+        return buildRouter(src_dir, dst_dir);
       })
       .then(function (router) {
-        return renderDir(src_dir, dst_static, router, async)
+        return renderDir(src_dir, dst_dir, router, async)
           .then(function () { return router; });
       })
       .then(function (router) {
-        return renderStackedCalls(router, dst_static, async);
+        return renderStackedCalls(router, dst_dir, async);
       });
   }).done(
     function () { logger.info("Ne mangez pas trop vite"); },
