@@ -21,6 +21,8 @@ function ReloadBaked() {
 
 var src_dir = 'to_generate';
 var dst_dir = 'generated';
+var build_dir = './build';
+var libName = 'baked.js';
 
 var baked = ReloadBaked();
 
@@ -32,12 +34,13 @@ gulp.task('generate:lib', function() {
         alias: ['./src/fake:canvas']
       }
     }))
-    .pipe(concat('baked.js'))
-    .pipe(gulp.dest('./build'));
+    .pipe(concat(libName))
+    .pipe(gulp.dest(build_dir));
 });
 
 gulp.task('generate:content', function () {
   baked.generate(src_dir, dst_dir, {async: true, debug: false});
+  gulp.src(build_dir + '/' + libName).pipe(gulp.dest(dst_dir));
 });
 
 gulp.task('generate:all', function () {
