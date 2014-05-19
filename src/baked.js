@@ -125,12 +125,19 @@ var _ = require("lodash");
             );
         }))
         .then(function (results) {
+          var env = _.assign({}, {
+            api: api,
+            bookmarks: api.bookmarks,
+            types: api.types,
+            tags: api.tags,
+            master: api.master.ref
+          }, conf.env);
           return _.reduce(results, function (documentSets, res) {
             if(res) {
               documentSets[res[0]] = res[1];
             }
             return documentSets;
-          }, conf.env || {});
+          }, env);
         }).then(function(documentSets) {
           documentSets.loggedIn = !!conf.accessToken;
           documentSets.refs = api.data.refs;
