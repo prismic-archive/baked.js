@@ -45,12 +45,18 @@ var _ = require("lodash");
     return renderTemplate(content, env, global);
   }
 
-  function renderQuery(global, query, env) {
+  function renderQuery(global, query, env, api) {
     env = env || {};
-    var rx = /(^|[^$])\$(([a-z][a-z0-9]*)|\{([a-z][a-z0-9]*)\})/ig;
-    return query.replace(rx, function (str, prev, _, simple, complex) {
-      return prev + (env[simple || complex] || '');
-    }).replace(/\$\$/g, '$');
+    var rxVar = /(^|[^$])\$(([a-z][a-z0-9]*)|\{([a-z][a-z0-9]*)\})/ig;
+    var rxBookmark = /(^|[^$])\$\{bookmarks(\.([-_a-zA-Z0-9]+)|\[(['"])([-_a-zA-Z0-9]+)\4\])\}/ig;
+    return query
+      .replace(rxVar, function (str, prev, _, simple, complex) {
+        return prev + (env[simple || complex] || '');
+      })
+      .replace(rxBookmark, function (str, prev, _1, bookmarkDot, _2, bookmarkBraket) {
+        return prev + (api.bookmarks[bookmarkDot || bookmarkBraket] || '');
+      })
+      .replace(/\$\$/g, '$');
   }
 
   function renderRoute(route, env) {
@@ -99,7 +105,9 @@ var _ = require("lodash");
       if (name) {
         _.assign(binding, {
           form: node.getAttribute("data-form") || 'everything',
-          predicates: renderQuery(global, node.textContent, conf.args)
+          render: function(api) {
+            return renderQuery(global, node.textContent, conf.args, api);
+          }
         });
         conf.bindings[name] = binding;
       }
@@ -129,7 +137,7 @@ var _ = require("lodash");
             return form.set(key, value);
           }, form);
           form
-            .query(binding.predicates)
+            .query(binding.render(api))
             .submit(deferred.makeNodeResolver());
           return deferred.promise
             .then(
