@@ -6,11 +6,6 @@ var baked = require("./baked");
 (function (Global, undefined) {
   "use strict";
 
-  function log(logger) {
-    var args = _.rest(arguments, 1);
-    if (logger) { logger.info.apply(logger, args); }
-  }
-
   function els(path, dir) {
     if (dir) {
       path = [''].concat(_.compact(path.split('/'))).join('/').replace(/\/[^\/]*$/, '');
@@ -27,7 +22,6 @@ var baked = require("./baked");
     this.src_dir = opts.src_dir;
     this.dst_dir = opts.dst_dir;
     this.calls = {};
-    this.logger = opts.logger;
     this.generatedRoutes = {};
   }
 
@@ -223,8 +217,24 @@ var baked = require("./baked");
     return this.globalFilename(call.file, call.args);
   };
 
-  function create(params, src_dir, logger) {
-    return new Router(params, src_dir, logger);
+  Router.prototype.routerInfosForFile = function (src, dst, args) {
+    return {
+      src: src.replace(this.src_dir, ''),
+      dst: dst.replace(this.dst_dir, ''),
+      args: args
+    };
+  };
+
+  Router.prototype.routerInfos = function () {
+    return {
+      params: _.transform(this.params, function (result, value, name) {
+        result[name.replace(this.src_dir, '')] = value;
+      }, null, this)
+    };
+  };
+
+  function create(params, src_dir) {
+    return new Router(params, src_dir);
   }
 
   Global.create = create;

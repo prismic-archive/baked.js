@@ -57,13 +57,6 @@ var Router = require("./router");
           if (err) {
             deferred.reject(err);
           } else {
-            var scripts = window.document.querySelectorAll("script");
-            _.each(scripts, function (script) {
-              var src = script.getAttribute('src');
-              if (src && src.match(/^(.*\/)?baked(-[.0-9]*)?.js$/)) {
-                script.parentNode.removeChild(script);
-              }
-            });
             deferred.resolve(window);
           }
         }
@@ -127,13 +120,10 @@ var Router = require("./router");
           args: args,
           helpers: {url_to: router.urlToStaticCb(src, dst)}
         }, global).then(function () {
-          var metas = window.document.querySelectorAll("meta");
-          _.each(metas, function (meta) {
-            var name = meta.getAttribute('name');
-            if (name && name.match(/^prismic-/)) {
-              meta.parentNode.removeChild(meta);
-            }
-          });
+          var script = window.document.createElement("script");
+          var routerInfos = router.routerInfosForFile(src, dst, args);
+          script.innerHTML = 'window.routerInfosForFile = ' + JSON.stringify(routerInfos) + ';';
+          window.document.body.appendChild(script);
         });
       }, ctx).then(function () {
         return logAndTime("generate file '" + src + "' => '" + dst + "'", function () {
@@ -301,6 +291,16 @@ var Router = require("./router");
     });
   }
 
+  function saveRouter(router, dir, ctx) {
+    var dst = dir + '/_router.json';
+    return logAndTime("Save router => '" + dst + "'", function () {
+      var content = JSON.stringify(router.routerInfos());
+      return Q.ninvoke(fs, 'writeFile', dst, content, "utf8");
+    }, ctx).then(function () {
+      return router;
+    });
+  }
+
   function run(src_dir, dst_dir, opts) {
     return Q.fcall(function () {
       var ctx = _.assign({logger: buildLogger()}, opts, {
@@ -319,7 +319,11 @@ var Router = require("./router");
               .then(function () { return router; });
           })
           .then(function (router) {
-            return renderStackedCalls(router, dst_dir, ctx);
+            return renderStackedCalls(router, dst_dir, ctx)
+              .thenResolve(router);
+          })
+          .then(function (router) {
+            return saveRouter(router, dst_dir, ctx);
           });
       }, ctx);
     }).done(
