@@ -16647,12 +16647,22 @@ var _ = require("lodash");
     conf.bindings = {};
     var queryScripts = document.querySelectorAll('script[type="text/prismic-query"]');
     _.each(queryScripts, function(node) {
+      var binding = {
+        params: {}
+      };
+      _.each(node.attributes, function (attr) {
+        var match = /^data-query-(.+)/.exec(attr.nodeName);
+        if (match) {
+          binding.params[match[1]] = attr.nodeValue;
+        }
+      });
       var name = node.getAttribute("data-binding");
       if (name) {
-        conf.bindings[name] = {
+        _.assign(binding, {
           form: node.getAttribute("data-form") || 'everything',
           predicates: renderQuery(global, node.textContent, conf.args)
-        };
+        });
+        conf.bindings[name] = binding;
       }
       node.parentNode.removeChild(node);
     });
@@ -16674,9 +16684,12 @@ var _ = require("lodash");
       return Q
         .all(_.map(conf.bindings, function(binding, name) {
           var deferred = Q.defer();
-          api
-            .form(binding.form)
-            .ref(maybeRef || api.master())
+          var form = api.form(binding.form);
+          form = form.ref(maybeRef || api.master());
+          form = _.reduce(binding.params, function (form, value, key) {
+            return form.set(key, value);
+          }, form);
+          form
             .query(binding.predicates)
             .submit(deferred.makeNodeResolver());
           return deferred.promise
@@ -16686,12 +16699,19 @@ var _ = require("lodash");
             );
         }))
         .then(function (results) {
+          var env = _.assign({}, {
+            api: api,
+            bookmarks: api.bookmarks,
+            types: api.types,
+            tags: api.tags,
+            master: api.master.ref
+          }, conf.env);
           return _.reduce(results, function (documentSets, res) {
             if(res) {
               documentSets[res[0]] = res[1];
             }
             return documentSets;
-          }, conf.env || {});
+          }, env);
         }).then(function(documentSets) {
           documentSets.loggedIn = !!conf.accessToken;
           documentSets.refs = api.data.refs;
