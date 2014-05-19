@@ -58,7 +58,7 @@ var Router = require("./router");
             var scripts = window.document.querySelectorAll("script");
             _.each(scripts, function (script) {
               var src = script.getAttribute('src');
-              if (src && src.match(/^(.*\/)?baked.js$/)) {
+              if (src && src.match(/^(.*\/)?baked(-[.0-9]*)?.js$/)) {
                 script.parentNode.removeChild(script);
               }
             });
