@@ -8,6 +8,8 @@
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-browserify": "~2.0.7",
+    "grunt-http-server": "~0.0.5",
+    "http-server": "~0.6.1",
     "jsdom": "~0.10.5",
     "lodash": "~2.4.1",
     "moment": "~2.6.0",

@@ -16,13 +16,29 @@ module.exports = function(grunt) {
           alias: ['./src/fake:canvas']
         }
       }
+    },
+
+    'http-server': {
+      dev: {
+        // the server root directory
+        root: 'generated',
+        port: 8282,
+        host: "127.0.0.1",
+        cache: -1,
+        showDir : true,
+        autoIndex: true,
+        defaultExt: "html",
+        // run in parallel with other tasks
+        runInBackground: false
+      }
     }
 
   });
 
   grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-http-server');
 
   // Default task.
-  grunt.registerTask('default', ['browserify']);
+  grunt.registerTask('default', ['browserify', 'http-server:dev']);
 
 };
