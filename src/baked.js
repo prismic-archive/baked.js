@@ -46,10 +46,10 @@ var _ = require("lodash");
   }
 
   function renderQuery(global, query, env) {
-    var rx = /\$(([a-z][a-z0-9]*)|\{([a-z][a-z0-9]*)\})/ig;
-    return query.replace(rx, function (str, simple, complex) {
-      var variable = simple || complex;
-      return env && env[variable] || '';
+    env = env || {};
+    var rx = /(^|[^$])\$(([a-z][a-z0-9]*)|\{([a-z][a-z0-9]*)\})/ig;
+    return query.replace(rx, function (str, prev, _, simple, complex) {
+      return prev + (env[simple || complex] || '');
     }).replace(/\$\$/g, '$');
   }
 
