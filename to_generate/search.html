@@ -16,7 +16,7 @@
   </head>
   <body>
 
-    <script type="text/prismic-query" data-binding="featuredProducts">
+    <script type="text/prismic-query" data-binding="featuredProducts" data-query-orderings="[my.product.name]">
       [
         [:d = any(document.type, ["$typ"])]
         [:d = at(document.tags, ["$tag"])]
