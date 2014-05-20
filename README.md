@@ -147,7 +147,7 @@ It's possible to directly open the sources file in your browser. The rendering l
 
 baked.js is built on top of [Node.js](nodejs.org) and use [dom.js](https://github.com/andreasgal/dom.js/) to emulate the DOM.
 
-It uses [Q](https://github.com/kriskowal/q) and [lodash](http://lodash.com), and let [Grunt](http://gruntjs.com/) and [browserify](browserify.org) handle the generation of the browser library.
+It uses [Q](https://github.com/kriskowal/q) and [lodash](http://lodash.com), and let [Gulp](gulpjs.com) and [browserify](browserify.org) handle the generation of the browser library.
 
 ## Notes
 

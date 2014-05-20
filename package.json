@@ -6,16 +6,18 @@
     "node >=0.5.0"
   ],
   "devDependencies": {
-    "grunt": "~0.4.1",
-    "grunt-browserify": "~2.0.7",
-    "grunt-http-server": "~0.0.5",
+    "ecstatic": "~0.5.3",
+    "gulp": "~3.6.2",
+    "gulp-browserify": "~0.5.0",
+    "gulp-concat": "~2.2.0",
+    "gulp-watch": "~0.6.4",
     "http-server": "~0.6.1",
     "jsdom": "~0.10.5",
     "lodash": "~2.4.1",
     "moment": "~2.6.0",
     "prismic.io": "~1.0.9",
     "q": "~1.0.1",
-    "winston": "^0.7.3"
+    "winston": "~0.7.3"
   },
   "scripts": {
     "start": "node src/server.js"
