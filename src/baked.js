@@ -83,11 +83,6 @@ var _ = require("lodash");
       conf.logger.error('Please define your api endpoint in the <head> element. For example: <meta name="prismic-api" content="https://lesbonneschoses.prismic.io/api">'); return;
     }
 
-    // OAuth client id (optional)
-    try {
-      conf.clientId = document.querySelectorAll('head meta[name="prismic-oauth-client-id"]')[0].content;
-    } catch(e) {}
-
     // Extract the bindings
     conf.bindings = {};
     var queryScripts = document.querySelectorAll('script[type="text/prismic-query"]');
@@ -160,7 +155,6 @@ var _ = require("lodash");
             return documentSets;
           }, env);
         }).then(function(documentSets) {
-          documentSets.loggedIn = !!conf.accessToken;
           documentSets.refs = api.data.refs;
           documentSets.ref = maybeRef || api.master();
 
