@@ -8,7 +8,8 @@ A static website generator in JS, powerered by prismic.io.
 - at the root of the project:
 - put your files into `/to_generate/`
 - clean `/generated/`
-- `node src/server.js`
+- (run `npm install` if needed)
+- `node src/server.js to_generate/ generated/`
 	- ⇒ generate the static files into `/generated/static/`
 	- you can add options `--debug --no-async` to make it easier to debug
 - `grunt`
