@@ -168,7 +168,8 @@ var baked = require("./baked");
   Router.prototype.urlToStaticCb = function (here_src, here_dst) {
     var _this = this;
     return function (file, args) {
-      return _this.urlToStatic(file, args, here_src, here_dst);
+      var url = _this.urlToStatic(file, args, here_src, here_dst);
+      return url.replace(/index\.html$/, '');
     };
   };
 
@@ -192,14 +193,16 @@ var baked = require("./baked");
       if (!isGlobal(path)) {
         var dir = els(file, true);
         path = dir.concat(els(path)).join('/');
-        if (!/\.html$/.test(path)) {
-          path += '.html';
-        }
       }
     } else {
       path = [file].concat(_.map(params.params, function (param) {
         return args[param];
-      })).join("/") + ".html";
+      })).join("/");
+    }
+    if (/(^|\/)index(\.html)?$/.test(path)) {
+      path += ".html";
+    } else if (!/\.html$/.test(path)) {
+      path += "/index.html";
     }
     var diff = pathDiff(
       els(here || '', true),
