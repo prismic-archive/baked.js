@@ -145,7 +145,8 @@ var _ = require("lodash");
             api: api,
             bookmarks: api.bookmarks,
             types: api.types,
-            tags: api.tags,
+            refs: api.data.refs,
+            tags: api.data.tags,
             master: api.master.ref
           }, conf.env);
           return _.reduce(results, function (documentSets, res) {
@@ -155,7 +156,6 @@ var _ = require("lodash");
             return documentSets;
           }, env);
         }).then(function(documentSets) {
-          documentSets.refs = api.data.refs;
           documentSets.ref = maybeRef || api.master();
 
           _.extend(documentSets, defaultHelpers);
