@@ -113,11 +113,17 @@ var baked = require("./baked");
   function findFileFromHere(file, here) {
     var fileEls = els(file);
     var hereEls = els(here, true);
-    while (_.first(fileEls) == '..') {
-      fileEls.shift();
-      hereEls.pop();
+    if (/^\//.test(file)) {
+      hereEls = [];
     }
-    return hereEls.concat(fileEls).join('/');
+    _.each(fileEls, function (dir) {
+      if (dir == '..') {
+        hereEls.pop();
+      } else {
+        hereEls.push(dir);
+      }
+    });
+    return hereEls.join('/');
   }
 
   function addGeneratedRoute(router, relativePath, call, here, file, here_src) {
