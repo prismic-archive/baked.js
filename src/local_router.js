@@ -22,6 +22,10 @@ var Router = require('./router');
     return this.localParams().route;
   };
 
+  LocalRouter.prototype.getFileFromHere = function(file) {
+    return Router.findFileFromHere(file, this.localInfos.src);
+  };
+
   function create(localInfos, router) {
     return new LocalRouter(localInfos, router);
   }

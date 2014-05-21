@@ -172,7 +172,10 @@ var Router = require("./router");
   function saveTemplate(name, src, content, dst, ctx) {
     var tmpl_dst = dst + ".tmpl";
     return logAndTime("create template '" + src + "' => '" + tmpl_dst + "'", function () {
-      return copyFile(name, src, content, tmpl_dst, ctx);
+      return withWindow(content)
+        .then(function (window) {
+          return copyFile(name, src, window.document.body.innerHTML, tmpl_dst, ctx);
+        });
     }, ctx);
   }
 

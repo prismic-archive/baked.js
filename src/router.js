@@ -244,5 +244,6 @@ var baked = require("./baked");
   }
 
   Global.create = create;
+  Global.findFileFromHere = findFileFromHere;
 
 }(typeof exports === 'object' && exports ? exports : (typeof module === "object" && module && typeof module.exports === "object" ? module.exports : window)));

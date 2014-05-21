@@ -9,6 +9,7 @@ var LocalRouter = require("./local_router");
 (function(window, undefined) {
   "use strict";
 
+  if (_.isEmpty(location.search)) return;
 
   function prepareConf(localRouter) {
     var queryArgs = getArgs(baked.parseRoutingInfos(window.document.head.innerHTML));
@@ -40,7 +41,7 @@ var LocalRouter = require("./local_router");
   }
 
   function buildNotifyRendered(router) {
-    function notifyRendered(window, conf, maybeRef) {
+    function notifyRendered(window, maybeRef) {
       var document = window.document;
 
       var e = document.createEvent("HTMLEvents");
@@ -86,29 +87,60 @@ var LocalRouter = require("./local_router");
         });
     }
 
-    function getTemplate(localRouter) {
-      var templateURL = localRouter.localInfos.src + '.tmpl';
+    function getTemplate(localRouter, file) {
+      console.log("getTemplate(", file, ")");
+      var templateURL = (file || localRouter.localInfos.src) + '.tmpl';
       return ajax({url: templateURL}).then(function (response) {
         return response.responseText;
       });
     }
 
+    function loadPage(localRouter, file) {
+      console.log("loadPage(", file, ")");
+      var template_src;
+      if (file) {
+        template_src = '/' + localRouter.getFileFromHere(file);
+      }
+      return getTemplate(localRouter, template_src)
+        .then(function (template) {
+          return generateContent(template, localRouter);
+        });
+    }
+
+    function generateContent(content, localRouter) {
+      HTML.style.display = 'none';
+      document.body.innerHTML = content;
+      var conf = prepareConf(localRouter);
+      return baked.render(window, localRouter.router, {conf: conf, notifyRendered: buildNotifyRendered(localRouter.router)}, window)
+        .then(function () {
+          listen(localRouter);
+        })
+        .fin(function () {
+          HTML.style.display = '';
+        });
+    }
+
+    function listen(localRouter) {
+      var body = window.document.body;
+      var listener = function (e) {
+        if (e.target.nodeName == 'A') {
+          var href = e.target.getAttribute('href');
+          if (!/http:\/\//.test(href)) {
+            e.preventDefault();
+            loadPage(localRouter, href)
+              .done(
+                function () { body.removeEventListener('click', listener); },
+                function (err) { console.log.error(err.message); }
+              );
+          }
+        }
+      };
+      body.addEventListener('click', listener);
+    }
+
     buildRouter()
       .then(function (localRouter) {
-        return getTemplate(localRouter).then(function (content) {
-          if (!_.isEmpty(location.search)) {
-            HTML.style.display = 'none';
-            document.body.innerHTML = content;
-          }
-        }).then(function () {
-          var conf = window.prismicSinglePage;
-          if (!conf) { window.prismicSinglePage = conf = prepareConf(localRouter); }
-          return baked.render(window, localRouter.router, {conf: conf, notifyRendered: buildNotifyRendered(localRouter.router)}, window)
-            .fin(function() { HTML.style.display = ''; });
-        });
-      })
-      .fin(function () {
-        HTML.style.display = '';
+        return loadPage(localRouter);
       })
       .done(undefined, function (err) {
         console.log.error(err.message);
