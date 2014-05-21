@@ -7,12 +7,25 @@ var watch = require('gulp-watch');
 
 var ecstatic = require('ecstatic');
 
-var baked = require('./src/server');
+var _ = require('lodash');
+
+function ReloadBaked() {
+  require('./ext/starts_with');
+  _.each(require.cache, function (value, key) {
+    if (key.startsWith(__dirname + '/src')) {
+      delete require.cache[key];
+    }
+  });
+  return require('./src/server');
+}
 
 var src_dir = 'to_generate';
 var dst_dir = 'generated';
 
+var baked = ReloadBaked();
+
 gulp.task('generate:lib', function() {
+  baked = ReloadBaked();
   gulp.src('src/browser.js')
     .pipe(browserify({
       options: {
