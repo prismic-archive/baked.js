@@ -30,7 +30,12 @@
 
       </header>
       <section>
-        <h2>
+        <h1>
+<a name="bakedjs" class="anchor" href="#bakedjs"><span class="octicon octicon-link"></span></a>baked.js</h1>
+
+<p>baked.js is a static website generator, using Node.js, which embed an updated version of the precedent JS script.</p>
+
+<h2>
 <a name="install" class="anchor" href="#install"><span class="octicon octicon-link"></span></a>Install</h2>
 
 <p>To use it, you first need to install its dependencies</p>
@@ -43,32 +48,114 @@ npm install
 <h2>
 <a name="use" class="anchor" href="#use"><span class="octicon octicon-link"></span></a>Use</h2>
 
+<h3>
+<a name="single-generation" class="anchor" href="#single-generation"><span class="octicon octicon-link"></span></a>Single generation</h3>
+
 <p>Run baked.js with the command:</p>
 
-<div class="highlight highlight-sh"><pre>node src/server.js &lt;src_dir&gt; &lt;dest_dir&gt;
+<div class="highlight highlight-sh"><pre>node generate.js &lt;src_dir&gt; &lt;dst_dir&gt;
 </pre></div>
 
-<p>It displays a lot of informations, explaining what it's doing, which file it's trying to render, and describing errors that could occur.</p>
+<p>It displays a lot of informations, explaining what it's doing, which file it's trying to render, and logs errors that occur.</p>
 
 <p><strong>Tips</strong>: you can use the <code>--no-async</code> argument to make the displayed informations more readable. It will run slower though.</p>
 
-<p>When it's finished, just copy the generated files into your favorite HTTP server (or you can open them directly in your browser if you like).</p>
+<p>When it's finished, just copy the generated files into your favorite HTTP server (you can open them directly in your browser if you wish).</p>
+
+<h3>
+<a name="gulp-task" class="anchor" href="#gulp-task"><span class="octicon octicon-link"></span></a>Gulp task</h3>
+
+<p>You can let Gulp handle the generation for you by running</p>
+
+<div class="highlight highlight-sh"><pre>gulp
+</pre></div>
+
+<p>It will:</p>
+
+<ul>
+<li>generate all files from <code>to_generate/</code> into <code>generated/</code>
+</li>
+<li>start an HTTP server which serves the generated files</li>
+<li>watch modification on your sources (and the baked.js sources) and re-generate on every changes</li>
+</ul><p>Directories and options can be changed in the <code>gulpfile.js</code> file.</p>
+
+<h2>
+<a name="template" class="anchor" href="#template"><span class="octicon octicon-link"></span></a>Template</h2>
+
+<p>Lodash's template can be used, with syntax “<code>[% %]</code>” (and “<code>[%= %]</code>”, “<code>[%- %]</code>”).</p>
+
+<p>Here are the variables passed to the template:</p>
+
+<ul>
+<li>
+<code>_</code>: Lodash</li>
+<li>
+<code>api</code>: The main API object</li>
+<li>
+<code>bookmarks</code>: The bookmarks list</li>
+<li>
+<code>ref</code>: The current ref</li>
+<li>
+<code>refs</code>: The refs list</li>
+<li>
+<code>types</code>: The types list</li>
+<li>
+<code>tags</code>: The tags list</li>
+<li>
+<code>master</code>: The master ref</li>
+</ul><div class="highlight highlight-html"><pre>[% _.each(tags, function (tag) { %]
+  <span class="nt">&lt;span&gt;</span>[%= tag %]<span class="nt">&lt;/span&gt;</span>
+[% }) %]
+</pre></div>
+
+<h2>
+<a name="queries" class="anchor" href="#queries"><span class="octicon octicon-link"></span></a>Queries</h2>
+
+<p>Queries (to prismic.io repositories) can be written directly in the template, using specify <code>&lt;script&gt;</code> tags (with <code>type="text/prismic-query"</code>).</p>
+
+<p>The documents returned by the queries are passed to the templated through the variable whose name is specified with <code>data-binding</code> attribute.</p>
+
+<p>Pagination related parameters can be specified using <code>data-query-&lt;name&gt;</code> syntax.</p>
+
+<div class="highlight highlight-html"><pre><span class="nt">&lt;script </span><span class="na">type=</span><span class="s">"text/prismic-query"</span> <span class="na">data-binding=</span><span class="s">"product"</span> <span class="na">data-query-orderings=</span><span class="s">"[my.product.name]"</span><span class="nt">&gt;</span>
+  <span class="p">[</span>
+    <span class="p">[</span><span class="o">:</span><span class="nx">d</span> <span class="o">=</span> <span class="nx">any</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">type</span><span class="p">,</span> <span class="p">[</span><span class="s2">"product"</span><span class="p">])]</span>
+    <span class="p">[</span><span class="o">:</span><span class="nx">d</span> <span class="o">=</span> <span class="nx">at</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">tags</span><span class="p">,</span> <span class="p">[</span><span class="s2">"Featured"</span><span class="p">])]</span>
+  <span class="p">]</span>
+<span class="nt">&lt;/script&gt;</span>
+
+<span class="nt">&lt;h1&gt;</span>[%= featuredProducts.length %] featured products:<span class="nt">&lt;/h1&gt;</span>
+[% _.each(featuredProducts, function(product) { %]
+  <span class="nt">&lt;div&gt;</span>
+    <span class="nt">&lt;h2&gt;</span>[%= product.getText('product.name') %]<span class="nt">&lt;/h2&gt;</span>
+    <span class="nt">&lt;img</span> <span class="na">data-src=</span><span class="s">"[%= product.getImageView('product.image', 'icon').url %]"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+[% }) %]
+</pre></div>
+
+<h2>
+<a name="links" class="anchor" href="#links"><span class="octicon octicon-link"></span></a>Links</h2>
+
+<p>To create links to an other generated page, use the helper <code>url_to</code>, and specify the file name (without the “.html” part).</p>
+
+<div class="highlight highlight-html"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"[%= url_to('search') %]"</span><span class="nt">&gt;</span>[%= product.getText('product.name') %]<span class="nt">&lt;/a&gt;</span>
+</pre></div>
 
 <h2>
 <a name="page-parameters" class="anchor" href="#page-parameters"><span class="octicon octicon-link"></span></a>Page parameters</h2>
 
-<p>Some pages (like articles of a blog) can be done by creating one file and specify parameter, like the ID of the article.</p>
+<p>Some pages (like articles of a blog) can have dynamically generated URL. This can be done by creating one file and specify parameter, like the ID of the article.</p>
 
-<p>The problem (that classic static generator engine haven't) is that these parameters are generally not known before parsing other pages. For instance the main blog page lists some articles (displays a preview) and give links to them. That's how we know that there are articles of these specific IDs.</p>
+<p>The problem is that these parameters are generally not known before parsing other pages linking to them. For instance the main blog page lists some articles (displaying previews) and gives links to the full article pages. That's how we know that there are articles of these specific IDs.</p>
 
-<p>The reality is the opposite of what we could imagine: we need to know that a page is needed in order to be able to create it!</p>
+<p>In baked.js, we use linking pages to infer that there are articles to be generated with these specific IDs. In short, we need to know that a page is needed in order to be able to create it!</p>
 
 <p>First, add a <code>&lt;meta&gt;</code> tag per parameter in the page's header.</p>
 
 <div class="highlight highlight-html"><pre><span class="nt">&lt;meta</span> <span class="na">name=</span><span class="s">"prismic-routing-param"</span> <span class="na">content=</span><span class="s">"id"</span><span class="nt">&gt;</span>
 </pre></div>
 
-<p>Then use theses parameters in your query, by using the syntax <code>$name</code> or <code>${name}.</code>`</p>
+<p>Then use these parameters in your query, by using the syntax <code>$name</code> or <code>${name}.</code></p>
 
 <div class="highlight highlight-html"><pre><span class="nt">&lt;script </span><span class="na">type=</span><span class="s">"text/prismic-query"</span> <span class="na">data-binding=</span><span class="s">"product"</span><span class="nt">&gt;</span>
   <span class="p">[</span>
@@ -77,14 +164,14 @@ npm install
 <span class="nt">&lt;/script&gt;</span>
 </pre></div>
 
-<p>To create links to this page, use the helper <code>url_to</code>, and specify the file name (without the “.html” part) and the arguments.</p>
+<p>To create links to the above page, use the helper <code>url_to</code>, and specify the arguments.</p>
 
 <div class="highlight highlight-html"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"[%= url_to('product', {id: product.id}) %]"</span><span class="nt">&gt;</span>
     [%= product.getText('product.name') %]
 <span class="nt">&lt;/a&gt;</span>
 </pre></div>
 
-<p><strong>Bonus</strong>: if your only argument is “<code>id</code>”, you can give it directly, without wrap it in a “<code>{id: "xxx"}</code>” structure.</p>
+<p><strong>Bonus</strong>: if your only argument is “<code>id</code>”, you can give it directly, without wraping it in a “<code>{id: "xxx"}</code>” structure.</p>
 
 <div class="highlight highlight-html"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"[%= url_to('product', product.id) %]"</span><span class="nt">&gt;</span>
     [%= product.getText('product.name') %]
@@ -118,7 +205,7 @@ npm install
 
 <p>baked.js is built on top of <a href="nodejs.org">Node.js</a> and use <a href="https://github.com/andreasgal/dom.js/">dom.js</a> to emulate the DOM.</p>
 
-<p>It intensively uses <a href="https://github.com/kriskowal/q">Q</a> and <a href="http://lodash.com">lodash</a>, and let <a href="http://gruntjs.com/">Grunt</a> and <a href="browserify.org">browserify</a> handle the generation of the browser library.</p>
+<p>It uses <a href="https://github.com/kriskowal/q">Q</a> and <a href="http://lodash.com">lodash</a>, and let <a href="gulpjs.com">Gulp</a> and <a href="browserify.org">browserify</a> handle the generation of the browser library.</p>
 
 <h2>
 <a name="notes" class="anchor" href="#notes"><span class="octicon octicon-link"></span></a>Notes</h2>
@@ -137,6 +224,8 @@ npm install
 <li>
 <code>url_to</code> have to be relative (how to link to a global file without knowning what is the origin point?)</li>
 <li>the custom routes can't be honored, even simple rename (how can we know which route should be used without reading the called file?)</li>
+<li>⇒ <strong>⚠ we're working to fix these points</strong>
+</li>
 </ul>
 </li>
 <li>the server build a DOM structure (using JSDOM) in order to navigate inside it, so:
@@ -145,13 +234,22 @@ npm install
 <li>The tags <code>&lt;% %&gt;</code> can't be used, because JSDOM doesn't like them</li>
 </ul>
 </li>
-</ul>
+</ul><h3>
+<a name="licence" class="anchor" href="#licence"><span class="octicon octicon-link"></span></a>Licence</h3>
+
+<p>This software is licensed under the Apache 2 license, quoted below.</p>
+
+<p>Copyright 2013 Zengularity (<a href="http://www.zengularity.com">http://www.zengularity.com</a>).</p>
+
+<p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this project except in compliance with the License. You may obtain a copy of the License at <a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a>.</p>
+
+<p>Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.</p>
       </section>
       <footer>
         <p><small>Hosted on <a href="http://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
       </footer>
     </div>
     <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-		
+
   </body>
 </html>
