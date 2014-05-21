@@ -322,3 +322,7 @@ var Router = require("./router");
   exports.generate = run;
 
 }(global));
+
+if (require.main === module) {
+  console.error("Runner has been changed: use `gulp` or `node generate.js <src> <dst>`");
+}
