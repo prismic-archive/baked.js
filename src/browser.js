@@ -9,7 +9,6 @@ var LocalRouter = require("./local_router");
 (function(window, undefined) {
   "use strict";
 
-  var logger = window.console;
 
   function prepareConf(localRouter) {
     var queryArgs = getArgs(baked.parseRoutingInfos(window.document.head.innerHTML));
@@ -18,7 +17,7 @@ var LocalRouter = require("./local_router");
       return _.isEmpty(cur) ? prev : cur;
     });
     var conf = baked.initConf(window, window, {
-      logger: logger,
+      logger: console,
       helpers: {
         url_to: localRouter.router.urlToDynCb()
       },
@@ -80,7 +79,7 @@ var LocalRouter = require("./local_router");
       return ajax({url: '/_router.json' })
         .then(function (response) {
           var routerInfos = JSON.parse(response.responseText);
-          var router = Router.create(routerInfos.params, {logger: logger});
+          var router = Router.create(routerInfos.params, {logger: console});
           var routerInfosForFile = window.routerInfosForFile;
           var localRouter = LocalRouter.create(routerInfosForFile, router);
           return localRouter;
@@ -112,7 +111,7 @@ var LocalRouter = require("./local_router");
         HTML.style.display = '';
       })
       .done(undefined, function (err) {
-        logger.error(err.message);
+        console.log.error(err.message);
       });
 
   });

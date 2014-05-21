@@ -173,7 +173,6 @@ It uses [Q](https://github.com/kriskowal/q) and [lodash](http://lodash.com), and
 	- the page a URL `http://host/foo/bar.html` could be
 		- the file `foo/bar.html` (if the generated files are put at the root of `host`)
 		- the file `bar.html` (if the generated files are put in the dir `foo` of `host`)
-	- `url_to` have to be relative (how to link to a global file without knowning what is the origin point?)
 	- the custom routes can't be honored, even simple rename (how can we know which route should be used without reading the called file?)
     - ⇒ **⚠ we're working to fix these points**
 - the server build a DOM structure (using JSDOM) in order to navigate inside it, so:
