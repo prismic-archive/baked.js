@@ -15,6 +15,8 @@ npm install
 
 ## Use
 
+### Single generation
+
 Run baked.js with the command:
 
 ```sh
@@ -26,6 +28,22 @@ It displays a lot of informations, explaining what it's doing, which file it's t
 **Tips**: you can use the `--no-async` argument to make the displayed informations more readable. It will run slower though.
 
 When it's finished, just copy the generated files into your favorite HTTP server (you can open them directly in your browser if you wish).
+
+### Gulp task
+
+You can let Gulp handle the generation for you by running
+
+```sh
+gulp
+```
+
+It will:
+
+- generate all files from `to_generate/` into `generated/`
+- start an HTTP server which serves the generated files
+- watch modification on your sources (and the baked.js sources) and re-generate on every changes
+
+Directories and options can be changed in the `gulpfile.js` file.
 
 ## Template
 

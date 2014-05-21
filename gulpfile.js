@@ -7,9 +7,12 @@ var watch = require('gulp-watch');
 
 var ecstatic = require('ecstatic');
 
+var baked = require('./src/server');
+
+var src_dir = 'to_generate';
 var dst_dir = 'generated';
 
-gulp.task('generate', function() {
+gulp.task('generate:lib', function() {
   gulp.src('src/browser.js')
     .pipe(browserify({
       options: {
@@ -18,6 +21,15 @@ gulp.task('generate', function() {
     }))
     .pipe(concat('baked.js'))
     .pipe(gulp.dest('./build'));
+});
+
+gulp.task('generate:content', function () {
+  baked.generate(src_dir, dst_dir, {async: true, debug: false});
+});
+
+gulp.task('generate:all', function () {
+  gulp.start('generate:lib');
+  gulp.start('generate:content');
 });
 
 gulp.task('serve', function() {
@@ -32,9 +44,10 @@ gulp.task('serve', function() {
 });
 
 gulp.task('default', function () {
-  gulp.start('generate');
+  gulp.start('generate:all');
   gulp.start('serve');
-  gulp.watch('src/**/*.js', ['generate']);
+  gulp.watch('src/**/*.js', ['generate:all']);
+  gulp.watch(src_dir + '/**/*', ['generate:content']);
 });
 
 
