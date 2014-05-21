@@ -12,30 +12,32 @@ var Router = require("./router");
 (function (global, undefined) {
   "use strict";
 
-  var logger = new (winston.Logger)({
-    transports: [
-      new (winston.transports.Console)({
-        json: false,
-        timestamp: true,
-        level: 'debug',
-        colorize: true
-      })
-    ],
-    exceptionHandlers: [
-      new (winston.transports.Console)({json: false, timestamp: true})
-    ],
-    exitOnError: false
-  });
+  function buildLogger() {
+    return new (winston.Logger)({
+      transports: [
+        new (winston.transports.Console)({
+          json: false,
+          timestamp: true,
+          level: 'debug',
+          colorize: true
+        })
+      ],
+      exceptionHandlers: [
+        new (winston.transports.Console)({json: false, timestamp: true})
+      ],
+      exitOnError: false
+    });
+  }
 
-  function sequence(arr, fn, async) {
-    if (async) {
+  function sequence(arr, fn, ctx) {
+    if (ctx.async) {
       return Q.all(_.map(arr, fn));
     } else {
       if (arr.length === 0) {
         return Q.fcall(function () { return []; });
       } else {
         return Q.fcall(fn, arr[0]).then(function (result) {
-          return sequence(arr.slice(1), fn, async).then(function (results) {
+          return sequence(arr.slice(1), fn, ctx).then(function (results) {
             return [result].concat(results);
           });
         });
@@ -77,11 +79,11 @@ var Router = require("./router");
       });
   }
 
-  function createDirs(dirs, async) {
-    return sequence(_.compact(dirs), createDir, async);
+  function createDirs(dirs, ctx) {
+    return sequence(_.compact(dirs), createDir, ctx);
   }
 
-  function createPath(dir, async) {
+  function createPath(dir) {
     var split = _.initial(dir.split("/"));
     function loop(toCreate, created) {
       if (_.isEmpty(toCreate)) {
@@ -95,33 +97,33 @@ var Router = require("./router");
     return loop(split);
   }
 
-  function createPaths(dirs, async) {
-    return sequence(_.compact(dirs), createPath, async);
+  function createPaths(dirs, ctx) {
+    return sequence(_.compact(dirs), createPath, ctx);
   }
 
-  function logAndTime(name, fn) {
+  function logAndTime(name, fn, ctx) {
     var start = moment();
     function diff() { return moment().diff(start); }
-    logger.info(name + " ...");
+    ctx.logger.info(name + " ...");
     return Q
       .fcall(fn)
       .then(
         function (res) {
-          logger.info(name + " ... OK [" + diff() +"ms]");
+          ctx.logger.info(name + " ... OK [" + diff() +"ms]");
           return res;
         },
         function (err) {
-          logger.error(name + " ... ERROR [" + diff() +"ms]");
+          ctx.logger.error(name + " ... ERROR [" + diff() +"ms]");
           throw err;
         }
       );
   }
 
-  function generateFile(name, src, content, args, dst, router, async) {
+  function generateFile(name, src, content, args, dst, router, ctx) {
     return withWindow(content).then(function (window) {
       return logAndTime("render file '" + src + "' " + JSON.stringify(args), function () {
         return baked.render(window, router, {
-          logger: logger,
+          logger: ctx.logger,
           args: args,
           helpers: {url_to: router.urlToStaticCb(src, dst)}
         }, global).then(function () {
@@ -133,60 +135,58 @@ var Router = require("./router");
             }
           });
         });
-      }).then(function () {
+      }, ctx).then(function () {
         return logAndTime("generate file '" + src + "' => '" + dst + "'", function () {
           return Q.ninvoke(fs, 'writeFile', dst, window.document.innerHTML, "utf8");
-        }).then(function () {
+        }, ctx).then(function () {
           return dst;
         });
       });
     });
   }
 
-  function copyFile(name, src, content, dst, router, async) {
+  function copyFile(name, src, content, dst, router, ctx) {
     return logAndTime("copy file '" + src + "' => '" + dst + "'", function () {
       return Q.ninvoke(fs, 'writeFile', dst, content, "utf8");
-    }).then(function () {
-      return dst;
-    });
+    }, ctx).thenResolve(dst);
   }
 
-  function renderStaticFile(name, src, dst, args, router, async) {
+  function renderStaticFile(name, src, dst, args, router, ctx) {
     return logAndTime("static render file '" + src + "' " + JSON.stringify(args), function () {
       return Q
         .ninvoke(fs, 'readFile', src, "utf8")
         .then(function (content) {
           if (!router.isTemplate(src)) {
-            return copyFile(name, src, content, dst, router, async);
+            return copyFile(name, src, content, dst, router, ctx);
           } else if (!router.isDynamic(src)) {
             var file = src
               .replace(router.src_dir, '')
               .replace(/\.html$/, '')
               .replace(/^\//, '');
             var customDst = router.globalFilename(file, args);
-            return generateFile(name, src, content, args, customDst, router, async);
+            return generateFile(name, src, content, args, customDst, router, ctx);
           } else if (args) {
-            return generateFile(name, src, content, args, dst, router, async);
+            return generateFile(name, src, content, args, dst, router, ctx);
           } else {
             return Q.fcall(function () { return; });
           }
         });
-    }).catch(function (err) {
-      logger.error(err.stack || err);
+    }, ctx).catch(function (err) {
+      ctx.logger.error(err.stack || err);
       return [];
     });
   }
 
-  function renderFile(name, src, args, dst, router, async) {
+  function renderFile(name, src, args, dst, router, ctx) {
     var renders = [
-      function () { return renderStaticFile(name, src, dst, args, router, async); }
+      function () { return renderStaticFile(name, src, dst, args, router, ctx); }
     ];
-    return sequence(renders, function (f) { return f(); }, async);
+    return sequence(renders, function (f) { return f(); }, ctx);
   }
 
-  function renderDir(src_dir, dst_dir, router, async) {
+  function renderDir(src_dir, dst_dir, router, ctx) {
     return logAndTime("render dir '" + src_dir + "'", function () {
-      return createDirs([dst_dir], async)
+      return createDirs([dst_dir], ctx)
         .then(function () {
           return Q.ninvoke(fs, 'readdir', src_dir);
         })
@@ -198,9 +198,9 @@ var Router = require("./router");
               .ninvoke(fs, 'lstat', src)
               .then(function (stats) {
                 if (stats.isFile()) {
-                  return renderFile(name, src, null, dst, router, async);
+                  return renderFile(name, src, null, dst, router, ctx);
                 } else if (stats.isDirectory()) {
-                  return renderDir(src, dst, router, async);
+                  return renderDir(src, dst, router, ctx);
                 } else {
                   var typ;
                   if (stats.isBlockDevice()) { typ = "BlockDevice"; }
@@ -208,38 +208,38 @@ var Router = require("./router");
                   if (stats.isSymbolicLink()) { typ = "SymbolicLink"; }
                   if (stats.isFIFO()) { typ = "FIFO"; }
                   if (stats.isSocket()) { typ = "Socket"; }
-                  logger.info("Ignore file " + src + " (" + typ + ")");
+                  ctx.logger.info("Ignore file " + src + " (" + typ + ")");
                   return null;
                 }
               });
-          }, async);
+          }, ctx);
         });
-    });
+    }, ctx);
   }
 
-  function renderDynamicCall(call, dst_dir, router, async) {
+  function renderDynamicCall(call, dst_dir, router, ctx) {
     var src = router.srcForCall(call);
     var dst = router.globalFilenameForCall(call);
-    return createPath(dst, async).then(function () {
-      return renderStaticFile(call.file, src, dst, call.args, router, async);
+    return createPath(dst, ctx).then(function () {
+      return renderStaticFile(call.file, src, dst, call.args, router, ctx);
     });
   }
 
-  function renderStackedCalls(router, dst_dir, async) {
+  function renderStackedCalls(router, dst_dir, ctx) {
     var lastCalls = router.lastCalls();
     if (_.isEmpty(lastCalls)) {
       return Q.fcall(function () { return; });
     } else {
       return sequence(lastCalls, function (call) {
         router.generated(call);
-        return renderDynamicCall(call, dst_dir, router, async);
-      }, async).then(function () {
-        return renderStackedCalls(router, dst_dir, async);
+        return renderDynamicCall(call, dst_dir, router, ctx);
+      }, ctx).then(function () {
+        return renderStackedCalls(router, dst_dir, ctx);
       } );
     }
   }
 
-  function buildRouterForFile(name, src) {
+  function buildRouterForFile(name, src, ctx) {
     return logAndTime("Build router for file '" + src + "'", function () {
       if (/\.html$/.test(name)) {
         return Q
@@ -252,10 +252,10 @@ var Router = require("./router");
       } else {
         return Q.fcall(function () { return null; });
       }
-    });
+    }, ctx);
   }
 
-  function buildRouterForDir(src_dir, async) {
+  function buildRouterForDir(src_dir, ctx) {
     return logAndTime("Build router for dir '" + src_dir + "'", function () {
       return Q
         .ninvoke(fs, 'readdir', src_dir)
@@ -266,101 +266,59 @@ var Router = require("./router");
               .ninvoke(fs, 'lstat', src)
               .then(function (stats) {
                 if (stats.isFile()) {
-                  return buildRouterForFile(name, src, async);
+                  return buildRouterForFile(name, src, ctx);
                 } else if (stats.isDirectory()) {
-                  return buildRouterForDir(src, async);
+                  return buildRouterForDir(src, ctx);
                 } else {
                   return [];
                 }
               });
-          }, async);
+          }, ctx);
         }).then(function (arrs) {
           return _.chain(arrs).flatten().compact().reduce(function (res, obj) {
             return _.extend(res, obj);
           }, {}).value();
         });
-    });
+    }, ctx);
   }
 
-  function buildRouter(src_dir, dst_dir) {
-    return buildRouterForDir(src_dir).then(function (params) {
+  function buildRouter(src_dir, dst_dir, ctx) {
+    return buildRouterForDir(src_dir, ctx).then(function (params) {
       return Router.create(params, {
         src_dir: src_dir,
         dst_dir: dst_dir,
-        logger: logger
+        logger: ctx.logger
       });
     });
   }
 
-  function usage() {
-    var pwd = '/' + _.compact((process.env.PWD || '').split('/')).join('/') + '/';
-    var name = _.first(process.argv, 2).join(' ').replace(pwd, '');
-    var msg =
-      "usage: " + name + " [opts] <src> <dest>\n" +
-      "\n" +
-      "opts:\n" +
-      "  --[no-]async    -- Run asynchronously (default: true)\n" +
-      "  --[no-]debug    -- Better stacktraces (default: false)\n";
-    console.log(msg);
-  }
-
-  function die(msg, showUsage) {
-    if (showUsage) { usage(); }
-    console.warn("Error:", msg);
-    process.exit(1);
-  }
-
-  var async = true;
-  var debug = false;
-  var src_dir;
-  var dst_dir;
-  _.each(process.argv.slice(2), function (arg) {
-    switch (arg) {
-      case '--async' : async = true; break;
-      case '--no-async' : async = false; break;
-      case '-d' :
-      case '--debug' : debug = true; break;
-      case '--no-debug' : debug = false; break;
-      default :
-        if (!src_dir) {
-          src_dir = arg;
-        } else if (!dst_dir) {
-          dst_dir = arg;
-        } else {
-          usage();
-          die("Bad argument:" + arg);
-        }
-    }
-  });
-
-  if (!src_dir) {
-    die("Missing source dir", true);
-  }
-  if (!dst_dir) {
-    die("Missing static generation dir", true);
-  }
-
-  logger.info("async =", async);
-  if (debug) {
-    logger.info("debug =", debug);
-    Q.longStackSupport = true;
-  }
-
-  return logAndTime("Generation", function () {
-    return createPaths([dst_dir])
-      .then(function () {
-        return buildRouter(src_dir, dst_dir);
-      })
-      .then(function (router) {
-        return renderDir(src_dir, dst_dir, router, async)
-          .then(function () { return router; });
-      })
-      .then(function (router) {
-        return renderStackedCalls(router, dst_dir, async);
+  function run(src_dir, dst_dir, opts) {
+    return Q.fcall(function () {
+      var ctx = _.assign({logger: buildLogger()}, opts, {
+        src_dir: src_dir,
+        dst_dir: dst_dir
       });
-  }).done(
-    function () { logger.info("Ne mangez pas trop vite"); },
-    function (err) { logger.error(err.stack); }
-  );
+      ctx.logger.info("ctx:", _.assign({}, ctx, {logger: '<LOGGER>'}));
+      if (ctx.debug) Q.longStackSupport = true;
+      return logAndTime("Generation", function () {
+        return createPaths([dst_dir], ctx)
+          .then(function () {
+            return buildRouter(src_dir, dst_dir, ctx);
+          })
+          .then(function (router) {
+            return renderDir(src_dir, dst_dir, router, ctx)
+              .then(function () { return router; });
+          })
+          .then(function (router) {
+            return renderStackedCalls(router, dst_dir, ctx);
+          });
+      }, ctx);
+    }).done(
+      function () { console.info("Ne mangez pas trop vite"); },
+      function (err) { console.error(err.stack); }
+    );
+  }
+
+  exports.generate = run;
 
 }(global));

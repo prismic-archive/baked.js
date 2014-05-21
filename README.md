@@ -18,7 +18,7 @@ npm install
 Run baked.js with the command:
 
 ```sh
-node src/server.js <src_dir> <dest_dir>
+node generate.js <src_dir> <dst_dir>
 ```
 
 It displays a lot of informations, explaining what it's doing, which file it's trying to render, and logs errors that occur.
