@@ -15,10 +15,12 @@ npm install
 
 ## Use
 
+### Single generation
+
 Run baked.js with the command:
 
 ```sh
-node src/server.js <src_dir> <dest_dir>
+node generate.js <src_dir> <dst_dir>
 ```
 
 It displays a lot of informations, explaining what it's doing, which file it's trying to render, and logs errors that occur.
@@ -26,6 +28,22 @@ It displays a lot of informations, explaining what it's doing, which file it's t
 **Tips**: you can use the `--no-async` argument to make the displayed informations more readable. It will run slower though.
 
 When it's finished, just copy the generated files into your favorite HTTP server (you can open them directly in your browser if you wish).
+
+### Gulp task
+
+You can let Gulp handle the generation for you by running
+
+```sh
+gulp
+```
+
+It will:
+
+- generate all files from `to_generate/` into `generated/`
+- start an HTTP server which serves the generated files
+- watch modification on your sources (and the baked.js sources) and re-generate on every changes
+
+Directories and options can be changed in the `gulpfile.js` file.
 
 ## Template
 
@@ -147,7 +165,7 @@ It's possible to directly open the sources file in your browser. The rendering l
 
 baked.js is built on top of [Node.js](nodejs.org) and use [dom.js](https://github.com/andreasgal/dom.js/) to emulate the DOM.
 
-It uses [Q](https://github.com/kriskowal/q) and [lodash](http://lodash.com), and let [Grunt](http://gruntjs.com/) and [browserify](browserify.org) handle the generation of the browser library.
+It uses [Q](https://github.com/kriskowal/q) and [lodash](http://lodash.com), and let [Gulp](gulpjs.com) and [browserify](browserify.org) handle the generation of the browser library.
 
 ## Notes
 
