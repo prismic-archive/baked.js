@@ -21,11 +21,7 @@ var Router = require("./router");
           level: 'debug',
           colorize: true
         })
-      ],
-      exceptionHandlers: [
-        new (winston.transports.Console)({json: false, timestamp: true})
-      ],
-      exitOnError: false
+      ]
     });
   }
 
