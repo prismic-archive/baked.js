@@ -169,7 +169,7 @@ var baked = require("./baked");
     var _this = this;
     return function (file, args) {
       var url = _this.urlToStatic(file, args, here_src, here_dst);
-      return url.replace(/index\.html$/, '');
+      return url.replace(/(.)index\.html$/, '$1');
     };
   };
 
