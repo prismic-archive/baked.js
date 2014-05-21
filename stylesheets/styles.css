@@ -265,9 +265,11 @@ header li {
   height:15px;
 	margin-bottom: 12px;
 	line-height: 1em;
-	padding: 6px 6px 6px 7px;
+	padding: 12px 6px 12px 6px;
 	background: #4A90E2;
 	border-radius: 4px;
+  text-align: center;
+  font-size: 12px;
 }
 
 header li:hover {
@@ -281,7 +283,6 @@ header li a {
 a.buttons {
 	-webkit-font-smoothing: antialiased;
 	font-weight: normal;
-	padding: 2px 14px;
 	height: 30px;
 }
 
@@ -312,8 +313,11 @@ footer {
 
 @media print, screen and (max-width: 960px) {
 
+  body {
+    padding: 0;
+  }
+
   div.wrapper {
-    width:auto;
     margin:0;
   }
 
@@ -331,6 +335,7 @@ footer {
 
   header {
     padding-right:320px;
+    margin-top: 0;
   }
 
   section {
@@ -345,7 +350,7 @@ footer {
   header ul {
     position:absolute;
     right:130px;
-    top:84px;
+    top:30px;
   }
 }
 
