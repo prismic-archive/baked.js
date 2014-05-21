@@ -76,7 +76,7 @@ h4, h5, h6 {
 }
 
 a {
-  color:#C30000;
+  color:#4A90E2;
   font-weight:200;
   text-decoration:none;
 }
@@ -247,11 +247,7 @@ h1.header {
 
 
 h1.header, a.header, a.name, header a{
-	color: #fff;
-}
-
-a.header {
-	text-decoration: underline;
+	color: #4A90E2;
 }
 
 a.name {
@@ -276,6 +272,10 @@ header li {
 
 header li:hover {
 	background: #348de1;
+}
+
+header li a {
+  color: white;
 }
 
 a.buttons {
