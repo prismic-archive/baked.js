@@ -88,7 +88,6 @@ var LocalRouter = require("./local_router");
     }
 
     function getTemplate(localRouter, file) {
-      console.log("getTemplate(", file, ")");
       var templateURL = (file || localRouter.localInfos.src) + '.tmpl';
       return ajax({url: templateURL}).then(function (response) {
         return response.responseText;
@@ -96,7 +95,6 @@ var LocalRouter = require("./local_router");
     }
 
     function loadPage(localRouter, file) {
-      console.log("loadPage(", file, ")");
       var template_src;
       if (file) {
         template_src = '/' + localRouter.getFileFromHere(file);
@@ -130,7 +128,7 @@ var LocalRouter = require("./local_router");
             loadPage(localRouter, href)
               .done(
                 function () { body.removeEventListener('click', listener); },
-                function (err) { console.log.error(err.message); }
+                function (err) { console.error(err.message); }
               );
           }
         }
@@ -143,7 +141,7 @@ var LocalRouter = require("./local_router");
         return loadPage(localRouter);
       })
       .done(undefined, function (err) {
-        console.log.error(err.message);
+        console.error(err.message);
       });
 
   });
