@@ -11,8 +11,14 @@ var LocalRouter = require("./local_router");
 
   if (_.isEmpty(location.search)) return;
 
+  var queryString;
+
   function prepareConf(localRouter, args) {
-    var queryArgs = getArgs(baked.parseRoutingInfos(window.document.head.innerHTML));
+    var queryArgs;
+    if (!queryString) {
+      queryString = location.search;
+      queryArgs = getArgs(baked.parseRoutingInfos(window.document.head.innerHTML));
+    }
     var localArgs = localRouter.localInfos.args;
     if (!args) {
       args = _.assign({}, localArgs, queryArgs, function (prev, cur) {
@@ -117,6 +123,9 @@ var LocalRouter = require("./local_router");
         localRouter = localRouter.copy(infos);
       }
       var conf = prepareConf(localRouter, localRouter.args());
+      if (infos && window.history) {
+        window.history.pushState(infos, null, infos.href + queryString);
+      }
       return baked.render(window, localRouter.router, {conf: conf, notifyRendered: buildNotifyRendered(localRouter.router)}, window)
         .then(function () {
           listen(localRouter);
