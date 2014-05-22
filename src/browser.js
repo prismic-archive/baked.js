@@ -11,16 +11,18 @@ var LocalRouter = require("./local_router");
 
   if (_.isEmpty(location.search)) return;
 
-  function prepareConf(localRouter) {
+  function prepareConf(localRouter, args) {
     var queryArgs = getArgs(baked.parseRoutingInfos(window.document.head.innerHTML));
     var localArgs = localRouter.localInfos.args;
-    var args = _.assign({}, localArgs, queryArgs, function (prev, cur) {
-      return _.isEmpty(cur) ? prev : cur;
-    });
+    if (!args) {
+      args = _.assign({}, localArgs, queryArgs, function (prev, cur) {
+        return _.isEmpty(cur) ? prev : cur;
+      });
+    }
     var conf = baked.initConf(window, window, {
       logger: console,
       helpers: {
-        url_to: localRouter.router.urlToDynCb()
+        url_to: localRouter.urlToDynCb()
       },
       args: args
     });
@@ -80,7 +82,10 @@ var LocalRouter = require("./local_router");
       return ajax({url: '/_router.json' })
         .then(function (response) {
           var routerInfos = JSON.parse(response.responseText);
-          var router = Router.create(routerInfos.params, {logger: console});
+          var router = Router.create(routerInfos.params, {
+            src_dir: '',
+            dst_dir: ''
+          });
           var routerInfosForFile = window.routerInfosForFile;
           var localRouter = LocalRouter.create(routerInfosForFile, router);
           return localRouter;
@@ -88,27 +93,30 @@ var LocalRouter = require("./local_router");
     }
 
     function getTemplate(localRouter, file) {
-      var templateURL = (file || localRouter.localInfos.src) + '.tmpl';
+      var templateURL = (file || localRouter.src()) + '.tmpl';
       return ajax({url: templateURL}).then(function (response) {
         return response.responseText;
       });
     }
 
-    function loadPage(localRouter, file) {
-      var template_src;
-      if (file) {
-        template_src = '/' + localRouter.getFileFromHere(file);
+    function loadPage(localRouter, infos) {
+      var template_src = infos && infos.src;
+      if (template_src) {
+        template_src = '/' + localRouter.getFileFromHere(template_src);
       }
       return getTemplate(localRouter, template_src)
         .then(function (template) {
-          return generateContent(template, localRouter);
+          return generateContent(template, localRouter, infos);
         });
     }
 
-    function generateContent(content, localRouter) {
+    function generateContent(content, localRouter, infos) {
       HTML.style.display = 'none';
       document.body.innerHTML = content;
-      var conf = prepareConf(localRouter);
+      if (infos) {
+        localRouter = localRouter.copy(infos);
+      }
+      var conf = prepareConf(localRouter, localRouter.args());
       return baked.render(window, localRouter.router, {conf: conf, notifyRendered: buildNotifyRendered(localRouter.router)}, window)
         .then(function () {
           listen(localRouter);
@@ -125,7 +133,8 @@ var LocalRouter = require("./local_router");
           var href = e.target.getAttribute('href');
           if (!/http:\/\//.test(href)) {
             e.preventDefault();
-            loadPage(localRouter, href)
+            var infos = _.assign(localRouter.urls[href], {href: href});
+            loadPage(localRouter, infos)
               .done(
                 function () { body.removeEventListener('click', listener); },
                 function (err) { console.error(err.message); }

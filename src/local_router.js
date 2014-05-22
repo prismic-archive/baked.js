@@ -8,10 +8,23 @@ var Router = require('./router');
   function LocalRouter(localInfos, router){
     this.localInfos = localInfos;
     this.router = router;
+    this.urls = {};
   }
 
+  LocalRouter.prototype.src = function() {
+    return this.localInfos.src;
+  };
+
+  LocalRouter.prototype.dst = function() {
+    return this.localInfos.dst;
+  };
+
+  LocalRouter.prototype.args = function() {
+    return this.localInfos.args;
+  };
+
   LocalRouter.prototype.localParams = function() {
-    return this.router.params[this.localInfos.src];
+    return this.router.params[this.src()];
   };
 
   LocalRouter.prototype.params = function() {
@@ -23,7 +36,27 @@ var Router = require('./router');
   };
 
   LocalRouter.prototype.getFileFromHere = function(file) {
-    return Router.findFileFromHere(file, this.localInfos.src);
+    return Router.findFileFromHere(file, this.src());
+  };
+
+  function globalFile(localRouter, file) {
+    var here = localRouter.src();
+
+  }
+
+  LocalRouter.prototype.urlToDynCb = function() {
+    var _this = this;
+    return function (file, args) {
+      var src = _this.getFileFromHere(file);
+      var url = _this.router.filename(src, args, _this.dst());
+      if (!/\.html$/.test(src)) { src += ".html"; }
+      _this.urls[url] = {src: src, args: args, dst: src};
+      return url;
+    };
+  };
+
+  LocalRouter.prototype.copy = function(localInfos) {
+    return create(localInfos, this.router);
   };
 
   function create(localInfos, router) {
