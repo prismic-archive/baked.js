@@ -1,58 +1,29 @@
 var Q = require('q');
 var _ = require('lodash');
 
+var cli = require('./src/cli');
 var baked = require('./src/server');
 
-function usage() {
-  var pwd = '/' + _.compact((process.env.PWD || '').split('/')).join('/') + '/';
-  var name = _.first(process.argv, 2).join(' ').replace(pwd, '');
-  var msg =
-    "usage: " + name + " [opts] <src> <dest>\n" +
-    "\n" +
-    "opts:\n" +
-    "  --[no-]async    -- Run asynchronously (default: true)\n" +
-    "  --[no-]debug    -- Better stacktraces (default: false)\n";
-  console.log(msg);
-}
-
-function die(msg, showUsage) {
-  if (showUsage) { usage(); }
-  console.warn("Error:", msg);
+var options;
+try {
+  var res = cli.parse();
+  options = res.options;
+  if (res.rest[0]) { options.src_dir = res.rest[0]; }
+  if (res.rest[1]) { options.dst_dir = res.rest[1]; }
+  if (!options.src_dir) { throw new Error("Missing source dir"); }
+  if (!options.dst_dir) { throw new Error("Missing static generation dir"); }
+} catch (e) {
+  console.error(e.message);
   process.exit(1);
 }
 
-var async = true;
-var debug = false;
-var src_dir;
-var dst_dir;
-_.each(process.argv.slice(2), function (arg) {
-  switch (arg) {
-    case '--async' : async = true; break;
-    case '--no-async' : async = false; break;
-    case '-d' :
-    case '--debug' : debug = true; break;
-    case '--no-debug' : debug = false; break;
-    default :
-      if (!src_dir) {
-        src_dir = arg;
-      } else if (!dst_dir) {
-        dst_dir = arg;
-      } else {
-        usage();
-        die("Bad argument:" + arg);
-      }
-  }
-});
-
-if (!src_dir) {
-  die("Missing source dir", true);
-}
-if (!dst_dir) {
-  die("Missing static generation dir", true);
-}
-
-if (debug) {
+if (options.debug) {
   Q.longStackSupport = true;
 }
 
-baked.generate(src_dir, dst_dir, {async: async, debug: debug});
+baked
+  .generate(options)
+  .done(
+      function () { console.info("Ne mangez pas trop vite"); },
+      function (err) { console.error(err.stack); }
+    );

@@ -162,7 +162,13 @@ It is possible to customize the URL as well. To do so, just add a `<meta>` tag â
 
 ## Dev mode
 
-When generating files, the `gulp` command also starts an HTTP server (at port 8282). Go to `[http://127.0.0.1:8282](http://127.0.0.1:8282)` using your favorite browser and you will see the result.
+Starts the dev mode using the following command:
+
+```sh
+gulp dev
+```
+
+This command will starts the generation and then will start an HTTP server (at port 8282). Go to `[http://127.0.0.1:8282](http://127.0.0.1:8282)` using your favorite browser and you will see the result.
 
 The content files are watched: every modification will trigger a new generation
 of the content.

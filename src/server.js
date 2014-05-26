@@ -299,35 +299,32 @@ var Router = require("./router");
     });
   }
 
-  function run(src_dir, dst_dir, opts) {
+  function run(opts) {
     return Q.fcall(function () {
       var ctx = _.assign({logger: buildLogger()}, opts, {
-        src_dir: src_dir,
-        dst_dir: dst_dir
+        src_dir: opts.src_dir,
+        dst_dir: opts.dst_dir
       });
       ctx.logger.info("ctx:", _.assign({}, ctx, {logger: '<LOGGER>'}));
       if (ctx.debug) Q.longStackSupport = true;
       return logAndTime("Generation", function () {
-        return createPaths([dst_dir], ctx)
+        return createPaths([opts.dst_dir], ctx)
           .then(function () {
-            return buildRouter(src_dir, dst_dir, ctx);
+            return buildRouter(opts.src_dir, opts.dst_dir, ctx);
           })
           .then(function (router) {
-            return renderDir(src_dir, dst_dir, router, ctx)
+            return renderDir(opts.src_dir, opts.dst_dir, router, ctx)
               .then(function () { return router; });
           })
           .then(function (router) {
-            return renderStackedCalls(router, dst_dir, ctx)
+            return renderStackedCalls(router, opts.dst_dir, ctx)
               .thenResolve(router);
           })
           .then(function (router) {
-            return saveRouter(router, dst_dir, ctx);
+            return saveRouter(router, opts.dst_dir, ctx);
           });
       }, ctx);
-    }).done(
-      function () { console.info("Ne mangez pas trop vite"); },
-      function (err) { console.error(err.stack); }
-    );
+    });
   }
 
   exports.generate = run;
