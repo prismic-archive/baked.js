@@ -155,7 +155,7 @@ var LocalRouter = require("./local_router");
         return loadPage(localRouter);
       })
       .done(undefined, function (err) {
-        console.error(err.message);
+        console.error(err);
       });
 
   });
