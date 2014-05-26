@@ -80,7 +80,7 @@ var _ = require("lodash");
 
     // The Prismic.io API endpoint
     try {
-      conf.api = document.querySelectorAll('head meta[name="prismic-api"]')[0].content;
+      conf.api = document.querySelector('head meta[name="prismic-api"]').content;
     } catch(e) {
       conf.logger.error('Please define your api endpoint in the <head> element. For example: <meta name="prismic-api" content="https://lesbonneschoses.prismic.io/api">'); return;
     }

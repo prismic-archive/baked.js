@@ -11,7 +11,7 @@ var LocalRouter = require("./local_router");
 
   if (_.isEmpty(location.search)) return;
 
-  document.querySelectorAll('html')[0].style.display = 'none';
+  document.querySelector('html').style.display = 'none';
 
   var queryString;
   var accessToken, ref;
@@ -59,7 +59,7 @@ var LocalRouter = require("./local_router");
     return notifyRendered;
   }
 
-  var HTML = document.querySelectorAll('html')[0];
+  var HTML = document.querySelector('html');
   document.addEventListener('DOMContentLoaded', function() {
 
     function ajax(options) {
