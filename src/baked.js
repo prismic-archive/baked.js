@@ -75,14 +75,17 @@ var _ = require("lodash");
       logger: opts.logger || window.console,
       args: opts.args || {},
       ref: opts.ref,
-      accessToken: opts.accessToken
+      accessToken: opts.accessToken,
+      api: opts.api
     };
 
     // The Prismic.io API endpoint
-    try {
-      conf.api = document.querySelector('head meta[name="prismic-api"]').content;
-    } catch(e) {
-      conf.logger.error('Please define your api endpoint in the <head> element. For example: <meta name="prismic-api" content="https://lesbonneschoses.prismic.io/api">'); return;
+    if (!conf.api) {
+      try {
+        conf.api = document.querySelector('head meta[name="prismic-api"]').content;
+      } catch(e) {
+        conf.logger.error('Please define your api endpoint in the <head> element. For example: <meta name="prismic-api" content="https://lesbonneschoses.prismic.io/api">'); return;
+      }
     }
 
     // Extract the bindings
@@ -184,12 +187,16 @@ var _ = require("lodash");
   };
 
   function parseRoutingInfos(content) {
+    var rxAPI = /<meta +name="prismic-api" +content="([^"]+)" *>/ig;
     var rxParam = /<meta +name="prismic-routing-param" +content="([a-z][a-z0-9]*)" *>/ig;
     var rxPattern = /<meta +name="prismic-routing-pattern" +content="([\/$a-z][\/${}a-z0-9.-_]*)" *>/ig;
     var match;
     var res = {
       params: []
     };
+    if ((match = rxAPI.exec(content)) !== null) {
+      res.api = match[1];
+    }
     while ((match = rxParam.exec(content)) !== null) {
       res.params.push(match[1]);
     }

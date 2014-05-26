@@ -16,7 +16,7 @@ var LocalRouter = require("./local_router");
   var queryString;
   var accessToken, ref;
 
-  function prepareConf(localRouter, args) {
+  function prepareConf(localRouter, args, infos) {
     if (!queryString) {
       queryString = location.search;
       accessToken = getArg('access_token');
@@ -35,7 +35,8 @@ var LocalRouter = require("./local_router");
       },
       args: args,
       accessToken: accessToken,
-      ref: ref
+      ref: ref,
+      api: localRouter.api()
     });
     return conf;
   }
@@ -91,7 +92,7 @@ var LocalRouter = require("./local_router");
             src_dir: '',
             dst_dir: ''
           });
-          var routerInfosForFile = window.routerInfosForFile;
+          var routerInfosForFile = window.routerInfosForFile || {};
           var localRouter = LocalRouter.create(routerInfosForFile, router);
           return localRouter;
         });
@@ -118,7 +119,7 @@ var LocalRouter = require("./local_router");
       if (infos) {
         localRouter = localRouter.copy(infos);
       }
-      var conf = prepareConf(localRouter, localRouter.args());
+      var conf = prepareConf(localRouter, localRouter.args(), infos);
       if (infos && window.history) {
         window.history.pushState(infos, null, infos.href + queryString);
       }
@@ -152,7 +153,13 @@ var LocalRouter = require("./local_router");
 
     buildRouter()
       .then(function (localRouter) {
-        return loadPage(localRouter);
+        var metaDynamic = document.querySelector('head meta[name="prismic-dynamic"]');
+        if (metaDynamic && metaDynamic.content == "true") {
+          var infos = localRouter.findInfosFromHref(location.pathname);
+          return loadPage(localRouter, infos);
+        } else {
+          return loadPage(localRouter);
+        }
       })
       .done(undefined, function (err) {
         console.error(err);

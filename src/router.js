@@ -169,25 +169,32 @@ var baked = require("./baked");
     return diff.concat(to);
   }
 
-  Router.prototype.filename = function (file, args, here) {
-    var params = getParamsFromFile(this, file);
-    var path;
+  function buildRouteForFile(file, params, args) {
+    var route;
     if (params.route) {
-      path = baked.renderRoute(params.route, args);
-      if (!isGlobal(path)) {
+      route = baked.renderRoute(params.route, args);
+      if (!isGlobal(route)) {
         var dir = els(file, true);
-        path = dir.concat(els(path)).join('/');
+        route = '/' + dir.concat(els(route)).join('/');
       }
     } else {
-      path = [file].concat(_.map(params.params, function (param) {
+      route = [file].concat(_.map(params.params, function (param) {
         return args[param];
       })).join('/');
     }
-    if (/(^|\/)index(\.html)?$/.test(path)) {
-      path += ".html";
-    } else if (!/\.html$/.test(path)) {
-      path += "/index.html";
+    if (/\/index\.html?$/.test(route)) {
+      // nothing to do
+    } else if (/\/index?$/.test(route)) {
+      route += ".html";
+    } else if (!/\.html$/.test(route)) {
+      route += "/index.html";
     }
+    return route;
+  }
+
+  Router.prototype.filename = function (file, args, here) {
+    var params = getParamsFromFile(this, file);
+    var path = buildRouteForFile(file, params, args);
     var diff = pathDiff(
       els(here || '', true),
       els(path)
@@ -229,5 +236,7 @@ var baked = require("./baked");
 
   Global.create = create;
   Global.findFileFromHere = findFileFromHere;
+  Global.buildRouteForFile = buildRouteForFile;
+  Global.isGlobal = isGlobal;
 
 }(typeof exports === 'object' && exports ? exports : (typeof module === "object" && module && typeof module.exports === "object" ? module.exports : window)));

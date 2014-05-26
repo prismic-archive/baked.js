@@ -35,6 +35,10 @@ var Router = require('./router');
     return this.localParams().route;
   };
 
+  LocalRouter.prototype.api= function() {
+    return this.localParams().api;
+  };
+
   LocalRouter.prototype.findFileFromSrc = function(file) {
     var res = Router.findFileFromHere(file, this.src());
     return res;
@@ -44,10 +48,57 @@ var Router = require('./router');
     return Router.findFileFromHere(file, this.dst());
   };
 
-  function globalFile(localRouter, file) {
-    var here = localRouter.src();
-
+  function createRouterPattern(route) {
+    var rx = /\$(([a-z][a-z0-9]*)|\{([a-z][a-z0-9]*)\})/ig;
+    var ptn = route.replace(rx, function (str, simple, complex) {
+      var variable = simple || complex;
+      return "([^/]+)";
+    });
+    return new RegExp("^" + ptn + "$");
   }
+
+  function findRouteFromSrc(src, params) {
+    var route;
+    if (params.route) {
+      route = params.route;
+      if (!Router.isGlobal(route)) {
+        route = src + '/' + route;
+      }
+    } else {
+      route = [src.replace(/.html$/, '')].concat(_.map(params.params, function (param) {
+        return '${' + param + '}';
+      })).join('/');
+    }
+    if (/\/index\.html?$/.test(route)) {
+      // nothing to do
+    } else if (/\/index?$/.test(route)) {
+      route += ".html";
+    } else if (!/\.html$/.test(route)) {
+      route += "/index.html";
+    }
+    return route;
+  }
+
+  LocalRouter.prototype.findInfosFromHref = function(href) {
+    var path = href;
+    if (/\/$/.test(path)) { path += "index.html"; }
+    return _
+      .chain(this.router.params)
+      .map(function (params, src) {
+        var route = findRouteFromSrc(src, params);
+        var ptn = createRouterPattern(route);
+        var match = ptn.exec(path);
+        if (match) {
+          var args = {};
+          for (var i=0; i<params.params.length; i++) {
+            args[params.params[i]] = match[i+1];
+          }
+          return {src: src, args: args, dst: path, href: href};
+        }
+      })
+      .compact()
+      .value()[0];
+  };
 
   LocalRouter.prototype.urlToDynCb = function() {
     var _this = this;

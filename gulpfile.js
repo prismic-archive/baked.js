@@ -58,11 +58,17 @@ gulp.task('generate:content', function () {
     );
 });
 
-gulp.task('copy-lib', ['generate:content'], function () {
+gulp.task('copy:lib', ['generate:content'], function () {
   gulp.src(build_dir + '/' + libName).pipe(gulp.dest(options.dst_dir));
 });
 
-gulp.task('generate', ['generate:lib', 'copy-lib']);
+gulp.task('copy:404', ['generate:content'], function () {
+  gulp.src('404.html').pipe(gulp.dest(options.dst_dir));
+});
+
+gulp.task('copy', ['copy:lib', 'copy:404']);
+
+gulp.task('generate', ['generate:lib', 'copy']);
 
 gulp.task('serve', function() {
   var port = 8282;
