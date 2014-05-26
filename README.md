@@ -15,38 +15,50 @@ npm install
 
 ## Use
 
-### Single generation
-
-Run baked.js with the command:
-
-```sh
-node generate.js <src_dir> <dst_dir>
-```
-
-It displays a lot of informations, explaining what it's doing, which file it's trying to render, and logs errors that occur.
-
-**Tips**: you can use the `--no-async` argument to make the displayed informations more readable. It will run slower though.
-
-When it's finished, just copy the generated files into your favorite HTTP server (you can open them directly in your browser if you wish).
-
-You can also use the [Dev mode](#dev-mode) to see the result directly from your
-local computer (without having to do anything else).
+There are 3 ways to run baked.js
 
 ### Gulp task
 
-You can let Gulp handle the generation for you by running
+Run the command:
 
 ```sh
 gulp
 ```
 
-It will:
+It will generate all files from `to_generate/` into `generated/`.
 
-- generate all files from `to_generate/` into `generated/`
-- start an HTTP server which serves the generated files
-- watch modification on your sources (and the baked.js sources) and re-generate on every changes
+You can customize options in the `gulpfile.js` file or using command line arguments:
 
-Directories and options can be changed in the `gulpfile.js` file.
+- `--no-async`: Generate files one by one (slower but easier to debug)
+- `--src <src_dir>`: Specify the source directory
+- `--dst <dst_dir>`: Specify the directory where generated files will be stored
+
+## Dev mode
+
+Starts the dev mode using the following command:
+
+```sh
+gulp dev
+```
+
+This task:
+
+- builds the library (for browser use)
+- generates the content (as “`gulp`” does)
+- starts an HTTP server which serves the generated files
+- watches modification on your sources (and the baked.js sources) and re-generate on every changes
+
+Go to [http://127.0.0.1:8282](http://127.0.0.1:8282) using your favorite browser and you will see the result.
+
+### No gulp
+
+You can run baked.js without using Gulp at all using the following command:
+
+```sh
+node generate.js <src_dir> <dst_dir>
+```
+
+The options --no-async and --debug are accepted.
 
 ## Template
 
@@ -159,19 +171,6 @@ It is possible to customize the URL as well. To do so, just add a `<meta>` tag �
 ```
 
 **Warning**: be sure to specify every routing params in the URL! If you don't, we can't guarantee that there won't be URL conflict.
-
-## Dev mode
-
-Starts the dev mode using the following command:
-
-```sh
-gulp dev
-```
-
-This command will starts the generation and then will start an HTTP server (at port 8282). Go to `[http://127.0.0.1:8282](http://127.0.0.1:8282)` using your favorite browser and you will see the result.
-
-The content files are watched: every modification will trigger a new generation
-of the content.
 
 ## Internals
 
