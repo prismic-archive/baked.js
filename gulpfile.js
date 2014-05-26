@@ -39,7 +39,11 @@ gulp.task('generate:lib', function() {
 });
 
 gulp.task('generate:content', function () {
-  baked.generate(src_dir, dst_dir, {async: true, debug: false});
+  return baked.generate(src_dir, dst_dir, {async: true, debug: false})
+    .then(
+      function () { console.info("Ne mangez pas trop vite"); },
+      function (err) { console.error(err.stack); throw err; }
+    );
 });
 
 gulp.task('copy-lib', ['generate:content'], function () {

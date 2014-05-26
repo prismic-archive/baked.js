@@ -55,4 +55,9 @@ if (debug) {
   Q.longStackSupport = true;
 }
 
-baked.generate(src_dir, dst_dir, {async: async, debug: debug});
+baked
+  .generate(src_dir, dst_dir, {async: async, debug: debug})
+  .done(
+      function () { console.info("Ne mangez pas trop vite"); },
+      function (err) { console.error(err.stack); }
+    );

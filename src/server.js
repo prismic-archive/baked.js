@@ -324,10 +324,7 @@ var Router = require("./router");
             return saveRouter(router, dst_dir, ctx);
           });
       }, ctx);
-    }).done(
-      function () { console.info("Ne mangez pas trop vite"); },
-      function (err) { console.error(err.stack); }
-    );
+    });
   }
 
   exports.generate = run;
