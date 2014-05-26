@@ -9,6 +9,18 @@ var ecstatic = require('ecstatic');
 
 var _ = require('lodash');
 
+var cli = require('./src/cli');
+
+var options = (function () {
+  try {
+    var res = cli.parse();
+    return res.options;
+  } catch (e) {
+    console.error(e.message);
+    process.exit(1);
+  }
+}());
+
 function ReloadBaked() {
   require('./ext/starts_with');
   _.each(require.cache, function (value, key) {
@@ -19,8 +31,8 @@ function ReloadBaked() {
   return require('./src/server');
 }
 
-var src_dir = 'to_generate';
-var dst_dir = 'generated';
+if (!options.src_dir) { options.src_dir = 'to_generate'; }
+if (!options.dst_dir) { options.dst_dir = 'generated'; }
 var build_dir = './build';
 var libName = 'baked.js';
 
@@ -39,7 +51,7 @@ gulp.task('generate:lib', function() {
 });
 
 gulp.task('generate:content', function () {
-  return baked.generate(src_dir, dst_dir, {async: true, debug: false})
+  return baked.generate(options)
     .then(
       function () { console.info("Ne mangez pas trop vite"); },
       function (err) { console.error(err.stack); throw err; }
@@ -47,7 +59,7 @@ gulp.task('generate:content', function () {
 });
 
 gulp.task('copy-lib', ['generate:content'], function () {
-  gulp.src(build_dir + '/' + libName).pipe(gulp.dest(dst_dir));
+  gulp.src(build_dir + '/' + libName).pipe(gulp.dest(options.dst_dir));
 });
 
 gulp.task('generate', ['generate:lib', 'copy-lib']);
@@ -55,7 +67,7 @@ gulp.task('generate', ['generate:lib', 'copy-lib']);
 gulp.task('serve', function() {
   var port = 8282;
   http.createServer(ecstatic({
-    root: __dirname + '/' + dst_dir,
+    root: __dirname + '/' + options.dst_dir,
     baseDir: '/',
     cache: 1,
     showDir: false,
@@ -70,7 +82,7 @@ gulp.task('watch:src', function () {
 });
 
 gulp.task('watch:content', function () {
-  gulp.watch(src_dir + '/**/*', ['generate:content']);
+  gulp.watch(options.src_dir + '/**/*', ['generate:content']);
 });
 
 gulp.task('watch', ['watch:src', 'watch:content']);
