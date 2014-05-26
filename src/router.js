@@ -95,21 +95,6 @@ var baked = require("./baked");
     return router.params[srcForFile(router, file)];
   }
 
-  Router.prototype.urlToDyn = function (file, args) {
-    if (_.isString(args)) { args = {id: args}; }
-    var queryString = _.map(args, function (value, name) {
-      return name + "=" + value;
-    }).join("&");
-    return file + ".html" + (_.isEmpty(queryString) ? '' : '?' + queryString);
-  };
-
-  Router.prototype.urlToDynCb = function () {
-    var _this = this;
-    return function () {
-      return _this.urlToDyn.apply(_this, arguments);
-    };
-  };
-
   function findFileFromHere(file, here) {
     var fileEls = els(file);
     var hereEls = els(here, true);
