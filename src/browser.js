@@ -11,17 +11,20 @@ var LocalRouter = require("./local_router");
 
   if (_.isEmpty(location.search)) return;
 
+  document.querySelectorAll('html')[0].style.display = 'none';
+
   var queryString;
+  var accessToken, ref;
 
   function prepareConf(localRouter, args) {
-    var queryArgs;
     if (!queryString) {
       queryString = location.search;
-      queryArgs = getArgs(baked.parseRoutingInfos(window.document.head.innerHTML));
+      accessToken = getArg('access_token');
+      ref = getArg('ref');
     }
     var localArgs = localRouter.localInfos.args;
     if (!args) {
-      args = _.assign({}, localArgs, queryArgs, function (prev, cur) {
+      args = _.assign({}, localArgs, function (prev, cur) {
         return _.isEmpty(cur) ? prev : cur;
       });
     }
@@ -30,22 +33,18 @@ var LocalRouter = require("./local_router");
       helpers: {
         url_to: localRouter.urlToDynCb()
       },
-      args: args
+      args: args,
+      accessToken: accessToken,
+      ref: ref
     });
     return conf;
   }
 
-  function getArgs(router) {
-    function getParameterByName(name) {
-      name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-      var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
-      var results = regex.exec(location.search);
-      return (!results) ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-    }
-    return _.reduce(router.params, function (args, param) {
-      args[param] = getParameterByName(param);
-      return args;
-    }, {});
+  function getArg(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
+    var results = regex.exec(location.search);
+    return (!results) ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
   }
 
   function buildNotifyRendered(router) {

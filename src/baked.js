@@ -13,7 +13,7 @@ var _ = require("lodash");
         deferred.reject(err);
       }
       else deferred.resolve(api);
-    });
+    }, conf.accessToken);
     return deferred.promise;
   }
 
@@ -69,12 +69,14 @@ var _ = require("lodash");
 
   function initConf(global, window, opts) {
     var document = window.document;
-    var conf = _.extend({
+    var conf = {
       env: opts.env || {},
       helpers: opts.helpers || {},
       logger: opts.logger || window.console,
-      args: opts.args || {}
-    }, conf);
+      args: opts.args || {},
+      ref: opts.ref,
+      accessToken: opts.accessToken
+    };
 
     // The Prismic.io API endpoint
     try {
@@ -127,7 +129,7 @@ var _ = require("lodash");
         .all(_.map(conf.bindings, function(binding, name) {
           var deferred = Q.defer();
           var form = api.form(binding.form);
-          form = form.ref(maybeRef || api.master());
+          form = form.ref(maybeRef || conf.ref || api.master());
           form = _.reduce(binding.params, function (form, value, key) {
             return form.set(key, value);
           }, form);
@@ -147,7 +149,8 @@ var _ = require("lodash");
             types: api.types,
             refs: api.data.refs,
             tags: api.data.tags,
-            master: api.master.ref
+            master: api.master.ref,
+            ref: conf.ref
           }, conf.env);
           return _.reduce(results, function (documentSets, res) {
             if(res) {
