@@ -144,7 +144,7 @@ var baked = require("./baked");
       var call = addCall(this, fileFromHere, parsedArgs);
       var filename = this.filename(fileFromHere, parsedArgs, here_dst);
       addGeneratedRoute(this, filename, call, here_dst, fileFromHere, here_src);
-      return filename;
+      return filename.replace(/\/index\.html$/, '/');
     } else {
       throw "Bad arguments (bad arguments " + JSON.stringify(args) + " for file '" + file + "')";
     }
@@ -153,8 +153,7 @@ var baked = require("./baked");
   Router.prototype.urlToStaticCb = function (here_src, here_dst) {
     var _this = this;
     return function (file, args) {
-      var url = _this.urlToStatic(file, args, here_src, here_dst);
-      return url.replace(/(.)index\.html$/, '$1');
+      return _this.urlToStatic(file, args, here_src, here_dst);
     };
   };
 

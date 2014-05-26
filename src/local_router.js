@@ -57,6 +57,7 @@ var Router = require('./router');
       if (!/\.html$/.test(src)) { src += ".html"; }
       url = _this.findFileFromDst(url);
       var infos = {src: src, args: args, dst: url};
+      url = url.replace(/\/index\.html$/, '/');
       _this.urls[url] = infos;
       return url;
     };
