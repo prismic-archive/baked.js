@@ -49,6 +49,7 @@ gulp.task('copy-lib', ['generate:content'], function () {
 gulp.task('generate', ['generate:lib', 'copy-lib']);
 
 gulp.task('serve', function() {
+  var port = 8282;
   http.createServer(ecstatic({
     root: __dirname + '/' + dst_dir,
     baseDir: '/',
@@ -56,7 +57,8 @@ gulp.task('serve', function() {
     showDir: false,
     autoIndex: true,
     defaultExt: 'html'
-  })).listen(8282);
+  })).listen(port);
+  console.info("Listen connection on http://127.0.0.1:" + port);
 });
 
 gulp.task('watch:src', function () {
