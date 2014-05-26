@@ -71,4 +71,6 @@ gulp.task('watch:content', function () {
 
 gulp.task('watch', ['watch:src', 'watch:content']);
 
-gulp.task('default', ['generate', 'serve', 'watch']);
+gulp.task('dev', ['generate', 'serve', 'watch']);
+
+gulp.task('default', ['generate']);
