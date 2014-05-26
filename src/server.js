@@ -21,11 +21,7 @@ var Router = require("./router");
           level: 'debug',
           colorize: true
         })
-      ],
-      exceptionHandlers: [
-        new (winston.transports.Console)({json: false, timestamp: true})
-      ],
-      exitOnError: false
+      ]
     });
   }
 
@@ -57,13 +53,6 @@ var Router = require("./router");
           if (err) {
             deferred.reject(err);
           } else {
-            var scripts = window.document.querySelectorAll("script");
-            _.each(scripts, function (script) {
-              var src = script.getAttribute('src');
-              if (src && src.match(/^(.*\/)?baked(-[.0-9]*)?.js$/)) {
-                script.parentNode.removeChild(script);
-              }
-            });
             deferred.resolve(window);
           }
         }
@@ -127,13 +116,10 @@ var Router = require("./router");
           args: args,
           helpers: {url_to: router.urlToStaticCb(src, dst)}
         }, global).then(function () {
-          var metas = window.document.querySelectorAll("meta");
-          _.each(metas, function (meta) {
-            var name = meta.getAttribute('name');
-            if (name && name.match(/^prismic-/)) {
-              meta.parentNode.removeChild(meta);
-            }
-          });
+          var script = window.document.createElement("script");
+          var routerInfos = router.routerInfosForFile(src, dst, args);
+          script.innerHTML = 'window.routerInfosForFile = ' + JSON.stringify(routerInfos) + ';';
+          window.document.body.appendChild(script);
         });
       }, ctx).then(function () {
         return logAndTime("generate file '" + src + "' => '" + dst + "'", function () {
@@ -145,7 +131,7 @@ var Router = require("./router");
     });
   }
 
-  function copyFile(name, src, content, dst, router, ctx) {
+  function copyFile(name, src, content, dst, ctx) {
     return logAndTime("copy file '" + src + "' => '" + dst + "'", function () {
       return Q.ninvoke(fs, 'writeFile', dst, content, "utf8");
     }, ctx).thenResolve(dst);
@@ -157,24 +143,35 @@ var Router = require("./router");
         .ninvoke(fs, 'readFile', src, "utf8")
         .then(function (content) {
           if (!router.isTemplate(src)) {
-            return copyFile(name, src, content, dst, router, ctx);
+            return copyFile(name, src, content, dst, ctx);
           } else if (!router.isDynamic(src)) {
             var file = src
               .replace(router.src_dir, '')
-              .replace(/\.html$/, '')
-              .replace(/^\//, '');
+              .replace(/\.html$/, '');
             var customDst = router.globalFilename(file, args);
-            return generateFile(name, src, content, args, customDst, router, ctx);
+            return saveTemplate(name, src, content, dst, ctx).then(function () {
+              return generateFile(name, src, content, args, customDst, router, ctx);
+            });
           } else if (args) {
             return generateFile(name, src, content, args, dst, router, ctx);
           } else {
-            return Q.fcall(function () { return; });
+            return saveTemplate(name, src, content, dst, ctx);
           }
         });
     }, ctx).catch(function (err) {
       ctx.logger.error(err.stack || err);
       return [];
     });
+  }
+
+  function saveTemplate(name, src, content, dst, ctx) {
+    var tmpl_dst = dst + ".tmpl";
+    return logAndTime("create template '" + src + "' => '" + tmpl_dst + "'", function () {
+      return withWindow(content)
+        .then(function (window) {
+          return copyFile(name, src, window.document.body.innerHTML, tmpl_dst, ctx);
+        });
+    }, ctx);
   }
 
   function renderFile(name, src, args, dst, router, ctx) {
@@ -292,6 +289,16 @@ var Router = require("./router");
     });
   }
 
+  function saveRouter(router, dir, ctx) {
+    var dst = dir + '/_router.json';
+    return logAndTime("Save router => '" + dst + "'", function () {
+      var content = JSON.stringify(router.routerInfos());
+      return Q.ninvoke(fs, 'writeFile', dst, content, "utf8");
+    }, ctx).then(function () {
+      return router;
+    });
+  }
+
   function run(src_dir, dst_dir, opts) {
     return Q.fcall(function () {
       var ctx = _.assign({logger: buildLogger()}, opts, {
@@ -310,7 +317,11 @@ var Router = require("./router");
               .then(function () { return router; });
           })
           .then(function (router) {
-            return renderStackedCalls(router, dst_dir, ctx);
+            return renderStackedCalls(router, dst_dir, ctx)
+              .thenResolve(router);
+          })
+          .then(function (router) {
+            return saveRouter(router, dst_dir, ctx);
           });
       }, ctx);
     }).done(

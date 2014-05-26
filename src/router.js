@@ -6,11 +6,6 @@ var baked = require("./baked");
 (function (Global, undefined) {
   "use strict";
 
-  function log(logger) {
-    var args = _.rest(arguments, 1);
-    if (logger) { logger.info.apply(logger, args); }
-  }
-
   function els(path, dir) {
     if (dir) {
       path = [''].concat(_.compact(path.split('/'))).join('/').replace(/\/[^\/]*$/, '');
@@ -27,7 +22,6 @@ var baked = require("./baked");
     this.src_dir = opts.src_dir;
     this.dst_dir = opts.dst_dir;
     this.calls = {};
-    this.logger = opts.logger;
     this.generatedRoutes = {};
   }
 
@@ -90,7 +84,7 @@ var baked = require("./baked");
   };
 
   function srcForFile(router, file) {
-    return router.src_dir + "/" + file + ".html";
+    return router.src_dir + file + ".html";
   }
 
   Router.prototype.srcForCall = function (call) {
@@ -101,33 +95,24 @@ var baked = require("./baked");
     return router.params[srcForFile(router, file)];
   }
 
-  Router.prototype.urlToDyn = function (file, args) {
-    if (_.isString(args)) { args = {id: args}; }
-    var queryString = _.map(args, function (value, name) {
-      return name + "=" + value;
-    }).join("&");
-    return file + ".html" + (_.isEmpty(queryString) ? '' : '?' + queryString);
-  };
-
-  Router.prototype.urlToDynCb = function () {
-    var _this = this;
-    return function () {
-      return _this.urlToDyn.apply(_this, arguments);
-    };
-  };
-
   function findFileFromHere(file, here) {
     var fileEls = els(file);
     var hereEls = els(here, true);
-    while (_.first(fileEls) == '..') {
-      fileEls.shift();
-      hereEls.pop();
+    if (/^\//.test(file)) {
+      hereEls = [];
     }
-    return hereEls.concat(fileEls).join('/');
+    _.each(fileEls, function (dir) {
+      if (dir == '..') {
+        hereEls.pop();
+      } else {
+        hereEls.push(dir);
+      }
+    });
+    return '/' + hereEls.join('/');
   }
 
   function addGeneratedRoute(router, relativePath, call, here, file, here_src) {
-    var globalPath = '/' + findFileFromHere(relativePath, here);
+    var globalPath = findFileFromHere(relativePath, here);
     var infos = {
       args: call.args,
       by: here_src,
@@ -159,7 +144,7 @@ var baked = require("./baked");
       var call = addCall(this, fileFromHere, parsedArgs);
       var filename = this.filename(fileFromHere, parsedArgs, here_dst);
       addGeneratedRoute(this, filename, call, here_dst, fileFromHere, here_src);
-      return filename;
+      return filename.replace(/\/index\.html$/, '/');
     } else {
       throw "Bad arguments (bad arguments " + JSON.stringify(args) + " for file '" + file + "')";
     }
@@ -168,8 +153,7 @@ var baked = require("./baked");
   Router.prototype.urlToStaticCb = function (here_src, here_dst) {
     var _this = this;
     return function (file, args) {
-      var url = _this.urlToStatic(file, args, here_src, here_dst);
-      return url.replace(/(.)index\.html$/, '$1');
+      return _this.urlToStatic(file, args, here_src, here_dst);
     };
   };
 
@@ -197,7 +181,7 @@ var baked = require("./baked");
     } else {
       path = [file].concat(_.map(params.params, function (param) {
         return args[param];
-      })).join("/");
+      })).join('/');
     }
     if (/(^|\/)index(\.html)?$/.test(path)) {
       path += ".html";
@@ -208,11 +192,11 @@ var baked = require("./baked");
       els(here || '', true),
       els(path)
     );
-    return diff.join('/');
+    return '/' + diff.join('/');
   };
 
   Router.prototype.globalFilename = function (file, args, here) {
-    return [this.dst_dir].concat(this.filename(file, args, here)).join('/');
+    return this.dst_dir + this.filename(file, args, here);
   };
 
   Router.prototype.filenameForCall = function (call) {
@@ -223,10 +207,27 @@ var baked = require("./baked");
     return this.globalFilename(call.file, call.args);
   };
 
-  function create(params, src_dir, logger) {
-    return new Router(params, src_dir, logger);
+  Router.prototype.routerInfosForFile = function (src, dst, args) {
+    return {
+      src: src.replace(this.src_dir, ''),
+      dst: dst.replace(this.dst_dir, ''),
+      args: args
+    };
+  };
+
+  Router.prototype.routerInfos = function () {
+    return {
+      params: _.transform(this.params, function (result, value, name) {
+        result[name.replace(this.src_dir, '')] = value;
+      }, null, this)
+    };
+  };
+
+  function create(params, src_dir) {
+    return new Router(params, src_dir);
   }
 
   Global.create = create;
+  Global.findFileFromHere = findFileFromHere;
 
 }(typeof exports === 'object' && exports ? exports : (typeof module === "object" && module && typeof module.exports === "object" ? module.exports : window)));

@@ -29,6 +29,9 @@ It displays a lot of informations, explaining what it's doing, which file it's t
 
 When it's finished, just copy the generated files into your favorite HTTP server (you can open them directly in your browser if you wish).
 
+You can also use the [Dev mode](#dev-mode) to see the result directly from your
+local computer (without having to do anything else).
+
 ### Gulp task
 
 You can let Gulp handle the generation for you by running
@@ -159,7 +162,10 @@ It is possible to customize the URL as well. To do so, just add a `<meta>` tag �
 
 ## Dev mode
 
-It's possible to directly open the sources file in your browser. The rendering lib will run as seen in the last blog article (+ the `url_to` helper is working).
+When generating files, the `gulp` command also starts an HTTP server (at port 8282). Go to `[http://127.0.0.1:8282](http://127.0.0.1:8282)` using your favorite browser and you will see the result.
+
+The content files are watched: every modification will trigger a new generation
+of the content.
 
 ## Internals
 
@@ -173,7 +179,6 @@ It uses [Q](https://github.com/kriskowal/q) and [lodash](http://lodash.com), and
 	- the page a URL `http://host/foo/bar.html` could be
 		- the file `foo/bar.html` (if the generated files are put at the root of `host`)
 		- the file `bar.html` (if the generated files are put in the dir `foo` of `host`)
-	- `url_to` have to be relative (how to link to a global file without knowning what is the origin point?)
 	- the custom routes can't be honored, even simple rename (how can we know which route should be used without reading the called file?)
     - ⇒ **⚠ we're working to fix these points**
 - the server build a DOM structure (using JSDOM) in order to navigate inside it, so:
