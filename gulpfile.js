@@ -40,13 +40,13 @@ gulp.task('generate:lib', function() {
 
 gulp.task('generate:content', function () {
   baked.generate(src_dir, dst_dir, {async: true, debug: false});
+});
+
+gulp.task('copy-lib', ['generate:content'], function () {
   gulp.src(build_dir + '/' + libName).pipe(gulp.dest(dst_dir));
 });
 
-gulp.task('generate:all', function () {
-  gulp.start('generate:lib');
-  gulp.start('generate:content');
-});
+gulp.task('generate', ['generate:lib', 'copy-lib']);
 
 gulp.task('serve', function() {
   http.createServer(ecstatic({
@@ -59,12 +59,14 @@ gulp.task('serve', function() {
   })).listen(8282);
 });
 
-gulp.task('default', function () {
-  gulp.start('generate:all');
-  gulp.start('serve');
-  gulp.watch('src/**/*.js', ['generate:all']);
+gulp.task('watch:src', function () {
+  gulp.watch('src/**/*.js', ['generate']);
+});
+
+gulp.task('watch:content', function () {
   gulp.watch(src_dir + '/**/*', ['generate:content']);
 });
 
+gulp.task('watch', ['watch:src', 'watch:content']);
 
-
+gulp.task('default', ['generate', 'serve', 'watch']);
