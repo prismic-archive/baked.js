@@ -11,17 +11,20 @@ var LocalRouter = require("./local_router");
 
   if (_.isEmpty(location.search)) return;
 
-  var queryString;
+  document.querySelector('html').style.display = 'none';
 
-  function prepareConf(localRouter, args) {
-    var queryArgs;
+  var queryString;
+  var accessToken, ref;
+
+  function prepareConf(localRouter, args, infos) {
     if (!queryString) {
       queryString = location.search;
-      queryArgs = getArgs(baked.parseRoutingInfos(window.document.head.innerHTML));
+      accessToken = getArg('access_token');
+      ref = getArg('ref');
     }
     var localArgs = localRouter.localInfos.args;
     if (!args) {
-      args = _.assign({}, localArgs, queryArgs, function (prev, cur) {
+      args = _.assign({}, localArgs, function (prev, cur) {
         return _.isEmpty(cur) ? prev : cur;
       });
     }
@@ -30,22 +33,19 @@ var LocalRouter = require("./local_router");
       helpers: {
         url_to: localRouter.urlToDynCb()
       },
-      args: args
+      args: args,
+      accessToken: accessToken,
+      ref: ref,
+      api: localRouter.api()
     });
     return conf;
   }
 
-  function getArgs(router) {
-    function getParameterByName(name) {
-      name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-      var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
-      var results = regex.exec(location.search);
-      return (!results) ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-    }
-    return _.reduce(router.params, function (args, param) {
-      args[param] = getParameterByName(param);
-      return args;
-    }, {});
+  function getArg(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
+    var results = regex.exec(location.search);
+    return (!results) ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
   }
 
   function buildNotifyRendered(router) {
@@ -60,7 +60,7 @@ var LocalRouter = require("./local_router");
     return notifyRendered;
   }
 
-  var HTML = document.querySelectorAll('html')[0];
+  var HTML = document.querySelector('html');
   document.addEventListener('DOMContentLoaded', function() {
 
     function ajax(options) {
@@ -92,7 +92,7 @@ var LocalRouter = require("./local_router");
             src_dir: '',
             dst_dir: ''
           });
-          var routerInfosForFile = window.routerInfosForFile;
+          var routerInfosForFile = window.routerInfosForFile || {};
           var localRouter = LocalRouter.create(routerInfosForFile, router);
           return localRouter;
         });
@@ -119,7 +119,7 @@ var LocalRouter = require("./local_router");
       if (infos) {
         localRouter = localRouter.copy(infos);
       }
-      var conf = prepareConf(localRouter, localRouter.args());
+      var conf = prepareConf(localRouter, localRouter.args(), infos);
       if (infos && window.history) {
         window.history.pushState(infos, null, infos.href + queryString);
       }
@@ -153,10 +153,16 @@ var LocalRouter = require("./local_router");
 
     buildRouter()
       .then(function (localRouter) {
-        return loadPage(localRouter);
+        var metaDynamic = document.querySelector('head meta[name="prismic-dynamic"]');
+        if (metaDynamic && metaDynamic.content == "true") {
+          var infos = localRouter.findInfosFromHref(location.pathname);
+          return loadPage(localRouter, infos);
+        } else {
+          return loadPage(localRouter);
+        }
       })
       .done(undefined, function (err) {
-        console.error(err.message);
+        console.error(err);
       });
 
   });

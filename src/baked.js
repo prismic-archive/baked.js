@@ -13,7 +13,7 @@ var _ = require("lodash");
         deferred.reject(err);
       }
       else deferred.resolve(api);
-    });
+    }, conf.accessToken);
     return deferred.promise;
   }
 
@@ -69,18 +69,23 @@ var _ = require("lodash");
 
   function initConf(global, window, opts) {
     var document = window.document;
-    var conf = _.extend({
+    var conf = {
       env: opts.env || {},
       helpers: opts.helpers || {},
       logger: opts.logger || window.console,
-      args: opts.args || {}
-    }, conf);
+      args: opts.args || {},
+      ref: opts.ref,
+      accessToken: opts.accessToken,
+      api: opts.api
+    };
 
     // The Prismic.io API endpoint
-    try {
-      conf.api = document.querySelectorAll('head meta[name="prismic-api"]')[0].content;
-    } catch(e) {
-      conf.logger.error('Please define your api endpoint in the <head> element. For example: <meta name="prismic-api" content="https://lesbonneschoses.prismic.io/api">'); return;
+    if (!conf.api) {
+      try {
+        conf.api = document.querySelector('head meta[name="prismic-api"]').content;
+      } catch(e) {
+        conf.logger.error('Please define your api endpoint in the <head> element. For example: <meta name="prismic-api" content="https://lesbonneschoses.prismic.io/api">'); return;
+      }
     }
 
     // Extract the bindings
@@ -127,7 +132,7 @@ var _ = require("lodash");
         .all(_.map(conf.bindings, function(binding, name) {
           var deferred = Q.defer();
           var form = api.form(binding.form);
-          form = form.ref(maybeRef || api.master());
+          form = form.ref(maybeRef || conf.ref || api.master());
           form = _.reduce(binding.params, function (form, value, key) {
             return form.set(key, value);
           }, form);
@@ -147,7 +152,8 @@ var _ = require("lodash");
             types: api.types,
             refs: api.data.refs,
             tags: api.data.tags,
-            master: api.master.ref
+            master: api.master.ref,
+            ref: conf.ref
           }, conf.env);
           return _.reduce(results, function (documentSets, res) {
             if(res) {
@@ -181,12 +187,16 @@ var _ = require("lodash");
   };
 
   function parseRoutingInfos(content) {
+    var rxAPI = /<meta +name="prismic-api" +content="([^"]+)" *>/ig;
     var rxParam = /<meta +name="prismic-routing-param" +content="([a-z][a-z0-9]*)" *>/ig;
     var rxPattern = /<meta +name="prismic-routing-pattern" +content="([\/$a-z][\/${}a-z0-9.-_]*)" *>/ig;
     var match;
     var res = {
       params: []
     };
+    if ((match = rxAPI.exec(content)) !== null) {
+      res.api = match[1];
+    }
     while ((match = rxParam.exec(content)) !== null) {
       res.params.push(match[1]);
     }
