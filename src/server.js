@@ -147,8 +147,7 @@ var Router = require("./router");
           } else if (!router.isDynamic(src)) {
             var file = src
               .replace(router.src_dir, '')
-              .replace(/\.html$/, '')
-              .replace(/^\//, '');
+              .replace(/\.html$/, '');
             var customDst = router.globalFilename(file, args);
             return saveTemplate(name, src, content, dst, ctx).then(function () {
               return generateFile(name, src, content, args, customDst, router, ctx);

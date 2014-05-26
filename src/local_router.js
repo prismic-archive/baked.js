@@ -35,8 +35,13 @@ var Router = require('./router');
     return this.localParams().route;
   };
 
-  LocalRouter.prototype.getFileFromHere = function(file) {
-    return Router.findFileFromHere(file, this.src());
+  LocalRouter.prototype.findFileFromSrc = function(file) {
+    var res = Router.findFileFromHere(file, this.src());
+    return res;
+  };
+
+  LocalRouter.prototype.findFileFromDst = function(file) {
+    return Router.findFileFromHere(file, this.dst());
   };
 
   function globalFile(localRouter, file) {
@@ -47,10 +52,12 @@ var Router = require('./router');
   LocalRouter.prototype.urlToDynCb = function() {
     var _this = this;
     return function (file, args) {
-      var src = _this.getFileFromHere(file);
+      var src = _this.findFileFromSrc(file);
       var url = _this.router.filename(src, args, _this.dst());
       if (!/\.html$/.test(src)) { src += ".html"; }
-      _this.urls[url] = {src: src, args: args, dst: src};
+      url = _this.findFileFromDst(url);
+      var infos = {src: src, args: args, dst: url};
+      _this.urls[url] = infos;
       return url;
     };
   };

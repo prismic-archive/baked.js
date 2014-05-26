@@ -107,9 +107,6 @@ var LocalRouter = require("./local_router");
 
     function loadPage(localRouter, infos) {
       var template_src = infos && infos.src;
-      if (template_src) {
-        template_src = '/' + localRouter.getFileFromHere(template_src);
-      }
       return getTemplate(localRouter, template_src)
         .then(function (template) {
           return generateContent(template, localRouter, infos);

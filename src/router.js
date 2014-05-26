@@ -84,7 +84,7 @@ var baked = require("./baked");
   };
 
   function srcForFile(router, file) {
-    return router.src_dir + "/" + file + ".html";
+    return router.src_dir + file + ".html";
   }
 
   Router.prototype.srcForCall = function (call) {
@@ -123,11 +123,11 @@ var baked = require("./baked");
         hereEls.push(dir);
       }
     });
-    return hereEls.join('/');
+    return '/' + hereEls.join('/');
   }
 
   function addGeneratedRoute(router, relativePath, call, here, file, here_src) {
-    var globalPath = '/' + findFileFromHere(relativePath, here);
+    var globalPath = findFileFromHere(relativePath, here);
     var infos = {
       args: call.args,
       by: here_src,
@@ -197,7 +197,7 @@ var baked = require("./baked");
     } else {
       path = [file].concat(_.map(params.params, function (param) {
         return args[param];
-      })).join("/");
+      })).join('/');
     }
     if (/(^|\/)index(\.html)?$/.test(path)) {
       path += ".html";
@@ -208,11 +208,11 @@ var baked = require("./baked");
       els(here || '', true),
       els(path)
     );
-    return diff.join('/');
+    return '/' + diff.join('/');
   };
 
   Router.prototype.globalFilename = function (file, args, here) {
-    return [this.dst_dir].concat(this.filename(file, args, here)).join('/');
+    return this.dst_dir + this.filename(file, args, here);
   };
 
   Router.prototype.filenameForCall = function (call) {
