@@ -4,7 +4,8 @@
 
 - Add HTTP server to serve generated file ea5783a 269cb9b
   - the generation is automatically performed when content is modified
-
+- It is now possible to specify an access_token and a ref in the queryString
+- The dynamic mode now uses an HTTP server, so custom routes are honored in this mode too
 
 ### Incompatible changes
 
