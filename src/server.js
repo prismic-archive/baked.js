@@ -63,9 +63,17 @@ var Router = require("./router");
 
   function createDir(dir) {
     return Q
-      .ninvoke(fs, 'mkdir', dir).catch(function (err) {
-        if (!err || err.code != 'EEXIST') { throw err; }
-      });
+      .ninvoke(fs, 'lstat', dir)
+      .catch(
+        function (err) {
+          if (err && err.code == 'ENOENT') {
+            return Q.ninvoke(fs, 'mkdir', dir);
+          } else {
+            throw err;
+          }
+          throw err;
+        }
+      );
   }
 
   function createDirs(dirs, ctx) {
