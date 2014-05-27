@@ -73,17 +73,18 @@ var Router = require("./router");
   }
 
   function createPath(dir) {
-    var split = _.initial(dir.split("/"));
+    var split = _.initial(dir.replace(/^\//, '').split("/"));
+    var first = /^\//.test(dir) ? '' : false;
     function loop(toCreate, created) {
       if (_.isEmpty(toCreate)) {
         return Q.fcall(function () { return dir; });
       } else {
-        dir = (created ? created + "/" : '') + toCreate[0];
+        dir = (created !== false ? created + "/" : '') + toCreate[0];
         var rest = _.rest(toCreate);
         return createDir(dir).then(function () { return loop(rest, dir); });
       }
     }
-    return loop(split);
+    return loop(split, first);
   }
 
   function createPaths(dirs, ctx) {
