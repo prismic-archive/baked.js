@@ -311,26 +311,26 @@ var Router = require("./router");
   function run(opts) {
     return Q.fcall(function () {
       var ctx = _.assign({logger: buildLogger()}, opts, {
-        src_dir: opts.src_dir,
-        dst_dir: opts.dst_dir
+        src_dir: opts.src_dir.replace(/\/$/, ''),
+        dst_dir: opts.dst_dir.replace(/\/$/, '')
       });
       ctx.logger.info("ctx:", _.assign({}, ctx, {logger: '<LOGGER>'}));
       if (ctx.debug) Q.longStackSupport = true;
       return logAndTime("Generation", function () {
-        return createPaths([opts.dst_dir], ctx)
+        return createPaths([ctx.dst_dir], ctx)
           .then(function () {
-            return buildRouter(opts.src_dir, opts.dst_dir, ctx);
+            return buildRouter(ctx.src_dir, ctx.dst_dir, ctx);
           })
           .then(function (router) {
-            return renderDir(opts.src_dir, opts.dst_dir, router, ctx)
+            return renderDir(ctx.src_dir, ctx.dst_dir, router, ctx)
               .then(function () { return router; });
           })
           .then(function (router) {
-            return renderStackedCalls(router, opts.dst_dir, ctx)
+            return renderStackedCalls(router, ctx.dst_dir, ctx)
               .thenResolve(router);
           })
           .then(function (router) {
-            return saveRouter(router, opts.dst_dir, ctx);
+            return saveRouter(router, ctx.dst_dir, ctx);
           });
       }, ctx);
     });
