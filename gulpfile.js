@@ -22,7 +22,7 @@ var options = (function () {
 }());
 
 function ReloadBaked() {
-  require('./ext/starts_with');
+  require('./src/ext/starts_with');
   _.each(require.cache, function (value, key) {
     if (key.startsWith(__dirname + '/src')) {
       delete require.cache[key];
