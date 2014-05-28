@@ -196,6 +196,8 @@ var _ = require("lodash");
     };
     if ((match = rxAPI.exec(content)) !== null) {
       res.api = match[1];
+    } else {
+      return null;  // no api == no template
     }
     while ((match = rxParam.exec(content)) !== null) {
       res.params.push(match[1]);

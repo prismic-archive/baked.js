@@ -252,8 +252,13 @@ var Router = require("./router");
           .ninvoke(fs, 'readFile', src, "utf8")
           .then(function (content) {
             var result = {};
-            result[src] = baked.parseRoutingInfos(content);
-            return result;
+            var infos = baked.parseRoutingInfos(content);
+            if (infos) {
+              result[src] = infos;
+              return result;
+            } else {
+              return null;
+            }
           });
       } else {
         return Q.fcall(function () { return null; });
