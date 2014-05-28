@@ -11,6 +11,10 @@
 
 - Split tasks “`gulp`” and “`gulp dev`” 42b4ada
 
+## Fixes
+
+- Non-template HTML files are now copied correctly 6f11b12
+
 ## 0.0.3
 
 ### Feature
