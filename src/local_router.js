@@ -115,11 +115,11 @@ var Router = require('./router');
   };
 
   LocalRouter.prototype.copy = function(localInfos) {
-    return create(localInfos, this.router);
+    return new LocalRouter(localInfos, this.router);
   };
 
-  function create(localInfos, router) {
-    return new LocalRouter(localInfos, router);
+  function create(router) {
+    return new LocalRouter({}, router);
   }
 
   exporter.create = create;

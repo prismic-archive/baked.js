@@ -92,22 +92,19 @@ var LocalRouter = require("./local_router");
             src_dir: '',
             dst_dir: ''
           });
-          var routerInfosForFile = window.routerInfosForFile || {};
-          var localRouter = LocalRouter.create(routerInfosForFile, router);
-          return localRouter;
+          return LocalRouter.create(router);
         });
     }
 
-    function getTemplate(localRouter, file) {
-      var templateURL = (file || localRouter.src()) + '.tmpl';
+    function getTemplate(file) {
+      var templateURL = file + '.tmpl';
       return ajax({url: templateURL}).then(function (response) {
         return response.responseText;
       });
     }
 
     function loadPage(localRouter, infos) {
-      var template_src = infos && infos.src;
-      return getTemplate(localRouter, template_src)
+      return getTemplate(infos.src)
         .then(function (template) {
           return generateContent(template, localRouter, infos);
         });
@@ -116,9 +113,7 @@ var LocalRouter = require("./local_router");
     function generateContent(content, localRouter, infos) {
       HTML.style.display = 'none';
       document.body.innerHTML = content;
-      if (infos) {
-        localRouter = localRouter.copy(infos);
-      }
+      localRouter = localRouter.copy(infos);
       var conf = prepareConf(localRouter, localRouter.args(), infos);
       if (infos && window.history) {
         window.history.pushState(infos, null, infos.href + queryString);
@@ -153,13 +148,10 @@ var LocalRouter = require("./local_router");
 
     buildRouter()
       .then(function (localRouter) {
-        var metaDynamic = document.querySelector('head meta[name="prismic-dynamic"]');
-        if (metaDynamic && metaDynamic.content == "true") {
-          var infos = localRouter.findInfosFromHref(location.pathname);
-          return loadPage(localRouter, infos);
-        } else {
-          return loadPage(localRouter);
-        }
+        var infos =
+          window.routerInfosForFile ||
+          localRouter.findInfosFromHref(location.pathname);
+        return loadPage(localRouter, infos);
       })
       .done(undefined, function (err) {
         console.error(err);
