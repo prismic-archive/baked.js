@@ -1,3 +1,5 @@
 /node_modules/
 /generated/
 /build/
+/to_generate/*
+/example/generated/

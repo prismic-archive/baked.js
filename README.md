@@ -60,6 +60,22 @@ node generate.js <src_dir> <dst_dir>
 
 The options --no-async and --debug are accepted.
 
+## Try on the example
+
+An examples of sources directory is available in the `example/` directory.
+
+You can test it directly after the installation. Just go in this directory and
+run baked as usual (gulp will find its `gulpfile.js` in the parent directory).
+
+Here is the complete steps (with installation):
+
+```sh
+# in baked.js directory
+npm install
+cd example
+gulp
+```
+
 ## Template
 
 Lodash's template can be used, with syntax “`[% %]`” (and “`[%= %]`”, “`[%- %]`”).
