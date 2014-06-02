@@ -346,5 +346,5 @@ var Router = require("./router");
 }(global));
 
 if (require.main === module) {
-  console.error("Runner has been changed: use `gulp` or `node generate.js <src> <dst>`");
+  console.error("Runner has been changed: use `gulp` or `gulp --src <src> --dst <dst>`");
 }

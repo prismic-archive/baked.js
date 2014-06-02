@@ -15,9 +15,7 @@ npm install
 
 ## Use
 
-There are 3 ways to run baked.js
-
-### Gulp task
+### Simple generation
 
 Run the command:
 
@@ -49,16 +47,6 @@ This task:
 - watches modification on your sources (and the baked.js sources) and re-generate on every changes
 
 Go to [http://127.0.0.1:8282](http://127.0.0.1:8282) using your favorite browser and you will see the result.
-
-### No gulp
-
-You can run baked.js without using Gulp at all using the following command:
-
-```sh
-node generate.js <src_dir> <dst_dir>
-```
-
-The options --no-async and --debug are accepted.
 
 ## Try on the example
 
