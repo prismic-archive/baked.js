@@ -116,7 +116,7 @@ var LocalRouter = require("./local_router");
       localRouter = localRouter.copy(infos);
       var conf = prepareConf(localRouter, localRouter.args(), infos);
       if (infos && window.history) {
-        window.history.pushState(infos, null, infos.href + queryString);
+        window.history.pushState(infos, null, (infos.href || '') + queryString);
       }
       return baked.render(window, localRouter.router, {conf: conf, notifyRendered: buildNotifyRendered(localRouter.router)}, window)
         .then(function () {
