@@ -5,6 +5,7 @@ var browserify = require('gulp-browserify');
 var concat = require('gulp-concat');
 var ecstatic = require('ecstatic');
 var gulp = require('gulp');
+var path = require('path');
 var Q = require('q');
 var watch = require('gulp-watch');
 
@@ -15,7 +16,7 @@ var cli = require('../cli');
 function ReloadBaked() {
   require('../ext/starts_with');
   _.each(require.cache, function (value, key) {
-    if (key.startsWith(__dirname + '/src')) {
+    if (key.startsWith(pathTo('src'))) {
       delete require.cache[key];
     }
   });
@@ -40,18 +41,19 @@ var initialized = false;
 function init(cfg) {
   initialized = true;
   if (!cfg) cfg = {};
-  if (!config.options) config.options = cfg.options || parseOptions();
-  if (!config.build_dir) config.build_dir = cfg.build_dir || '../../build';
-  if (!config.libName) config.libName = cfg.libName || 'baked.js';
-  if (!config.baked) config.baked = cfg.baked || require('../server');
+  _.assign(config, {
+    options: cfg.options || parseOptions(),
+    build_dir: cfg.build_dir || pathTo('build'),
+    libName: cfg.libName || 'baked.js',
+    baked: cfg.baked || require('../server')
+  });
 }
 
-var config = {
-  options: undefined,
-  build_dir: '../../build',
-  libName: 'baked.js',
-  baked: require('../server'),
-};
+var config = {};
+var root = path.join(__dirname, '../..');
+function pathTo(localPath) {
+  return path.join(root, localPath);
+}
 
 /* tasks */
 
@@ -63,7 +65,7 @@ gulp.task('baked:init', function() {
 
 gulp.task('baked:generate:lib', ['baked:init'], function() {
   baked = ReloadBaked();
-  gulp.src('src/browser.js')
+  return gulp.src(pathTo('src/browser.js'))
     .pipe(browserify({
       options: {
         alias: ['../fake:canvas']
@@ -86,7 +88,9 @@ gulp.task('baked:generate:content', ['baked:init'], function () {
 });
 
 gulp.task('baked:copy-lib', ['baked:generate:lib', 'baked:generate:content'], function () {
-  gulp.src(config.build_dir + '/' + config.libName).pipe(gulp.dest(config.options.dst_dir));
+  return gulp
+    .src(path.join(config.build_dir, config.libName))
+    .pipe(gulp.dest(config.options.dst_dir));
 });
 
 gulp.task('baked:generate', ['baked:generate:content', 'baked:copy-lib']);
@@ -105,7 +109,7 @@ gulp.task('baked:server', function () {
 });
 
 gulp.task('baked:watch:src', ['baked:init'], function () {
-  gulp.watch('src/**/*.js', ['baked:generate']);
+  gulp.watch(root + '/src/**/*.js', ['baked:generate']);
 });
 
 gulp.task('baked:watch:content', ['baked:init'], function () {
