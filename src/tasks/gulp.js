@@ -116,7 +116,7 @@ gulp.task('baked:watch', ['baked:watch:src', 'baked:watch:content']);
 
 /* default tasks */
 
-gulp.task('baked:dev', ['baked:generate', 'baked:server', 'baked:watch']);
+gulp.task('baked:serve', ['baked:generate', 'baked:server', 'baked:watch']);
 gulp.task('baked:default', ['baked:generate']);
 
 /* exports */

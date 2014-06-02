@@ -9,7 +9,7 @@
 
 ### Incompatible changes
 
-- Split tasks “`gulp`” and “`gulp dev`”
+- Split tasks “`gulp`” and “`gulp serve`”
 - ⚠ Remove the generate.js file
   - Run `gulp --src <src> --dst <dst>` instead
 

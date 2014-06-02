@@ -31,12 +31,12 @@ You can customize options in the `gulpfile.js` file or using command line argume
 - `--src <src_dir>`: Specify the source directory
 - `--dst <dst_dir>`: Specify the directory where generated files will be stored
 
-## Dev mode
+## Local server
 
-Starts the dev mode using the following command:
+Run the command:
 
 ```sh
-gulp dev
+gulp serve
 ```
 
 This task:
