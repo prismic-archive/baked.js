@@ -10,6 +10,8 @@
 ### Incompatible changes
 
 - Split tasks “`gulp`” and “`gulp dev`” 42b4ada
+- ⚠ Remove the generate.js file 9ef8c16
+  - Run `gulp --src <src> --dst <dst>` instead
 
 ## Fixes
 
