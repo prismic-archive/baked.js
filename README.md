@@ -25,6 +25,8 @@ gulp
 
 It will generate all files from `to_generate/` into `generated/`.
 
+(It also copy the current version of the library inside the `generated/` directory, for [dynamic browser mode](#dynamic-browser-mode)).
+
 You can customize options in the `gulpfile.js` file or using command line arguments:
 
 - `--no-async`: Generate files one by one (slower but easier to debug)
@@ -41,7 +43,6 @@ gulp serve
 
 This task:
 
-- builds the library (for browser use)
 - generates the content (as “`gulp`” does)
 - starts an HTTP server which serves the generated files
 - watches modification on your sources (and the baked.js sources) and re-generate on every changes
@@ -181,6 +182,27 @@ It is possible to customize the URL as well. To do so, just add a `<meta>` tag �
 baked.js is built on top of [Node.js](nodejs.org) and use [dom.js](https://github.com/andreasgal/dom.js/) to emulate the DOM.
 
 It uses [Q](https://github.com/kriskowal/q) and [lodash](http://lodash.com), and let [Gulp](gulpjs.com) and [browserify](browserify.org) handle the generation of the browser library.
+
+### Dynamic browser mode
+
+The generation can actually be performed at 2 places:
+
+- Statically by the gulp task
+  - This is the standard mode.
+  - It allows to send proper content the browsers and search engines.
+- Dynamically by the browser
+  - Every statically rendered page is able to re-generate itself, and then to emulate the navigation in the others pages (using [HTML5's History API](http://www.whatwg.org/specs/web-apps/current-work/multipage/history.html#the-history-interface)).
+  - It allows to specify specific `access_token` and `ref`, in order to render the content using a specific prismic.io's release.
+
+The dynamic mode needs some specific components:
+
+- The template of every content file (stored in the `.html.tmpl` files)
+  - These files allow to render any page
+- The routing informations of every content pages (stored in `_router.json`
+  - This file allows to build a router which is used to
+    - create a link between the current page and the ones references by the `url_to` helper (reverse routing)
+    - find the template to use, its parameters and the given argument in case of non-statically-rendered page (routing)
+      - This case can happen when loading a page that is created only with a specific release.
 
 ## Notes
 
