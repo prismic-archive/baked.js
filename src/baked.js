@@ -91,6 +91,7 @@ var _ = require("lodash");
     // Extract the bindings
     conf.bindings = {};
     var queryScripts = document.querySelectorAll('script[type="text/prismic-query"]');
+    function toUpperCase(str, l) { return l.toUpperCase() }
     _.each(queryScripts, function(node) {
       var binding = {
         params: {}
@@ -98,7 +99,8 @@ var _ = require("lodash");
       _.each(node.attributes, function (attr) {
         var match = /^data-query-(.+)/.exec(attr.nodeName);
         if (match) {
-          binding.params[match[1]] = attr.nodeValue;
+          var key = match[1].replace(/-(.)/g, toUpperCase);
+          binding.params[key] = attr.nodeValue;
         }
       });
       var name = node.getAttribute("data-binding");
