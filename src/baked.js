@@ -91,7 +91,7 @@ var _ = require("lodash");
     // Extract the bindings
     conf.bindings = {};
     var queryScripts = document.querySelectorAll('script[type="text/prismic-query"]');
-    function toUpperCase(str, l) { return l.toUpperCase() }
+    function toUpperCase(str, l) { return l.toUpperCase(); }
     _.each(queryScripts, function(node) {
       var binding = {
         params: {}
