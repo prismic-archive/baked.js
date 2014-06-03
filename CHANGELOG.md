@@ -16,6 +16,7 @@
 ## Fixes
 
 - Non-template HTML files are now copied correctly
+- Supports query parameter names using camelcase
 
 ## 0.0.3
 
