@@ -49,35 +49,57 @@ npm install
 <a name="use" class="anchor" href="#use"><span class="octicon octicon-link"></span></a>Use</h2>
 
 <h3>
-<a name="single-generation" class="anchor" href="#single-generation"><span class="octicon octicon-link"></span></a>Single generation</h3>
+<a name="simple-generation" class="anchor" href="#simple-generation"><span class="octicon octicon-link"></span></a>Simple generation</h3>
 
-<p>Run baked.js with the command:</p>
-
-<div class="highlight highlight-sh"><pre>node generate.js &lt;src_dir&gt; &lt;dst_dir&gt;
-</pre></div>
-
-<p>It displays a lot of informations, explaining what it's doing, which file it's trying to render, and logs errors that occur.</p>
-
-<p><strong>Tips</strong>: you can use the <code>--no-async</code> argument to make the displayed informations more readable. It will run slower though.</p>
-
-<p>When it's finished, just copy the generated files into your favorite HTTP server (you can open them directly in your browser if you wish).</p>
-
-<h3>
-<a name="gulp-task" class="anchor" href="#gulp-task"><span class="octicon octicon-link"></span></a>Gulp task</h3>
-
-<p>You can let Gulp handle the generation for you by running</p>
+<p>Run the command:</p>
 
 <div class="highlight highlight-sh"><pre>gulp
 </pre></div>
 
-<p>It will:</p>
+<p>It will generate all files from <code>to_generate/</code> into <code>generated/</code>.</p>
+
+<p>(It also copy the current version of the library inside the <code>generated/</code> directory, for <a href="#dynamic-browser-mode">dynamic browser mode</a>).</p>
+
+<p>You can customize options in the <code>gulpfile.js</code> file or using command line arguments:</p>
 
 <ul>
-<li>generate all files from <code>to_generate/</code> into <code>generated/</code>
-</li>
-<li>start an HTTP server which serves the generated files</li>
-<li>watch modification on your sources (and the baked.js sources) and re-generate on every changes</li>
-</ul><p>Directories and options can be changed in the <code>gulpfile.js</code> file.</p>
+<li>
+<code>--no-async</code>: Generate files one by one (slower but easier to debug)</li>
+<li>
+<code>--src &lt;src_dir&gt;</code>: Specify the source directory</li>
+<li>
+<code>--dst &lt;dst_dir&gt;</code>: Specify the directory where generated files will be stored</li>
+</ul><h2>
+<a name="local-server" class="anchor" href="#local-server"><span class="octicon octicon-link"></span></a>Local server</h2>
+
+<p>Run the command:</p>
+
+<div class="highlight highlight-sh"><pre>gulp serve
+</pre></div>
+
+<p>This task:</p>
+
+<ul>
+<li>generates the content (as “<code>gulp</code>” does)</li>
+<li>starts an HTTP server which serves the generated files</li>
+<li>watches modification on your sources (and the baked.js sources) and re-generate on every changes</li>
+</ul><p>Go to <a href="http://127.0.0.1:8282">http://127.0.0.1:8282</a> using your favorite browser and you will see the result.</p>
+
+<h2>
+<a name="try-on-the-example" class="anchor" href="#try-on-the-example"><span class="octicon octicon-link"></span></a>Try on the example</h2>
+
+<p>An examples of sources directory is available in the <code>example/</code> directory.</p>
+
+<p>You can test it directly after the installation. Just go in this directory and
+run baked as usual (gulp will find its <code>gulpfile.js</code> in the parent directory).</p>
+
+<p>Here is the complete steps (with installation):</p>
+
+<div class="highlight highlight-sh"><pre><span class="c"># in baked.js directory</span>
+npm install
+<span class="nb">cd </span>example
+gulp
+</pre></div>
 
 <h2>
 <a name="template" class="anchor" href="#template"><span class="octicon octicon-link"></span></a>Template</h2>
@@ -196,38 +218,62 @@ npm install
 <p><strong>Warning</strong>: be sure to specify every routing params in the URL! If you don't, we can't guarantee that there won't be URL conflict.</p>
 
 <h2>
-<a name="dev-mode" class="anchor" href="#dev-mode"><span class="octicon octicon-link"></span></a>Dev mode</h2>
-
-<p>It's possible to directly open the sources file in your browser. The rendering lib will run as seen in the last blog article (+ the <code>url_to</code> helper is working).</p>
-
-<h2>
 <a name="internals" class="anchor" href="#internals"><span class="octicon octicon-link"></span></a>Internals</h2>
 
 <p>baked.js is built on top of <a href="nodejs.org">Node.js</a> and use <a href="https://github.com/andreasgal/dom.js/">dom.js</a> to emulate the DOM.</p>
 
 <p>It uses <a href="https://github.com/kriskowal/q">Q</a> and <a href="http://lodash.com">lodash</a>, and let <a href="gulpjs.com">Gulp</a> and <a href="browserify.org">browserify</a> handle the generation of the browser library.</p>
 
-<h2>
+<h3>
+<a name="dynamic-browser-mode" class="anchor" href="#dynamic-browser-mode"><span class="octicon octicon-link"></span></a>Dynamic browser mode</h3>
+
+<p>The generation can actually be performed at 2 places:</p>
+
+<ul>
+<li>Statically by the gulp task
+
+<ul>
+<li>This is the standard mode.</li>
+<li>It allows to send proper content the browsers and search engines.</li>
+</ul>
+</li>
+<li>Dynamically by the browser
+
+<ul>
+<li>Every statically rendered page is able to re-generate itself, and then to emulate the navigation in the others pages (using <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/history.html#the-history-interface">HTML5's History API</a>).</li>
+<li>It allows to specify specific <code>access_token</code> and <code>ref</code>, in order to render the content using a specific prismic.io's release.</li>
+</ul>
+</li>
+</ul><p>The dynamic mode needs some specific components:</p>
+
+<ul>
+<li>The template of every content file (stored in the <code>.html.tmpl</code> files)
+
+<ul>
+<li>These files allow to render any page</li>
+</ul>
+</li>
+<li>The routing informations of every content pages (stored in <code>_router.json</code>
+
+<ul>
+<li>This file allows to build a router which is used to
+
+<ul>
+<li>create a link between the current page and the ones references by the <code>url_to</code> helper (reverse routing)</li>
+<li>find the template to use, its parameters and the given argument in case of non-statically-rendered page (routing)
+
+<ul>
+<li>This case can happen when loading a page that is created only with a specific release.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul><h2>
 <a name="notes" class="anchor" href="#notes"><span class="octicon octicon-link"></span></a>Notes</h2>
 
 <ul>
-<li>page in dev mode don't have the global map of exiting pages, so:
-
-<ul>
-<li>the page a URL <code>http://host/foo/bar.html</code> could be
-
-<ul>
-<li>the file <code>foo/bar.html</code> (if the generated files are put at the root of <code>host</code>)</li>
-<li>the file <code>bar.html</code> (if the generated files are put in the dir <code>foo</code> of <code>host</code>)</li>
-</ul>
-</li>
-<li>
-<code>url_to</code> have to be relative (how to link to a global file without knowning what is the origin point?)</li>
-<li>the custom routes can't be honored, even simple rename (how can we know which route should be used without reading the called file?)</li>
-<li>⇒ <strong>⚠ we're working to fix these points</strong>
-</li>
-</ul>
-</li>
 <li>the server build a DOM structure (using JSDOM) in order to navigate inside it, so:
 
 <ul>
