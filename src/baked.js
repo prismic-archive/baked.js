@@ -67,68 +67,73 @@ var _ = require("lodash");
     });
   }
 
-  function initConf(global, window, opts) {
-    var document = window.document;
+  function initConf(global, opts) {
     var conf = {
       env: opts.env || {},
       helpers: opts.helpers || {},
-      logger: opts.logger || window.console,
+      logger: opts.logger,
       args: opts.args || {},
       ref: opts.ref,
       accessToken: opts.accessToken,
-      api: opts.api
+      api: opts.api,
+      tmpl: opts.tmpl
     };
 
     // The Prismic.io API endpoint
     if (!conf.api) {
-      try {
-        conf.api = document.querySelector('head meta[name="prismic-api"]').content;
-      } catch(e) {
-        conf.logger.error('Please define your api endpoint in the <head> element. For example: <meta name="prismic-api" content="https://lesbonneschoses.prismic.io/api">'); return;
-      }
+      conf.logger.error(
+        'Please define your api endpoint in the <head> element. ' +
+        'For example: ' +
+        '<meta name="prismic-api" content="https://lesbonneschoses.prismic.io/api">');
+      return;
     }
 
     // Extract the bindings
     conf.bindings = {};
-    var queryScripts = document.querySelectorAll('script[type="text/prismic-query"]');
     function toUpperCase(str, l) { return l.toUpperCase(); }
-    _.each(queryScripts, function(node) {
+    var scriptRx = /<script +type="text\/prismic-query"([^>]*)>([\s\S]*?)<\/script>/ig;
+    conf.tmpl = conf.tmpl.replace(scriptRx, function (str, scriptParams, scriptContent) {
+      var dataRx = /data-([a-z0-9\-]+)="([^"]*)"/ig;
+      var dataset = {};
+      var match;
       var binding = {
         params: {}
       };
-      _.each(node.attributes, function (attr) {
-        var match = /^data-query-(.+)/.exec(attr.nodeName);
-        if (match) {
-          var key = match[1].replace(/-(.)/g, toUpperCase);
-          binding.params[key] = attr.nodeValue;
+      while ((match = dataRx.exec(scriptParams)) !== null) {
+        var attribute = match[1].toLowerCase();
+        var value = match[2];
+        var key;
+        if (/^query-/.test(attribute)) {
+          key = attribute.replace(/^query-/, '').replace(/-(.)/g, toUpperCase);
+          binding.params[key] = value;
+        } else {
+          key = attribute.replace(/-(.)/g, toUpperCase);
+          dataset[key] = value;
         }
-      });
-      var name = node.getAttribute("data-binding");
+      }
+      var name = dataset.binding;
       if (name) {
         _.assign(binding, {
-          form: node.getAttribute("data-form") || 'everything',
+          form: dataset.form || 'everything',
           render: function(api) {
-            return renderQuery(global, node.textContent, conf.args, api);
+            return renderQuery(global, scriptContent, conf.args, api);
           }
         });
         conf.bindings[name] = binding;
       }
-      node.parentNode.removeChild(node);
+      return "";  // remove the <script> tag
     });
-    // Extract the template
-    conf.tmpl = document.body.innerHTML;
 
     return conf;
   }
 
-  function initRender(window, router, opts, global) {
+  function initRender(router, opts, global) {
     if (!opts) { opts = {}; }
-    var conf = opts.conf || initConf(global, window, opts);
-    return render(window, router, conf, opts.ref, opts.notifyRendered, global);
+    var conf = opts.conf || initConf(global, opts);
+    return render(router, conf, opts.ref, global);
   }
 
-  var render = function(window, router, conf, maybeRef, notifyRendered, global) {
-    var document = window.document;
+  var render = function(router, conf, maybeRef, global) {
     return getAPI(conf).then(function(api) {
       return Q
         .all(_.map(conf.bindings, function(binding, name) {
@@ -170,18 +175,10 @@ var _ = require("lodash");
           if (conf.helpers) { _.extend(documentSets, conf.helpers); }
           _.extend(documentSets, conf.args);
 
-          document.body.innerHTML = renderContent(global, conf.tmpl, documentSets);
+          var result = renderContent(global, conf.tmpl, documentSets)
+            .replace(/(<img[^>]*)data-src="([^"]*)"/ig, '$1src="$2"');
 
-          var imagesSrc = document.querySelectorAll('img[data-src]');
-          _.each(imagesSrc, function(imageSrc) {
-            imageSrc.setAttribute('src', imageSrc.attributes['data-src'].value);
-          });
-
-          if(notifyRendered) setTimeout(function () {
-            notifyRendered(window, conf, maybeRef, notifyRendered);
-          }, 0);
-
-          return;
+          return result;
         });
 
     }, conf.accessToken);

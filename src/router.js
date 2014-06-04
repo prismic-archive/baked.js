@@ -25,6 +25,11 @@ var baked = require("./baked");
     this.generatedRoutes = {};
   }
 
+  Router.prototype.api = function(src) {
+    var params = this.params[src];
+    return params && params.api;
+  };
+
   Router.prototype.isTemplate = function (file) {
     return !!this.params[file];
   };

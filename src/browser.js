@@ -16,19 +16,20 @@ var LocalRouter = require("./local_router");
   var queryString;
   var accessToken, ref;
 
-  function prepareConf(localRouter, args, infos) {
+  function prepareConf(localRouter, infos, content) {
     if (!queryString) {
       queryString = location.search;
       accessToken = getArg('access_token');
       ref = getArg('ref');
     }
     var localArgs = localRouter.localInfos.args;
+    var args = localRouter.args();
     if (!args) {
       args = _.assign({}, localArgs, function (prev, cur) {
         return _.isEmpty(cur) ? prev : cur;
       });
     }
-    var conf = baked.initConf(window, window, {
+    var conf = baked.initConf(window, {
       logger: console,
       helpers: {
         url_to: localRouter.urlToDynCb()
@@ -36,7 +37,8 @@ var LocalRouter = require("./local_router");
       args: args,
       accessToken: accessToken,
       ref: ref,
-      api: localRouter.api()
+      api: localRouter.api(),
+      tmpl: content
     });
     return conf;
   }
@@ -49,7 +51,7 @@ var LocalRouter = require("./local_router");
   }
 
   function buildNotifyRendered(router) {
-    function notifyRendered(window, maybeRef) {
+    function notifyRendered(maybeRef) {
       var document = window.document;
 
       var e = document.createEvent("HTMLEvents");
@@ -112,15 +114,20 @@ var LocalRouter = require("./local_router");
 
     function generateContent(content, localRouter, infos) {
       HTML.style.display = 'none';
-      document.body.innerHTML = content;
       localRouter = localRouter.copy(infos);
-      var conf = prepareConf(localRouter, localRouter.args(), infos);
+      var conf = prepareConf(localRouter, infos, content);
       if (infos && window.history) {
         window.history.pushState(infos, null, (infos.href || '') + queryString);
       }
-      return baked.render(window, localRouter.router, {conf: conf, notifyRendered: buildNotifyRendered(localRouter.router)}, window)
+      return baked.render(localRouter.router, {conf: conf}, window)
+        .then(function (result) {
+          document.body.innerHTML = result;
+        })
         .then(function () {
           listen(localRouter);
+        })
+        .then(function () {
+          buildNotifyRendered(localRouter.router)(conf.ref);
         })
         .fin(function () {
           HTML.style.display = '';

@@ -204,11 +204,6 @@ The dynamic mode needs some specific components:
     - find the template to use, its parameters and the given argument in case of non-statically-rendered page (routing)
       - This case can happen when loading a page that is created only with a specific release.
 
-## Notes
-
-- the server build a DOM structure (using JSDOM) in order to navigate inside it, so:
-	- The tags `<% %>` can't be used, because JSDOM doesn't like them
-
 ### Licence
 
 This software is licensed under the Apache 2 license, quoted below.
