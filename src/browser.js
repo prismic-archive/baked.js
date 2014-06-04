@@ -16,7 +16,7 @@ var LocalRouter = require("./local_router");
   var queryString;
   var accessToken, ref;
 
-  function prepareConf(localRouter, infos, content) {
+  function prepareConf(localRouter, content) {
     if (!queryString) {
       queryString = location.search;
       accessToken = getArg('access_token');
@@ -115,7 +115,7 @@ var LocalRouter = require("./local_router");
     function generateContent(content, localRouter, infos) {
       HTML.style.display = 'none';
       localRouter = localRouter.copy(infos);
-      var conf = prepareConf(localRouter, infos, content);
+      var conf = prepareConf(localRouter, content);
       if (infos && window.history) {
         window.history.pushState(infos, null, (infos.href || '') + queryString);
       }
