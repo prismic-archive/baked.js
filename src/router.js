@@ -120,8 +120,8 @@ var baked = require("./baked");
     var globalPath = findFileFromHere(relativePath, here);
     var infos = {
       args: call.args,
-      by: here_src,
-      to: (file + '.html'),
+      by: router.cleanFilename(here_src),
+      to: file,
     };
     if (router.generatedRoutes[globalPath]) {
       var existing = router.generatedRoutes[globalPath];
