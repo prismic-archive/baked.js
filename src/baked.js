@@ -1,6 +1,7 @@
+var _ = require("lodash");
+var ejs = require("ejs");
 var Prismic = require("prismic.io").Prismic;
 var Q = require("q");
-var _ = require("lodash");
 
 (function (exporter, undefined) {
   "use strict";
@@ -34,11 +35,11 @@ var _ = require("lodash");
 
   function renderTemplate(content, env, global) {
     var clean = cleanEnv(global);
-    return _.template(content, null, {
-      escape: /\[%-([\s\S]+?)%\]/g,
-      evaluate: /\[%([\s\S]+?)%\]/g,
-      interpolate: /\[%=([\s\S]+?)%\]/g,
-    }).call(env, _.assign({}, clean, env));
+    return ejs.render(content, _.assign({}, env, {
+      scope: env,
+      open: '[%',
+      close: '%]'
+    }));
   }
 
   function renderContent(global, content, env) {
