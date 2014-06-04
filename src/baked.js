@@ -122,7 +122,7 @@ var Q = require("q");
         });
         conf.bindings[name] = binding;
       }
-      return "";  // remove the <script> tag
+      return str.replace(/.*/g, '');  // remove the <script> tag but preserve lines number
     });
 
     return conf;

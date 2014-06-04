@@ -103,15 +103,14 @@ var Router = require("./router");
         logger: ctx.logger,
         args: args,
         helpers: {url_to: router.urlToStaticCb(src, dst)},
-        tmpl: content.replace(/[\s\S]*<body>([\s\S]*)<\/body>[\s\S]*/m, '$1'),
+        tmpl: content,
         api: router.api(src)
       }, global).then(function (result) {
         var routerInfos = router.routerInfosForFile(src, dst, args);
         var scriptTag = '<script>' +
           'window.routerInfosForFile = ' + JSON.stringify(routerInfos) + ';' +
         '</script>';
-        result = "$1" + result + scriptTag + "\n" + "$2";
-        return content.replace(/([\s\S]*<body>)[\s\S]*(<\/body>[\s\S]*)/m, result);
+        return result.replace(/(<\/body>)/i, scriptTag + "\n$1");
       });
     }, ctx).then(function (result) {
       return logAndTime("generate file '" + src + "' => '" + dst + "'", function () {
