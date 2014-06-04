@@ -115,7 +115,9 @@ var Router = require("./router");
       });
     }, ctx).then(function (result) {
       return logAndTime("generate file '" + src + "' => '" + dst + "'", function () {
-        return Q.ninvoke(fs, 'writeFile', dst, result, "utf8");
+        return createPath(dst, ctx).then(function () {
+          return Q.ninvoke(fs, 'writeFile', dst, result, "utf8");
+        });
       }, ctx).then(function () {
         return dst;
       });
