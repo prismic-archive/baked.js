@@ -148,6 +148,7 @@ var baked = require("./baked");
     } else if (_.all(params.params, function (param) { return parsedArgs && !!parsedArgs[param]; })) {
       var call = addCall(this, fileFromHere, parsedArgs);
       var filename = this.filename(fileFromHere, parsedArgs, here_dst);
+      filename = findFileFromHere(filename, here_dst);
       addGeneratedRoute(this, filename, call, here_dst, fileFromHere, here_src);
       return filename.replace(/\/index\.html$/, '/');
     } else {
@@ -204,11 +205,11 @@ var baked = require("./baked");
       els(here || '', true),
       els(path)
     );
-    return '/' + diff.join('/');
+    return diff.join('/');
   };
 
   Router.prototype.globalFilename = function (file, args, here) {
-    return this.dst_dir + this.filename(file, args, here);
+    return this.dst_dir + '/' + this.filename(file, args, here);
   };
 
   Router.prototype.filenameForCall = function (call) {
