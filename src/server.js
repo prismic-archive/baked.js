@@ -110,7 +110,7 @@ var Router = require("./router");
         var scriptTag = '<script>' +
           'window.routerInfosForFile = ' + JSON.stringify(routerInfos) + ';' +
         '</script>';
-        result = "$1" + result + "\n" + scriptTag + "$2";
+        result = "$1" + result + scriptTag + "\n" + "$2";
         return content.replace(/([\s\S]*<body>)[\s\S]*(<\/body>[\s\S]*)/m, result);
       });
     }, ctx).then(function (result) {
