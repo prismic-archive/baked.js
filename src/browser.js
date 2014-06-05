@@ -50,16 +50,13 @@ var LocalRouter = require("./local_router");
     return (!results) ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
   }
 
-  function buildNotifyRendered(router) {
-    function notifyRendered(maybeRef) {
-      var document = window.document;
+  function notifyRendered(router, maybeRef) {
+    var document = window.document;
 
-      var e = document.createEvent("HTMLEvents");
-      e.initEvent("prismic:rendered", true, true);
-      e.ref = maybeRef;
-      document.dispatchEvent(e);
-    }
-    return notifyRendered;
+    var e = document.createEvent("HTMLEvents");
+    e.initEvent("prismic:rendered", true, true);
+    e.ref = maybeRef;
+    document.dispatchEvent(e);
   }
 
   var HTML = document.querySelector('html');
@@ -122,12 +119,8 @@ var LocalRouter = require("./local_router");
       return baked.render(localRouter.router, {conf: conf}, window)
         .then(function (result) {
           document.body.innerHTML = result;
-        })
-        .then(function () {
           listen(localRouter);
-        })
-        .then(function () {
-          buildNotifyRendered(localRouter.router)(conf.ref);
+          notifyRendered(localRouter.router, conf.ref);
         })
         .fin(function () {
           HTML.style.display = '';
