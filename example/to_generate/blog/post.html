@@ -7,6 +7,7 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="prismic-api" content="https://lesbonneschoses.prismic.io/api">
+    <!-- meta name="prismic-oauth-client-id" content=""> -->
     <meta name="prismic-routing-pattern" content="$id">
     <meta name="prismic-routing-param" content="id">
 
@@ -29,6 +30,23 @@
     </article>
 
     [%- partial('/footer') %]
+
+    <p>
+      [% if (loggedIn) { %]
+        <select data-prismic-action="update">
+          [% _.each(refs, function (r) { %]
+            [% if (r.ref == ref) { %]
+              <option value="[%= r.ref %]" selected="selected">[%= r.label %]</option>
+            [% } else { %]
+              <option value="[%= r.ref %]">[%= r.label %]</option>
+            [% } %]
+          [% }) %]
+        </select>
+        <button data-prismic-action="signout">Sign out</button>
+      [% } else { %]
+        <button data-prismic-action="signin">Sign in</button>
+      [% } %]
+    </p>
 
   </body>
 </html>

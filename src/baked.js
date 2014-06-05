@@ -132,16 +132,16 @@ var Q = require("q");
   function initRender(router, opts, global) {
     if (!opts) { opts = {}; }
     var conf = opts.conf || initConf(global, opts);
-    return render(router, conf, opts.ref, global);
+    return render(router, conf, global);
   }
 
-  var render = function(router, conf, maybeRef, global) {
+  var render = function(router, conf, global) {
     return getAPI(conf).then(function(api) {
       return Q
         .all(_.map(conf.bindings, function(binding, name) {
           var deferred = Q.defer();
           var form = api.form(binding.form);
-          form = form.ref(maybeRef || conf.ref || api.master());
+          form = form.ref(conf.ref || api.master());
           form = _.reduce(binding.params, function (form, value, key) {
             return form.set(key, value);
           }, form);
@@ -161,7 +161,7 @@ var Q = require("q");
             types: api.types,
             refs: api.data.refs,
             tags: api.data.tags,
-            master: api.master.ref,
+            master: api.master(),
             ref: conf.ref
           }, conf.env);
           return _.reduce(results, function (documentSets, res) {
@@ -171,7 +171,7 @@ var Q = require("q");
             return documentSets;
           }, env);
         }).then(function(documentSets) {
-          documentSets.ref = maybeRef || api.master();
+          documentSets.loggedIn = !!conf.accessToken;
 
           _.extend(documentSets, defaultHelpers);
           if (conf.helpers) { _.extend(documentSets, conf.helpers); }
@@ -181,7 +181,7 @@ var Q = require("q");
           var result = renderContent(global, conf.tmpl, documentSets)
             .replace(/(<img[^>]*)data-src="([^"]*)"/ig, '$1src="$2"');
 
-          return result;
+          return {api: api, content: result};
         });
 
     }, conf.accessToken);

@@ -192,7 +192,7 @@ The generation can actually be performed at 2 places:
   - It allows to send proper content the browsers and search engines.
 - Dynamically by the browser
   - Every statically rendered page is able to re-generate itself, and then to emulate the navigation in the others pages (using [HTML5's History API](http://www.whatwg.org/specs/web-apps/current-work/multipage/history.html#the-history-interface)).
-  - It allows to specify specific `access_token` and `ref`, in order to render the content using a specific prismic.io's release.
+  - It allows to specify specific `access_token` and `ref`, in order to render the content using a specific prismic.io's release. These can be set automatically using the [OAuth2 authentication](#auth2-authentication).
 
 The dynamic mode needs some specific components:
 
@@ -203,6 +203,60 @@ The dynamic mode needs some specific components:
     - create a link between the current page and the ones references by the `url_to` helper (reverse routing)
     - find the template to use, its parameters and the given argument in case of non-statically-rendered page (routing)
       - This case can happen when loading a page that is created only with a specific release.
+
+#### Specific ref to use
+
+baked.js provides a helper to easilly switch between refs.
+
+It listen changes made on elements containing the attribute
+“`data-prismic-action="update"`” and update the ref (and re-generate)
+accordingly.
+
+Here an example of use:
+
+```ejs
+<select data-prismic-action="update">
+  [% _.each(refs, function (r) { %]
+    [% if (r.ref == ref) { %]
+      <option value="[%= r.ref %]" selected="selected">[%= r.label %]</option>
+    [% } else { %]
+      <option value="[%= r.ref %]">[%= r.label %]</option>
+    [% } %]
+  [% }) %]
+</select>
+```
+
+#### OAuth2 authentication
+
+baked.js provides a helper to authenticate to your prismic.io application
+using OAuth2.
+
+It listen the “click” events on elements containing attributes
+“`data-prismic-action="signout"`” or “`data-prismic-action="signin"`.”
+
+In order to work, this feature needs a meta tag “`prismic-oauth-client-id`”
+to be defined.
+
+Here an example:
+
+```ejs
+<meta name="prismic-oauth-client-id" content="YOUR_CLIENT_ID">
+...
+[% if (loggedIn) { %]
+  <select data-prismic-action="update">
+    [% _.each(refs, function (r) { %]
+      [% if (r.ref == ref) { %]
+        <option value="[%= r.ref %]" selected="selected">[%= r.label %]</option>
+      [% } else { %]
+        <option value="[%= r.ref %]">[%= r.label %]</option>
+      [% } %]
+    [% }) %]
+  </select>
+  <button data-prismic-action="signout">Sign out</button>
+[% } else { %]
+  <button data-prismic-action="signin">Sign in</button>
+[% } %]
+```
 
 ### Licence
 

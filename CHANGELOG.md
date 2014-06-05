@@ -4,6 +4,8 @@
   - A partial is a template whose name starts by “_”. It won't be rendered directly (so it doesn't need meta like “prismic-api”) but is included in other
 templates using the helper `partial`. (`[%- partial('footer') %]` will include
 the partial “_footer.html.erb”)
+- Add helper to change ref
+- Add OAuth2 authentication
 
 ## 0.0.4
 

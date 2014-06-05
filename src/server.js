@@ -119,7 +119,7 @@ var Router = require("./router");
         var scriptTag = '<script>' +
           'window.routerInfosForFile = ' + JSON.stringify(routerInfos) + ';' +
         '</script>';
-        return result.replace(/(<\/body>)/i, scriptTag + "\n$1");
+        return result.content.replace(/(<\/body>)/i, scriptTag + "\n$1");
       });
     }, ctx).then(function (result) {
       return logAndTime("generate file '" + src + "' => '" + dst + "'", function () {
