@@ -97,12 +97,21 @@ var Router = require("./router");
       );
   }
 
+  function loadPartial(partial) {
+    return fs.readFileSync(partial, 'utf8');
+  }
+
   function generateFile(name, src, content, args, dst, router, ctx) {
     return logAndTime("render file '" + src + "' " + JSON.stringify(args), function () {
+      var templateEnv = {};
       return baked.render(router, {
         logger: ctx.logger,
         args: args,
-        helpers: {url_to: router.urlToStaticCb(src, dst)},
+        setEnv: function (e) { templateEnv.env = e; },
+        helpers: {
+          url_to: router.urlToStaticCb(src, dst),
+          partial: router.partialCb(src, templateEnv, global, loadPartial)
+        },
         tmpl: content,
         api: router.api(src)
       }, global).then(function (result) {
@@ -134,7 +143,7 @@ var Router = require("./router");
       return Q
         .ninvoke(fs, 'readFile', src, "utf8")
         .then(function (content) {
-          if (!router.isTemplate(src)) {
+          if (!router.isBakedTemplate(src)) {
             return copyFile(name, src, content, dst, ctx);
           } else if (!router.isDynamic(src)) {
             var file = src
@@ -227,7 +236,11 @@ var Router = require("./router");
 
   function buildRouterForFile(name, src, ctx) {
     return logAndTime("Build router for file '" + src + "'", function () {
-      if (/\.html$/.test(name)) {
+      if (Router.isPartial(name)) {
+        var result = {};
+        result[src] = {partial: true};
+        return result;
+      } else if (Router.isTemplate(name)) {
         return Q
           .ninvoke(fs, 'readFile', src, "utf8")
           .then(function (content) {

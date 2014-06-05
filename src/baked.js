@@ -77,7 +77,8 @@ var Q = require("q");
       ref: opts.ref,
       accessToken: opts.accessToken,
       api: opts.api,
-      tmpl: opts.tmpl
+      tmpl: opts.tmpl,
+      setEnv: opts.setEnv || _.noop
     };
 
     // The Prismic.io API endpoint
@@ -176,6 +177,7 @@ var Q = require("q");
           if (conf.helpers) { _.extend(documentSets, conf.helpers); }
           _.extend(documentSets, conf.args);
 
+          conf.setEnv(documentSets);
           var result = renderContent(global, conf.tmpl, documentSets)
             .replace(/(<img[^>]*)data-src="([^"]*)"/ig, '$1src="$2"');
 
@@ -212,5 +214,6 @@ var Q = require("q");
   exporter.initConf = initConf;
   exporter.parseRoutingInfos = parseRoutingInfos;
   exporter.renderRoute = renderRoute;
+  exporter.renderTemplate = renderTemplate;
 
 }(typeof exports === 'object' && exports ? exports : (typeof module === "object" && module && typeof module.exports === "object" ? module.exports : window)));

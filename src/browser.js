@@ -29,16 +29,19 @@ var LocalRouter = require("./local_router");
         return _.isEmpty(cur) ? prev : cur;
       });
     }
+    var templateEnv = {};
     var conf = baked.initConf(window, {
       logger: console,
       helpers: {
-        url_to: localRouter.urlToDynCb()
+        url_to: localRouter.urlToDynCb(),
+        partial: localRouter.partialCb(content, templateEnv, window)
       },
       args: args,
       accessToken: accessToken,
       ref: ref,
       api: localRouter.api(),
-      tmpl: content
+      tmpl: content,
+      setEnv: function (env) { templateEnv.env = env; }
     });
     return conf;
   }
@@ -87,23 +90,35 @@ var LocalRouter = require("./local_router");
       return ajax({url: '/_router.json' })
         .then(function (response) {
           var routerInfos = JSON.parse(response.responseText);
-          var router = Router.create(routerInfos.params, {
+          return Router.create(routerInfos.params, routerInfos.partials, {
             src_dir: '',
             dst_dir: ''
           });
-          return LocalRouter.create(router);
+        })
+        .then(function (router) {
+          return Q.all(_.map(router.partials, function (partial) {
+            return getTemplate(partial)
+              .then(function (content) {
+                return {partial: partial, content: content};
+              });
+          })).then(function (partials) {
+            var partialsInfos = _.reduce(partials, function (o, v) {
+              o[v.partial] = v.content;
+              return o;
+            }, {});
+            return LocalRouter.create(router, partialsInfos);
+          });
         });
     }
 
     function getTemplate(file) {
-      var templateURL = file + '.tmpl';
-      return ajax({url: templateURL}).then(function (response) {
+      return ajax({url: file}).then(function (response) {
         return response.responseText;
       });
     }
 
     function loadPage(localRouter, infos) {
-      return getTemplate(infos.src)
+      return getTemplate(infos.src + '.tmpl')
         .then(function (template) {
           return generateContent(template, localRouter, infos);
         });
@@ -136,10 +151,10 @@ var LocalRouter = require("./local_router");
             e.preventDefault();
             var infos = _.assign(localRouter.urls[href], {href: href});
             loadPage(localRouter, infos)
-              .done(
-                function () { body.removeEventListener('click', listener); },
-                function (err) { console.error(err.message); }
-              );
+              .then(function () {
+                body.removeEventListener('click', listener); }
+              )
+              .done();
           }
         }
       };
@@ -153,9 +168,7 @@ var LocalRouter = require("./local_router");
           localRouter.findInfosFromHref(location.pathname);
         return loadPage(localRouter, infos);
       })
-      .done(undefined, function (err) {
-        console.error(err);
-      });
+      .done();
 
   });
 
