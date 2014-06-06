@@ -179,9 +179,12 @@ It is possible to customize the URL as well. To do so, just add a `<meta>` tag â
 
 ## Internals
 
-baked.js is built on top of [Node.js](nodejs.org) and use [dom.js](https://github.com/andreasgal/dom.js/) to emulate the DOM.
+baked.js is built on top of [Node.js](nodejs.org).
 
-It uses [Q](https://github.com/kriskowal/q) and [lodash](http://lodash.com), and let [Gulp](gulpjs.com) and [browserify](browserify.org) handle the generation of the browser library.
+It uses [Q](https://github.com/kriskowal/q) and [lodash](http://lodash.com),
+let [Gulp](gulpjs.com) and [browserify](browserify.org) handle the generation
+of the browser library and uses [EJS](https://github.com/visionmedia/ejs) for
+the template rendering.
 
 ### Dynamic browser mode
 
