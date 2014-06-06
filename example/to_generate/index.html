@@ -21,22 +21,5 @@
 
     [%- partial('/footer') %]
 
-    <p>
-      [% if (loggedIn) { %]
-        <select data-prismic-action="update">
-          [% _.each(refs, function (r) { %]
-            [% if (r.ref == ref) { %]
-              <option value="[%= r.ref %]" selected="selected">[%= r.label %]</option>
-            [% } else { %]
-              <option value="[%= r.ref %]">[%= r.label %]</option>
-            [% } %]
-          [% }) %]
-        </select>
-        <button data-prismic-action="signout">Sign out</button>
-      [% } else { %]
-        <button data-prismic-action="signin">Sign in</button>
-      [% } %]
-    </p>
-
   </body>
 </html>
