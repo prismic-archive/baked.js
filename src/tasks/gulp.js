@@ -47,6 +47,7 @@ function init(cfg) {
     libName: cfg.libName || 'baked.js',
     baked: cfg.baked || require('../server')
   });
+  return config;
 }
 
 var config = {};
