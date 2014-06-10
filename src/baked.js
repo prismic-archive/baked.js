@@ -23,14 +23,9 @@ var Q = require("q");
   };
 
   function cleanEnv(global) {
-    var cleaned = {};
-    // _.each skips some keys (like console)...
-    for (var prop in global) {
-      if (global.hasOwnProperty(prop)) {
-        cleaned[prop] = undefined;
-      }
-    }
-    return cleaned;
+    return _.reduce(global, function (cleaned, value, prop) {
+      cleaned[prop] = undefined;
+    }, {});
   }
 
   function renderTemplate(content, env, global) {
