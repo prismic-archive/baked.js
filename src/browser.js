@@ -224,7 +224,19 @@ var LocalRouter = require("./local_router");
         var infos =
           window.routerInfosForFile ||
           localRouter.findInfosFromHref(location.pathname);
-        return loadPage(localRouter, infos);
+        return loadPage(localRouter, infos)
+          .catch(function (err) {
+            if (accessToken && /^Unexpected status code \[401\]/.test(err.message)) {
+              console.warn("Received 401 (Unauthorized) error:");
+              console.error(err.stack);
+              console.warn("Retry without access_token");
+              sessionStorage.removeItem('ACCESS_TOKEN');
+              accessToken = undefined;
+              ref = undefined;
+              return loadPage(localRouter, infos);
+            }
+            throw err;
+          });
       })
       .done();
   }

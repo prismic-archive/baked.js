@@ -9,8 +9,8 @@ var Q = require("q");
   function getAPI(conf) {
     var deferred = Q.defer();
     Prismic.Api(conf.api, function(err, api) {
-      if(err) {
-        conf.logger.error("Error while fetching Api at %s", conf.api, err);
+      if (err) {
+        err.url = conf.api;
         deferred.reject(err);
       }
       else deferred.resolve(api);
