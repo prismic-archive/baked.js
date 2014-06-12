@@ -41,26 +41,6 @@ var Router = require("./router");
     }
   }
 
-  function withWindow(content, f) {
-    var deferred = Q.defer();
-    if (typeof window === "object" && window) {
-      deferred.resolve(window);
-    } else {
-      require("jsdom").env(
-        content,  // HTML content
-        [],       // JS libs
-        function (err, window) {
-          if (err) {
-            deferred.reject(err);
-          } else {
-            deferred.resolve(window);
-          }
-        }
-      );
-    }
-    return deferred.promise;
-  }
-
   function createDir(dir) {
     return Q
       .ninvoke(fs, 'lstat', dir)
@@ -117,25 +97,37 @@ var Router = require("./router");
       );
   }
 
+  function loadPartial(partial) {
+    return fs.readFileSync(partial, 'utf8');
+  }
+
   function generateFile(name, src, content, args, dst, router, ctx) {
-    return withWindow(content).then(function (window) {
-      return logAndTime("render file '" + src + "' " + JSON.stringify(args), function () {
-        return baked.render(window, router, {
-          logger: ctx.logger,
-          args: args,
-          helpers: {url_to: router.urlToStaticCb(src, dst)}
-        }, global).then(function () {
-          var script = window.document.createElement("script");
-          var routerInfos = router.routerInfosForFile(src, dst, args);
-          script.innerHTML = 'window.routerInfosForFile = ' + JSON.stringify(routerInfos) + ';';
-          window.document.body.appendChild(script);
+    return logAndTime("render file '" + src + "' " + JSON.stringify(args), function () {
+      var templateEnv = {};
+      return baked.render(router, {
+        logger: ctx.logger,
+        args: args,
+        setEnv: function (e) { templateEnv.env = e; },
+        helpers: {
+          url_to: router.urlToStaticCb(src, dst),
+          partial: router.partialCb(src, templateEnv, global, loadPartial)
+        },
+        tmpl: content,
+        api: router.api(src)
+      }, global).then(function (result) {
+        var routerInfos = router.routerInfosForFile(src, dst, args);
+        var scriptTag = '<script>' +
+          'window.routerInfosForFile = ' + JSON.stringify(routerInfos) + ';' +
+        '</script>';
+        return result.content.replace(/(<\/body>)/i, scriptTag + "\n$1");
+      });
+    }, ctx).then(function (result) {
+      return logAndTime("generate file '" + src + "' => '" + dst + "'", function () {
+        return createPath(dst, ctx).then(function () {
+          return Q.ninvoke(fs, 'writeFile', dst, result, "utf8");
         });
       }, ctx).then(function () {
-        return logAndTime("generate file '" + src + "' => '" + dst + "'", function () {
-          return Q.ninvoke(fs, 'writeFile', dst, window.document.innerHTML, "utf8");
-        }, ctx).then(function () {
-          return dst;
-        });
+        return dst;
       });
     });
   }
@@ -151,7 +143,7 @@ var Router = require("./router");
       return Q
         .ninvoke(fs, 'readFile', src, "utf8")
         .then(function (content) {
-          if (!router.isTemplate(src)) {
+          if (!router.isBakedTemplate(src)) {
             return copyFile(name, src, content, dst, ctx);
           } else if (!router.isDynamic(src)) {
             var file = src
@@ -176,10 +168,7 @@ var Router = require("./router");
   function saveTemplate(name, src, content, dst, ctx) {
     var tmpl_dst = dst + ".tmpl";
     return logAndTime("create template '" + src + "' => '" + tmpl_dst + "'", function () {
-      return withWindow(content)
-        .then(function (window) {
-          return copyFile(name, src, window.document.body.innerHTML, tmpl_dst, ctx);
-        });
+      return copyFile(name, src, content, tmpl_dst, ctx);
     }, ctx);
   }
 
@@ -247,7 +236,11 @@ var Router = require("./router");
 
   function buildRouterForFile(name, src, ctx) {
     return logAndTime("Build router for file '" + src + "'", function () {
-      if (/\.html$/.test(name)) {
+      if (Router.isPartial(name)) {
+        var result = {};
+        result[src] = {partial: true};
+        return result;
+      } else if (Router.isTemplate(name)) {
         return Q
           .ninvoke(fs, 'readFile', src, "utf8")
           .then(function (content) {

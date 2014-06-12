@@ -17,20 +17,44 @@ var baked = require("./baked");
     return /^\//.test(path);
   }
 
-  function Router(params, opts) {
+  function Router(params, partials, opts) {
     this.params = params;
+    this.partials = partials;
     this.src_dir = opts.src_dir;
     this.dst_dir = opts.dst_dir;
     this.calls = {};
     this.generatedRoutes = {};
   }
 
-  Router.prototype.isTemplate = function (file) {
+  Router.prototype.api = function(src) {
+    var params = this.params[src];
+    return params && params.api;
+  };
+
+  function isTemplate(file) {
+    return /\.html$/.test(_.last(els(file)));
+  }
+
+  function srcForFile(router, file) {
+    return router.src_dir + file + ".html";
+  }
+
+  function isPartial(file) {
+    return isTemplate(file) && /^_/.test(_.last(els(file)));
+  }
+
+  Router.prototype.cleanFilename = function(src) {
+    return src
+      .replace(this.src_dir, '')
+      .replace(/\.html$/, '');
+  };
+
+  Router.prototype.isBakedTemplate = function (file) {
     return !!this.params[file];
   };
 
   Router.prototype.isDynamic = function (file) {
-    return this.isTemplate(file) && !_.isEmpty(this.params[file].params);
+    return isTemplate(file) && !_.isEmpty(this.params[file].params);
   };
 
   Router.prototype.dynamicTemplates = function () {
@@ -83,10 +107,6 @@ var baked = require("./baked");
     existing.generated = true;
   };
 
-  function srcForFile(router, file) {
-    return router.src_dir + file + ".html";
-  }
-
   Router.prototype.srcForCall = function (call) {
     return srcForFile(this, call.file);
   };
@@ -115,8 +135,8 @@ var baked = require("./baked");
     var globalPath = findFileFromHere(relativePath, here);
     var infos = {
       args: call.args,
-      by: here_src,
-      to: (file + '.html'),
+      by: router.cleanFilename(here_src),
+      to: file,
     };
     if (router.generatedRoutes[globalPath]) {
       var existing = router.generatedRoutes[globalPath];
@@ -143,6 +163,7 @@ var baked = require("./baked");
     } else if (_.all(params.params, function (param) { return parsedArgs && !!parsedArgs[param]; })) {
       var call = addCall(this, fileFromHere, parsedArgs);
       var filename = this.filename(fileFromHere, parsedArgs, here_dst);
+      filename = findFileFromHere(filename, here_dst);
       addGeneratedRoute(this, filename, call, here_dst, fileFromHere, here_src);
       return filename.replace(/\/index\.html$/, '/');
     } else {
@@ -199,11 +220,11 @@ var baked = require("./baked");
       els(here || '', true),
       els(path)
     );
-    return '/' + diff.join('/');
+    return diff.join('/');
   };
 
   Router.prototype.globalFilename = function (file, args, here) {
-    return this.dst_dir + this.filename(file, args, here);
+    return this.dst_dir + '/' + this.filename(file, args, here);
   };
 
   Router.prototype.filenameForCall = function (call) {
@@ -226,17 +247,47 @@ var baked = require("./baked");
     return {
       params: _.transform(this.params, function (result, value, name) {
         result[name.replace(this.src_dir, '')] = value;
-      }, null, this)
+      }, null, this),
+      partials: _.map(this.partials, function (name) {
+        return name.replace(this.src_dir, '');
+      }, this)
     };
   };
 
-  function create(params, src_dir) {
-    return new Router(params, src_dir);
+  function getPartialPath(router, name, here) {
+    var path = findFileFromHere(name, here.replace(router.src_dir, ''));
+    var pathEls = els(path);
+    if (_.isEmpty(pathEls)) return null;
+    var file = pathEls[pathEls.length - 1];
+    if (!/^_/.test(file)) { file = '_' + file; }
+    if (!/\.html$/.test(file)) { file += '.html'; }
+    pathEls[pathEls.length - 1] = file;
+    return router.src_dir + (/^\//.test(path) ? '/' : '') + pathEls.join('/');
+  }
+
+  Router.prototype.partialCb = function(src, templateEnv, global, getPartial) {
+    var _this = this;
+    return function (name) {
+      var partial = getPartialPath(_this, name, src);
+      var content = getPartial(partial);
+      return baked.renderTemplate(content, templateEnv.env, global);
+    };
+  };
+
+  function create(params, partials, src_dir) {
+    if (!src_dir) {
+      src_dir = partials;
+      partials = _.keys(_.pick(params, function (v) { return v.partial; }));
+      params = _.pick(params, function (v) { return !v.partial; });
+    }
+    return new Router(params, partials, src_dir);
   }
 
   Global.create = create;
   Global.findFileFromHere = findFileFromHere;
   Global.buildRouteForFile = buildRouteForFile;
   Global.isGlobal = isGlobal;
+  Global.isTemplate = isTemplate;
+  Global.isPartial = isPartial;
 
 }(typeof exports === 'object' && exports ? exports : (typeof module === "object" && module && typeof module.exports === "object" ? module.exports : window)));

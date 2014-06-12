@@ -1,6 +1,7 @@
+var _ = require("lodash");
+var ejs = require("ejs");
 var Prismic = require("prismic.io").Prismic;
 var Q = require("q");
-var _ = require("lodash");
 
 (function (exporter, undefined) {
   "use strict";
@@ -8,8 +9,8 @@ var _ = require("lodash");
   function getAPI(conf) {
     var deferred = Q.defer();
     Prismic.Api(conf.api, function(err, api) {
-      if(err) {
-        conf.logger.error("Error while fetching Api at %s", conf.api, err);
+      if (err) {
+        err.url = conf.api;
         deferred.reject(err);
       }
       else deferred.resolve(api);
@@ -34,11 +35,11 @@ var _ = require("lodash");
 
   function renderTemplate(content, env, global) {
     var clean = cleanEnv(global);
-    return _.template(content, null, {
-      escape: /\[%-([\s\S]+?)%\]/g,
-      evaluate: /\[%([\s\S]+?)%\]/g,
-      interpolate: /\[%=([\s\S]+?)%\]/g,
-    }).call(env, _.assign({}, clean, env));
+    return ejs.render(content, _.assign({}, env, {
+      scope: env,
+      open: '[%',
+      close: '%]'
+    }));
   }
 
   function renderContent(global, content, env) {
@@ -67,74 +68,80 @@ var _ = require("lodash");
     });
   }
 
-  function initConf(global, window, opts) {
-    var document = window.document;
+  function initConf(global, opts) {
     var conf = {
       env: opts.env || {},
       helpers: opts.helpers || {},
-      logger: opts.logger || window.console,
+      logger: opts.logger,
       args: opts.args || {},
       ref: opts.ref,
       accessToken: opts.accessToken,
-      api: opts.api
+      api: opts.api,
+      tmpl: opts.tmpl,
+      setEnv: opts.setEnv || _.noop
     };
 
     // The Prismic.io API endpoint
     if (!conf.api) {
-      try {
-        conf.api = document.querySelector('head meta[name="prismic-api"]').content;
-      } catch(e) {
-        conf.logger.error('Please define your api endpoint in the <head> element. For example: <meta name="prismic-api" content="https://lesbonneschoses.prismic.io/api">'); return;
-      }
+      conf.logger.error(
+        'Please define your api endpoint in the <head> element. ' +
+        'For example: ' +
+        '<meta name="prismic-api" content="https://lesbonneschoses.prismic.io/api">');
+      return;
     }
 
     // Extract the bindings
     conf.bindings = {};
-    var queryScripts = document.querySelectorAll('script[type="text/prismic-query"]');
     function toUpperCase(str, l) { return l.toUpperCase(); }
-    _.each(queryScripts, function(node) {
+    var scriptRx = /<script +type="text\/prismic-query"([^>]*)>([\s\S]*?)<\/script>/ig;
+    conf.tmpl = conf.tmpl.replace(scriptRx, function (str, scriptParams, scriptContent) {
+      var dataRx = /data-([a-z0-9\-]+)="([^"]*)"/ig;
+      var dataset = {};
+      var match;
       var binding = {
         params: {}
       };
-      _.each(node.attributes, function (attr) {
-        var match = /^data-query-(.+)/.exec(attr.nodeName);
-        if (match) {
-          var key = match[1].replace(/-(.)/g, toUpperCase);
-          binding.params[key] = attr.nodeValue;
+      while ((match = dataRx.exec(scriptParams)) !== null) {
+        var attribute = match[1].toLowerCase();
+        var value = match[2];
+        var key;
+        if (/^query-/.test(attribute)) {
+          key = attribute.replace(/^query-/, '').replace(/-(.)/g, toUpperCase);
+          binding.params[key] = value;
+        } else {
+          key = attribute.replace(/-(.)/g, toUpperCase);
+          dataset[key] = value;
         }
-      });
-      var name = node.getAttribute("data-binding");
+      }
+      var name = dataset.binding;
       if (name) {
         _.assign(binding, {
-          form: node.getAttribute("data-form") || 'everything',
+          form: dataset.form || 'everything',
           render: function(api) {
-            return renderQuery(global, node.textContent, conf.args, api);
+            return renderQuery(global, scriptContent, conf.args, api);
           }
         });
         conf.bindings[name] = binding;
       }
-      node.parentNode.removeChild(node);
+      return str.replace(/.*/g, '');  // remove the <script> tag but preserve lines number
     });
-    // Extract the template
-    conf.tmpl = document.body.innerHTML;
 
     return conf;
   }
 
-  function initRender(window, router, opts, global) {
+  function initRender(router, opts, global) {
     if (!opts) { opts = {}; }
-    var conf = opts.conf || initConf(global, window, opts);
-    return render(window, router, conf, opts.ref, opts.notifyRendered, global);
+    var conf = opts.conf || initConf(global, opts);
+    return render(router, conf, global);
   }
 
-  var render = function(window, router, conf, maybeRef, notifyRendered, global) {
-    var document = window.document;
+  var render = function(router, conf, global) {
     return getAPI(conf).then(function(api) {
       return Q
         .all(_.map(conf.bindings, function(binding, name) {
           var deferred = Q.defer();
           var form = api.form(binding.form);
-          form = form.ref(maybeRef || conf.ref || api.master());
+          form = form.ref(conf.ref || api.master());
           form = _.reduce(binding.params, function (form, value, key) {
             return form.set(key, value);
           }, form);
@@ -154,7 +161,7 @@ var _ = require("lodash");
             types: api.types,
             refs: api.data.refs,
             tags: api.data.tags,
-            master: api.master.ref,
+            master: api.master(),
             ref: conf.ref
           }, conf.env);
           return _.reduce(results, function (documentSets, res) {
@@ -164,24 +171,17 @@ var _ = require("lodash");
             return documentSets;
           }, env);
         }).then(function(documentSets) {
-          documentSets.ref = maybeRef || api.master();
+          documentSets.loggedIn = !!conf.accessToken;
 
           _.extend(documentSets, defaultHelpers);
           if (conf.helpers) { _.extend(documentSets, conf.helpers); }
           _.extend(documentSets, conf.args);
 
-          document.body.innerHTML = renderContent(global, conf.tmpl, documentSets);
+          conf.setEnv(documentSets);
+          var result = renderContent(global, conf.tmpl, documentSets)
+            .replace(/(<img[^>]*)data-src="([^"]*)"/ig, '$1src="$2"');
 
-          var imagesSrc = document.querySelectorAll('img[data-src]');
-          _.each(imagesSrc, function(imageSrc) {
-            imageSrc.setAttribute('src', imageSrc.attributes['data-src'].value);
-          });
-
-          if(notifyRendered) setTimeout(function () {
-            notifyRendered(window, conf, maybeRef, notifyRendered);
-          }, 0);
-
-          return;
+          return {api: api, content: result};
         });
 
     }, conf.accessToken);
@@ -214,5 +214,6 @@ var _ = require("lodash");
   exporter.initConf = initConf;
   exporter.parseRoutingInfos = parseRoutingInfos;
   exporter.renderRoute = renderRoute;
+  exporter.renderTemplate = renderTemplate;
 
 }(typeof exports === 'object' && exports ? exports : (typeof module === "object" && module && typeof module.exports === "object" ? module.exports : window)));

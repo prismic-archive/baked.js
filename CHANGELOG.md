@@ -1,3 +1,20 @@
+### Feature
+
+- Add template partial
+  - A partial is a template whose name starts by “_”. It won't be rendered directly (so it doesn't need meta like “prismic-api”) but is included in other
+templates using the helper `partial`. (`[%- partial('footer') %]` will include
+the partial “_footer.html.erb”)
+- Add helper to change ref
+- Add OAuth2 authentication
+- Use [EJS](https://github.com/visionmedia/ejs) for template rendering
+  - Its HTML escaping and filters are available
+
+### Incompatible changes
+
+- Because EJS is now used, every template returning HTML have to be fixed
+(by replacing `[%= ... %]` by `[%- ... %]`) in order to stop escaping the HTML
+twice.
+
 ## 0.0.4
 
 ### Feature

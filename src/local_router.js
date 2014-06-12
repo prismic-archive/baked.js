@@ -5,8 +5,9 @@ var Router = require('./router');
 
 (function (exporter, undefined) {
 
-  function LocalRouter(localInfos, router){
+  function LocalRouter(localInfos, partials, router){
     this.localInfos = localInfos;
+    this.partials = partials;
     this.router = router;
     this.urls = {};
   }
@@ -114,12 +115,22 @@ var Router = require('./router');
     };
   };
 
-  LocalRouter.prototype.copy = function(localInfos) {
-    return new LocalRouter(localInfos, this.router);
+  LocalRouter.prototype.partial = function (partial) {
+    return this.partials[partial];
   };
 
-  function create(router) {
-    return new LocalRouter({}, router);
+
+  LocalRouter.prototype.partialCb = function (content, templateEnv, global) {
+    var loadPartial = this.partial.bind(this);
+    return this.router.partialCb(content, templateEnv, global, loadPartial);
+  };
+
+  LocalRouter.prototype.copy = function(localInfos) {
+    return new LocalRouter(localInfos, this.partials, this.router);
+  };
+
+  function create(router, partials) {
+    return new LocalRouter({}, partials, router);
   }
 
   exporter.create = create;
