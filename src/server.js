@@ -110,11 +110,11 @@ var Router = require("./router");
         setEnv: function (e) { templateEnv.env = e; },
         helpers: {
           url_to: router.urlToStaticCb(src, dst),
-          partial: router.partialCb(src, templateEnv, global, loadPartial)
+          partial: router.partialCb(src, templateEnv, loadPartial)
         },
         tmpl: content,
         api: router.api(src)
-      }, global).then(function (result) {
+      }).then(function (result) {
         var routerInfos = router.routerInfosForFile(src, dst, args);
         var scriptTag = '<script>' +
           'window.routerInfosForFile = ' + JSON.stringify(routerInfos) + ';' +

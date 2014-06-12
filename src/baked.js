@@ -22,14 +22,7 @@ var Q = require("q");
     _: _
   };
 
-  function cleanEnv(global) {
-    return _.reduce(global, function (cleaned, value, prop) {
-      cleaned[prop] = undefined;
-    }, {});
-  }
-
-  function renderTemplate(content, env, global) {
-    var clean = cleanEnv(global);
+  function renderTemplate(content, env) {
     return ejs.render(content, _.assign({}, env, {
       scope: env,
       open: '[%',
@@ -37,11 +30,11 @@ var Q = require("q");
     }));
   }
 
-  function renderContent(global, content, env) {
-    return renderTemplate(content, env, global);
+  function renderContent(content, env) {
+    return renderTemplate(content, env);
   }
 
-  function renderQuery(global, query, env, api) {
+  function renderQuery(query, env, api) {
     env = env || {};
     var rxVar = /(^|[^$])\$(([a-z][a-z0-9]*)|\{([a-z][a-z0-9]*)\})/ig;
     var rxBookmark = /(^|[^$])\$\{bookmarks(\.([-_a-zA-Z0-9]+)|\[(['"])([-_a-zA-Z0-9]+)\4\])\}/ig;
@@ -63,7 +56,7 @@ var Q = require("q");
     });
   }
 
-  function initConf(global, opts) {
+  function initConf(opts) {
     var conf = {
       env: opts.env || {},
       helpers: opts.helpers || {},
@@ -113,7 +106,7 @@ var Q = require("q");
         _.assign(binding, {
           form: dataset.form || 'everything',
           render: function(api) {
-            return renderQuery(global, scriptContent, conf.args, api);
+            return renderQuery(scriptContent, conf.args, api);
           }
         });
         conf.bindings[name] = binding;
@@ -124,13 +117,13 @@ var Q = require("q");
     return conf;
   }
 
-  function initRender(router, opts, global) {
+  function initRender(router, opts) {
     if (!opts) { opts = {}; }
-    var conf = opts.conf || initConf(global, opts);
-    return render(router, conf, global);
+    var conf = opts.conf || initConf(opts);
+    return render(router, conf);
   }
 
-  var render = function(router, conf, global) {
+  var render = function(router, conf) {
     return getAPI(conf).then(function(api) {
       return Q
         .all(_.map(conf.bindings, function(binding, name) {
@@ -173,7 +166,7 @@ var Q = require("q");
           _.extend(documentSets, conf.args);
 
           conf.setEnv(documentSets);
-          var result = renderContent(global, conf.tmpl, documentSets)
+          var result = renderContent(conf.tmpl, documentSets)
             .replace(/(<img[^>]*)data-src="([^"]*)"/ig, '$1src="$2"');
 
           return {api: api, content: result};

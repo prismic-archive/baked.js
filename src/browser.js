@@ -53,11 +53,11 @@ var LocalRouter = require("./local_router");
       });
     }
     var templateEnv = {};
-    var conf = baked.initConf(window, {
+    var conf = baked.initConf({
       logger: console,
       helpers: {
         url_to: localRouter.urlToDynCb(),
-        partial: localRouter.partialCb(content, templateEnv, window)
+        partial: localRouter.partialCb(content, templateEnv)
       },
       args: args,
       accessToken: accessToken,
@@ -188,7 +188,7 @@ var LocalRouter = require("./local_router");
     if (infos && window.history) {
       window.history.pushState(infos, null, (infos.href || '') + queryString);
     }
-    return baked.render(localRouter.router, {conf: conf}, window)
+    return baked.render(localRouter.router, {conf: conf})
       .then(function (result) {
         document.body.innerHTML = result.content;
         listen(localRouter);

@@ -120,9 +120,9 @@ var Router = require('./router');
   };
 
 
-  LocalRouter.prototype.partialCb = function (content, templateEnv, global) {
+  LocalRouter.prototype.partialCb = function (content, templateEnv) {
     var loadPartial = this.partial.bind(this);
-    return this.router.partialCb(content, templateEnv, global, loadPartial);
+    return this.router.partialCb(content, templateEnv, loadPartial);
   };
 
   LocalRouter.prototype.copy = function(localInfos) {

@@ -265,12 +265,12 @@ var baked = require("./baked");
     return router.src_dir + (/^\//.test(path) ? '/' : '') + pathEls.join('/');
   }
 
-  Router.prototype.partialCb = function(src, templateEnv, global, getPartial) {
+  Router.prototype.partialCb = function(src, templateEnv, getPartial) {
     var _this = this;
     return function (name) {
       var partial = getPartialPath(_this, name, src);
       var content = getPartial(partial);
-      return baked.renderTemplate(content, templateEnv.env, global);
+      return baked.renderTemplate(content, templateEnv.env);
     };
   };
 
