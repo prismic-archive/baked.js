@@ -13,6 +13,10 @@
   </head>
   <body>
 
+    [% var lib = require("myLib.js") %]
+    [% console.log("required and assigned:", lib) %]
+    [% console.log("required and fetched from global:", myLib) %]
+
     <div><a href="[%= url_to('search', {typ: 'product', tag: 'Featured'}) %]">
       Search
     </a></div>

@@ -5,9 +5,10 @@ var Router = require('./router');
 
 (function (exporter, undefined) {
 
-  function LocalRouter(localInfos, partials, router){
+  function LocalRouter(localInfos, partials, requires, router){
     this.localInfos = localInfos;
     this.partials = partials;
+    this.requires = requires;
     this.router = router;
     this.urls = {};
   }
@@ -115,22 +116,30 @@ var Router = require('./router');
     };
   };
 
-  LocalRouter.prototype.partial = function (partial) {
-    return this.partials[partial];
+  LocalRouter.prototype.partialFile = function (name) {
+    return this.partials[name];
   };
 
+  LocalRouter.prototype.partialCb = function (env) {
+    var getFile = this.partialFile.bind(this);
+    return this.router.partialCb(this.src(), env, getFile);
+  };
 
-  LocalRouter.prototype.partialCb = function (content, templateEnv) {
-    var loadPartial = this.partial.bind(this);
-    return this.router.partialCb(content, templateEnv, loadPartial);
+  LocalRouter.prototype.requireFile = function (name) {
+    return this.requires[name];
+  };
+
+  LocalRouter.prototype.requireCb = function (env) {
+    var getFile = this.requireFile.bind(this);
+    return this.router.requireCb(this.src(), env, getFile);
   };
 
   LocalRouter.prototype.copy = function(localInfos) {
-    return new LocalRouter(localInfos, this.partials, this.router);
+    return new LocalRouter(localInfos, this.partials, this.requires, this.router);
   };
 
-  function create(router, partials) {
-    return new LocalRouter({}, partials, router);
+  function create(router, partials, requires) {
+    return new LocalRouter({}, partials, requires, router);
   }
 
   exporter.create = create;

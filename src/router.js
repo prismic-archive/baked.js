@@ -17,9 +17,11 @@ var baked = require("./baked");
     return /^\//.test(path);
   }
 
-  function Router(params, partials, opts) {
+  function Router(params, partials, requires, opts) {
     this.params = params;
     this.partials = partials;
+    this.requires = requires;
+    this.loaded = {};
     this.src_dir = opts.src_dir;
     this.dst_dir = opts.dst_dir;
     this.calls = {};
@@ -41,6 +43,10 @@ var baked = require("./baked");
 
   function isPartial(file) {
     return isTemplate(file) && /^_/.test(_.last(els(file)));
+  }
+
+  function isJSScript(file) {
+    return /\.js$/.test(file);
   }
 
   Router.prototype.cleanFilename = function(src) {
@@ -250,6 +256,9 @@ var baked = require("./baked");
       }, null, this),
       partials: _.map(this.partials, function (name) {
         return name.replace(this.src_dir, '');
+      }, this),
+      requires: _.map(this.requires, function (name) {
+        return name.replace(this.src_dir, '');
       }, this)
     };
   };
@@ -265,22 +274,47 @@ var baked = require("./baked");
     return router.src_dir + (/^\//.test(path) ? '/' : '') + pathEls.join('/');
   }
 
-  Router.prototype.partialCb = function(src, templateEnv, getPartial) {
+  Router.prototype.partialCb = function(src, env, readFile) {
     var _this = this;
     return function (name) {
       var partial = getPartialPath(_this, name, src);
-      var content = getPartial(partial);
-      return baked.renderTemplate(content, templateEnv.env);
+      var content = readFile(partial);
+      return baked.renderTemplate(content, env.ctx);
     };
   };
 
-  function create(params, partials, src_dir) {
+  function getRequirePath(router, name, here) {
+    var path = findFileFromHere(name, here.replace(router.src_dir, ''));
+    return router.src_dir + path;
+  }
+
+  Router.prototype.requireCb = function(src, env, readFile) {
+    var _this = this;
+    return function (name, opts) {
+      if (!opts) { opts = {}; }
+      var file = getRequirePath(_this, name, src);
+      var content = readFile(file);
+      var res;
+      if (opts.no_cache) {
+        res = baked.requireFile(content, env.ctx, src);
+      } else {
+        res = _this.loaded[file];
+        if (!res) {
+          res = _this.loaded[file] = baked.requireFile(content, env.ctx, src);
+        }
+      }
+      return res;
+    };
+  };
+
+  function create(params, partials, requires, src_dir) {
     if (!src_dir) {
       src_dir = partials;
       partials = _.keys(_.pick(params, function (v) { return v.partial; }));
-      params = _.pick(params, function (v) { return !v.partial; });
+      requires = _.keys(_.pick(params, function (v) { return v.require; }));
+      params = _.pick(params, function (v) { return !v.partial && !v.require; });
     }
-    return new Router(params, partials, src_dir);
+    return new Router(params, partials, requires, src_dir);
   }
 
   Global.create = create;
@@ -289,5 +323,6 @@ var baked = require("./baked");
   Global.isGlobal = isGlobal;
   Global.isTemplate = isTemplate;
   Global.isPartial = isPartial;
+  Global.isJSScript = isJSScript;
 
 }(typeof exports === 'object' && exports ? exports : (typeof module === "object" && module && typeof module.exports === "object" ? module.exports : window)));

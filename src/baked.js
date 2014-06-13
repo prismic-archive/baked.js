@@ -2,6 +2,7 @@ var _ = require("lodash");
 var ejs = require("ejs");
 var Prismic = require("prismic.io").Prismic;
 var Q = require("q");
+var vm = require("vm");
 
 (function (exporter, undefined) {
   "use strict";
@@ -22,16 +23,23 @@ var Q = require("q");
     _: _
   };
 
-  function renderTemplate(content, env) {
-    return ejs.render(content, _.assign({}, env, {
-      scope: env,
-      open: '[%',
-      close: '%]'
-    }));
+  function renderTemplate(content, ctx) {
+    ejs.open = '[%';
+    ejs.close = '%]';
+    ctx.__render__ = function render() {
+      delete ctx.__render__;
+      return ejs.render(content, ctx);
+    };
+
+    return vm.runInContext("__render__()", ctx);
   }
 
-  function renderContent(content, env) {
-    return renderTemplate(content, env);
+  function requireFile(content, ctx, filename) {
+    return vm.runInContext(content, ctx, filename);
+  }
+
+  function renderContent(content, ctx) {
+    return renderTemplate(content, ctx);
   }
 
   function renderQuery(query, env, api) {
@@ -66,7 +74,7 @@ var Q = require("q");
       accessToken: opts.accessToken,
       api: opts.api,
       tmpl: opts.tmpl,
-      setEnv: opts.setEnv || _.noop
+      setContext: opts.setContext || _.noop
     };
 
     // The Prismic.io API endpoint
@@ -165,8 +173,9 @@ var Q = require("q");
           if (conf.helpers) { _.extend(documentSets, conf.helpers); }
           _.extend(documentSets, conf.args);
 
-          conf.setEnv(documentSets);
-          var result = renderContent(conf.tmpl, documentSets)
+          var ctx = vm.createContext(documentSets);
+          conf.setContext(ctx);
+          var result = renderContent(conf.tmpl, ctx)
             .replace(/(<img[^>]*)data-src="([^"]*)"/ig, '$1src="$2"');
 
           return {api: api, content: result};
@@ -203,5 +212,6 @@ var Q = require("q");
   exporter.parseRoutingInfos = parseRoutingInfos;
   exporter.renderRoute = renderRoute;
   exporter.renderTemplate = renderTemplate;
+  exporter.requireFile = requireFile;
 
 }(typeof exports === 'object' && exports ? exports : (typeof module === "object" && module && typeof module.exports === "object" ? module.exports : window)));

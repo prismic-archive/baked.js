@@ -6,6 +6,8 @@ var baked = require("./baked");
 var Router = require("./router");
 var LocalRouter = require("./local_router");
 
+window.vm = require('vm');
+
 (function(window, undefined) {
   "use strict";
 
@@ -52,19 +54,20 @@ var LocalRouter = require("./local_router");
         return _.isEmpty(cur) ? prev : cur;
       });
     }
-    var templateEnv = {};
+    var env = {};
     var conf = baked.initConf({
       logger: console,
       helpers: {
         url_to: localRouter.urlToDynCb(),
-        partial: localRouter.partialCb(content, templateEnv)
+        partial: localRouter.partialCb(env),
+        require: localRouter.requireCb(env)
       },
       args: args,
       accessToken: accessToken,
       ref: ref,
       api: localRouter.api(),
       tmpl: content,
-      setEnv: function (env) { templateEnv.env = env; }
+      setContext: function (ctx) { env.ctx = ctx; }
     });
 
     return conf;
@@ -147,35 +150,50 @@ var LocalRouter = require("./local_router");
     return ajax({url: '/_router.json' })
       .then(function (response) {
         var routerInfos = JSON.parse(response.responseText);
-        return Router.create(routerInfos.params, routerInfos.partials, {
+        return Router.create(routerInfos.params, routerInfos.partials, routerInfos.requires, {
           src_dir: '',
           dst_dir: ''
         });
       })
       .then(function (router) {
-        return Q.all(_.map(router.partials, function (partial) {
-          return getTemplate(partial)
-            .then(function (content) {
-              return {partial: partial, content: content};
-            });
-        })).then(function (partials) {
-          var partialsInfos = _.reduce(partials, function (o, v) {
-            o[v.partial] = v.content;
-            return o;
+        function getFiles(kind) {
+          return Q.all(_.map(router[kind + 's'], function (file) {
+            return getFile(file)
+              .then(function (content) {
+                var res = {content: content};
+                res[kind] = file;
+                return res;
+              });
+          })).then(function (partials) {
+            var infos = _.reduce(partials, function (o, v) {
+              o[v[kind]] = v.content;
+              return o;
+            }, {});
+            var res = {};
+            res[kind + 's'] = infos;
+            return res;
+          });
+        }
+        return Q.all([
+          getFiles('partial'),
+          getFiles('require')
+        ]).then(function (res) {
+          var infos = _.reduce(res, function (o, kv) {
+            return _.assign(o, kv);
           }, {});
-          return LocalRouter.create(router, partialsInfos);
+          return LocalRouter.create(router, infos.partials, infos.requires);
         });
       });
   }
 
-  function getTemplate(file) {
+  function getFile(file) {
     return ajax({url: file}).then(function (response) {
       return response.responseText;
     });
   }
 
   function loadPage(localRouter, infos) {
-    return getTemplate(infos.src + '.tmpl')
+    return getFile(infos.src + '.tmpl')
       .then(function (template) {
         return generateContent(template, localRouter, infos);
       });
