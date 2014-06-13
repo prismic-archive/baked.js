@@ -97,24 +97,25 @@ var Router = require("./router");
       );
   }
 
-  function loadPartial(partial) {
-    return fs.readFileSync(partial, 'utf8');
+  function readFileSync(file) {
+    return fs.readFileSync(file, 'utf8');
   }
 
   function generateFile(name, src, content, args, dst, router, ctx) {
     return logAndTime("render file '" + src + "' " + JSON.stringify(args), function () {
-      var templateEnv = {};
+      var env = {};
       return baked.render(router, {
         logger: ctx.logger,
         args: args,
-        setEnv: function (e) { templateEnv.env = e; },
+        setContext: function (ctx) { env.ctx = ctx; },
         helpers: {
           url_to: router.urlToStaticCb(src, dst),
-          partial: router.partialCb(src, templateEnv, global, loadPartial)
+          partial: router.partialCb(src, env, readFileSync),
+          require: router.requireCb(src, env, readFileSync)
         },
         tmpl: content,
         api: router.api(src)
-      }, global).then(function (result) {
+      }).then(function (result) {
         var routerInfos = router.routerInfosForFile(src, dst, args);
         var scriptTag = '<script>' +
           'window.routerInfosForFile = ' + JSON.stringify(routerInfos) + ';' +
@@ -236,9 +237,14 @@ var Router = require("./router");
 
   function buildRouterForFile(name, src, ctx) {
     return logAndTime("Build router for file '" + src + "'", function () {
+      var result;
       if (Router.isPartial(name)) {
-        var result = {};
+        result = {};
         result[src] = {partial: true};
+        return result;
+      } else if (Router.isJSScript(name)) {
+        result = {};
+        result[src] = {require: true};
         return result;
       } else if (Router.isTemplate(name)) {
         return Q
