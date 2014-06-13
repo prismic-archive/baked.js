@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Your prismic.io singlepage project</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="prismic-api" content="https://lesbonneschoses-ulzozro531ca879z.prismic.io/api">
+    <meta name="prismic-oauth-client-id" content="UxWopwEAAPN0sBcH">
+
+    <script src="/baked.js"></script>
+  </head>
+  <body>
+
+    <div><a href="[%= url_to('search', {typ: 'product', tag: 'Featured'}) %]">
+      Search
+    </a></div>
+
+    <div><a href="[%= url_to('blog/index') %]">blog</a></div>
+
+    [%- partial('/footer') %]
+
+  </body>
+</html>
