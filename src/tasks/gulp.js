@@ -85,7 +85,16 @@ function defineTasks(gulp) {
       })
       .then(config.afterGenerate || _.identity)
       .then(
-        function () { console.info("Ne mangez pas trop vite"); },
+        function (failures) {
+          if (!_.isEmpty(failures)) {
+            console.error("" + failures.length + " errors:\n");
+            _.each(failures, function (failure) {
+              console.error(failure.src + ": ", failure.error);
+              console.error(failure.dst, "args:", failure.args||{}, "\n");
+            });
+          }
+          console.info("Ne mangez pas trop vite");
+        },
         function (err) { console.error(err.stack); throw err; }
       );
   });

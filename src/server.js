@@ -1,3 +1,5 @@
+/* jshint newcap:false */
+
 var fs = require("fs");
 var util = require("util");
 
@@ -11,6 +13,12 @@ var Router = require("./router");
 
 (function (global, undefined) {
   "use strict";
+
+  /* ***************************************************************** *** */
+  /* ***                                                               *** */
+  /* *** HELPERS                                                       *** */
+  /* ***                                                               *** */
+  /* ***************************************************************** *** */
 
   function buildLogger() {
     return new (winston.Logger)({
@@ -30,16 +38,27 @@ var Router = require("./router");
       return Q.all(_.map(arr, fn));
     } else {
       if (arr.length === 0) {
-        return Q.fcall(function () { return []; });
+        return Q([]);
       } else {
         return Q.fcall(fn, arr[0]).then(function (result) {
           return sequence(arr.slice(1), fn, ctx).then(function (results) {
-            return [result].concat(results);
+            if (result) {
+              result = Array.isArray(result) ? result : [result];
+              return result.concat(results);
+            } else {
+              return results;
+            }
           });
         });
       }
     }
   }
+
+  /* ***************************************************************** *** */
+  /* ***                                                               *** */
+  /* *** RENDERING CONTENT                                             *** */
+  /* ***                                                               *** */
+  /* ***************************************************************** *** */
 
   function createDir(dir) {
     return Q
@@ -47,9 +66,11 @@ var Router = require("./router");
       .catch(
         function (err) {
           if (err && err.code == 'ENOENT') {
-            return Q.ninvoke(fs, 'mkdir', dir);
-          } else {
-            throw err;
+            return Q.ninvoke(fs, 'mkdir', dir)
+              .catch(function (err) {
+                if (err && err.code == 'EEXIST') return;
+                throw err;
+              });
           }
           throw err;
         }
@@ -65,7 +86,7 @@ var Router = require("./router");
     var first = /^\//.test(dir) ? '' : false;
     function loop(toCreate, created) {
       if (_.isEmpty(toCreate)) {
-        return Q.fcall(function () { return dir; });
+        return Q(dir);
       } else {
         dir = (created !== false ? created + "/" : '') + toCreate[0];
         var rest = _.rest(toCreate);
@@ -127,16 +148,14 @@ var Router = require("./router");
         return createPath(dst, ctx).then(function () {
           return Q.ninvoke(fs, 'writeFile', dst, result, "utf8");
         });
-      }, ctx).then(function () {
-        return dst;
-      });
+      }, ctx);
     });
   }
 
   function copyFile(name, src, content, dst, ctx, encoding) {
     return logAndTime("copy file '" + src + "' => '" + dst + "'", function () {
       return Q.ninvoke(fs, 'writeFile', dst, content, encoding);
-    }, ctx).thenResolve(dst);
+    }, ctx);
   }
 
   function renderStaticFile(name, src, dst, args, router, ctx) {
@@ -166,10 +185,10 @@ var Router = require("./router");
             }
           });
       }
-    }, ctx).catch(function (err) {
-      ctx.logger.error(err.stack || err);
-      return [];
-    });
+    }, ctx).then(
+      function () { return null; },  // only errors are returned
+      function (err) { return {src: src, dst: dst, args: args, error: err}; }
+    );
   }
 
   function saveTemplate(name, src, content, dst, ctx) {
@@ -230,7 +249,7 @@ var Router = require("./router");
   function renderStackedCalls(router, dst_dir, ctx) {
     var lastCalls = router.lastCalls();
     if (_.isEmpty(lastCalls)) {
-      return Q.fcall(function () { return; });
+      return Q();
     } else {
       return sequence(lastCalls, function (call) {
         router.generated(call);
@@ -240,6 +259,12 @@ var Router = require("./router");
       } );
     }
   }
+
+  /* ***************************************************************** *** */
+  /* ***                                                               *** */
+  /* *** BUILDING ROUTER                                               *** */
+  /* ***                                                               *** */
+  /* ***************************************************************** *** */
 
   function buildRouterForFile(name, src, ctx) {
     return logAndTime("Build router for file '" + src + "'", function () {
@@ -266,7 +291,7 @@ var Router = require("./router");
             }
           });
       } else {
-        return Q.fcall(function () { return null; });
+        return Q();
       }
     }, ctx);
   }
@@ -308,15 +333,25 @@ var Router = require("./router");
     });
   }
 
+  /* ***************************************************************** *** */
+  /* ***                                                               *** */
+  /* *** SAVING ROUTER                                                 *** */
+  /* ***                                                               *** */
+  /* ***************************************************************** *** */
+
   function saveRouter(router, dir, ctx) {
     var dst = dir + '/_router.json';
     return logAndTime("Save router => '" + dst + "'", function () {
       var content = JSON.stringify(router.routerInfos());
       return Q.ninvoke(fs, 'writeFile', dst, content, "utf8");
-    }, ctx).then(function () {
-      return router;
-    });
+    }, ctx).thenResolve(router);
   }
+
+  /* ***************************************************************** *** */
+  /* ***                                                               *** */
+  /* *** MAIN FUNCTION                                                 *** */
+  /* ***                                                               *** */
+  /* ***************************************************************** *** */
 
   function run(opts) {
     return Q.fcall(function () {
@@ -333,14 +368,16 @@ var Router = require("./router");
           })
           .then(function (router) {
             return renderDir(ctx.src_dir, ctx.dst_dir, router, ctx)
-              .then(function () { return router; });
-          })
-          .then(function (router) {
-            return renderStackedCalls(router, ctx.dst_dir, ctx)
-              .thenResolve(router);
-          })
-          .then(function (router) {
-            return saveRouter(router, ctx.dst_dir, ctx);
+              .then(function (fromFiles) {
+                return renderStackedCalls(router, ctx.dst_dir, ctx)
+                  .then(function (fromCalls) {
+                    return _.compact(fromFiles.concat(fromCalls));
+                  });
+              })
+              .then(function (res) {
+                return saveRouter(router, ctx.dst_dir, ctx)
+                  .thenResolve(res);
+              });
           });
       }, ctx);
     });
