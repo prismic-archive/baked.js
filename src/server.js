@@ -1,3 +1,5 @@
+/* jshint newcap:false */
+
 var fs = require("fs");
 var util = require("util");
 
@@ -11,6 +13,12 @@ var Router = require("./router");
 
 (function (global, undefined) {
   "use strict";
+
+  /* ***************************************************************** *** */
+  /* ***                                                               *** */
+  /* *** HELPERS                                                       *** */
+  /* ***                                                               *** */
+  /* ***************************************************************** *** */
 
   function buildLogger() {
     return new (winston.Logger)({
@@ -30,7 +38,7 @@ var Router = require("./router");
       return Q.all(_.map(arr, fn));
     } else {
       if (arr.length === 0) {
-        return Q.fcall(function () { return []; });
+        return Q([]);
       } else {
         return Q.fcall(fn, arr[0]).then(function (result) {
           return sequence(arr.slice(1), fn, ctx).then(function (results) {
@@ -40,6 +48,12 @@ var Router = require("./router");
       }
     }
   }
+
+  /* ***************************************************************** *** */
+  /* ***                                                               *** */
+  /* *** RENDERING CONTENT                                             *** */
+  /* ***                                                               *** */
+  /* ***************************************************************** *** */
 
   function createDir(dir) {
     return Q
@@ -65,7 +79,7 @@ var Router = require("./router");
     var first = /^\//.test(dir) ? '' : false;
     function loop(toCreate, created) {
       if (_.isEmpty(toCreate)) {
-        return Q.fcall(function () { return dir; });
+        return Q(dir);
       } else {
         dir = (created !== false ? created + "/" : '') + toCreate[0];
         var rest = _.rest(toCreate);
@@ -230,7 +244,7 @@ var Router = require("./router");
   function renderStackedCalls(router, dst_dir, ctx) {
     var lastCalls = router.lastCalls();
     if (_.isEmpty(lastCalls)) {
-      return Q.fcall(function () { return; });
+      return Q();
     } else {
       return sequence(lastCalls, function (call) {
         router.generated(call);
@@ -240,6 +254,12 @@ var Router = require("./router");
       } );
     }
   }
+
+  /* ***************************************************************** *** */
+  /* ***                                                               *** */
+  /* *** BUILDING ROUTER                                               *** */
+  /* ***                                                               *** */
+  /* ***************************************************************** *** */
 
   function buildRouterForFile(name, src, ctx) {
     return logAndTime("Build router for file '" + src + "'", function () {
@@ -266,7 +286,7 @@ var Router = require("./router");
             }
           });
       } else {
-        return Q.fcall(function () { return null; });
+        return Q();
       }
     }, ctx);
   }
@@ -308,15 +328,25 @@ var Router = require("./router");
     });
   }
 
+  /* ***************************************************************** *** */
+  /* ***                                                               *** */
+  /* *** SAVING ROUTER                                                 *** */
+  /* ***                                                               *** */
+  /* ***************************************************************** *** */
+
   function saveRouter(router, dir, ctx) {
     var dst = dir + '/_router.json';
     return logAndTime("Save router => '" + dst + "'", function () {
       var content = JSON.stringify(router.routerInfos());
       return Q.ninvoke(fs, 'writeFile', dst, content, "utf8");
-    }, ctx).then(function () {
-      return router;
-    });
+    }, ctx).thenResolve(router);
   }
+
+  /* ***************************************************************** *** */
+  /* ***                                                               *** */
+  /* *** MAIN FUNCTION                                                 *** */
+  /* ***                                                               *** */
+  /* ***************************************************************** *** */
 
   function run(opts) {
     return Q.fcall(function () {
@@ -333,7 +363,7 @@ var Router = require("./router");
           })
           .then(function (router) {
             return renderDir(ctx.src_dir, ctx.dst_dir, router, ctx)
-              .then(function () { return router; });
+              .thenResolve(router);
           })
           .then(function (router) {
             return renderStackedCalls(router, ctx.dst_dir, ctx)
