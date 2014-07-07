@@ -42,7 +42,12 @@ var Router = require("./router");
       } else {
         return Q.fcall(fn, arr[0]).then(function (result) {
           return sequence(arr.slice(1), fn, ctx).then(function (results) {
-            return [result].concat(results);
+            if (result) {
+              result = Array.isArray(result) ? result : [result];
+              return result.concat(results);
+            } else {
+              return results;
+            }
           });
         });
       }
@@ -143,16 +148,14 @@ var Router = require("./router");
         return createPath(dst, ctx).then(function () {
           return Q.ninvoke(fs, 'writeFile', dst, result, "utf8");
         });
-      }, ctx).then(function () {
-        return dst;
-      });
+      }, ctx);
     });
   }
 
   function copyFile(name, src, content, dst, ctx, encoding) {
     return logAndTime("copy file '" + src + "' => '" + dst + "'", function () {
       return Q.ninvoke(fs, 'writeFile', dst, content, encoding);
-    }, ctx).thenResolve(dst);
+    }, ctx);
   }
 
   function renderStaticFile(name, src, dst, args, router, ctx) {
@@ -182,10 +185,10 @@ var Router = require("./router");
             }
           });
       }
-    }, ctx).catch(function (err) {
-      ctx.logger.error(err.stack || err);
-      return [];
-    });
+    }, ctx).then(
+      function () { return null; },  // only errors are returned
+      function (err) { return {src: src, dst: dst, args: args, error: err}; }
+    );
   }
 
   function saveTemplate(name, src, content, dst, ctx) {
@@ -365,14 +368,16 @@ var Router = require("./router");
           })
           .then(function (router) {
             return renderDir(ctx.src_dir, ctx.dst_dir, router, ctx)
-              .thenResolve(router);
-          })
-          .then(function (router) {
-            return renderStackedCalls(router, ctx.dst_dir, ctx)
-              .thenResolve(router);
-          })
-          .then(function (router) {
-            return saveRouter(router, ctx.dst_dir, ctx);
+              .then(function (fromFiles) {
+                return renderStackedCalls(router, ctx.dst_dir, ctx)
+                  .then(function (fromCalls) {
+                    return _.compact(fromFiles.concat(fromCalls));
+                  });
+              })
+              .then(function (res) {
+                return saveRouter(router, ctx.dst_dir, ctx)
+                  .thenResolve(res);
+              });
           });
       }, ctx);
     });
