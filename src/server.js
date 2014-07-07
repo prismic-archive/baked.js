@@ -61,9 +61,11 @@ var Router = require("./router");
       .catch(
         function (err) {
           if (err && err.code == 'ENOENT') {
-            return Q.ninvoke(fs, 'mkdir', dir);
-          } else {
-            throw err;
+            return Q.ninvoke(fs, 'mkdir', dir)
+              .catch(function (err) {
+                if (err && err.code == 'EEXIST') return;
+                throw err;
+              });
           }
           throw err;
         }
