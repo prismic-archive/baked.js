@@ -147,7 +147,11 @@ var Q = require("q");
           }, form);
           form
             .query(binding.render(api))
-            .submit(deferred.makeNodeResolver());
+            .submit(function (err, documents) {
+              // skip the NodeJS specific 3rd argument (readableState...)
+              if (err) { deferred.reject(err); }
+              else { deferred.resolve(documents); }
+            });
           return deferred.promise
             .then(
               function (documents) { return [name, documents.results]; },
