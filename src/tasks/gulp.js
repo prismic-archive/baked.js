@@ -8,6 +8,8 @@ var gulp = require('gulp');
 var path = require('path');
 var Q = require('q');
 var watch = require('gulp-watch');
+var ignore = require('gulp-ignore');
+var rimraf = require('gulp-rimraf');
 
 var cli = require('../cli');
 
@@ -129,6 +131,12 @@ function defineTasks(gulp) {
   });
 
   gulp.task('baked:watch', ['baked:watch:src', 'baked:watch:content']);
+
+  gulp.task('baked:clean', ['baked:init'], function() {
+    return gulp.src(config.options.dst_dir + '/**/*', { read: false })
+      .pipe(ignore(config.options.dst_dir + ' /.gitkeep'))
+      .pipe(rimraf());
+  });
 
   /* default tasks */
 
