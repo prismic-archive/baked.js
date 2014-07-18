@@ -6,6 +6,7 @@ var baked = require('./src/tasks/gulp');
 // Defaults tasks (you are free to change them)
 gulp.task('serve', ['baked:serve']);
 gulp.task('default', ['baked:default']);
+gulp.task('clean', ['baked:clean']);
 
 // You can define your own custom tasks
 //

@@ -2,6 +2,7 @@ var _ = require("lodash");
 var ejs = require("ejs");
 var Prismic = require("prismic.io").Prismic;
 var Q = require("q");
+var vm = require("vm");
 
 (function (exporter, undefined) {
   "use strict";
@@ -22,31 +23,26 @@ var Q = require("q");
     _: _
   };
 
-  function cleanEnv(global) {
-    var cleaned = {};
-    // _.each skips some keys (like console)...
-    for (var prop in global) {
-      if (global.hasOwnProperty(prop)) {
-        cleaned[prop] = undefined;
-      }
-    }
-    return cleaned;
+  function renderTemplate(content, ctx) {
+    ejs.open = '[%';
+    ejs.close = '%]';
+    ctx.__render__ = function render() {
+      delete ctx.__render__;
+      return ejs.render(content, ctx);
+    };
+
+    return vm.runInContext("__render__()", ctx);
   }
 
-  function renderTemplate(content, env, global) {
-    var clean = cleanEnv(global);
-    return ejs.render(content, _.assign({}, env, {
-      scope: env,
-      open: '[%',
-      close: '%]'
-    }));
+  function requireFile(content, ctx, filename) {
+    return vm.runInContext(content, ctx, filename);
   }
 
-  function renderContent(global, content, env) {
-    return renderTemplate(content, env, global);
+  function renderContent(content, ctx) {
+    return renderTemplate(content, ctx);
   }
 
-  function renderQuery(global, query, env, api) {
+  function renderQuery(query, env, api) {
     env = env || {};
     var rxVar = /(^|[^$])\$(([a-z][a-z0-9]*)|\{([a-z][a-z0-9]*)\})/ig;
     var rxBookmark = /(^|[^$])\$\{bookmarks(\.([-_a-zA-Z0-9]+)|\[(['"])([-_a-zA-Z0-9]+)\4\])\}/ig;
@@ -68,7 +64,7 @@ var Q = require("q");
     });
   }
 
-  function initConf(global, opts) {
+  function initConf(opts) {
     var conf = {
       env: opts.env || {},
       helpers: opts.helpers || {},
@@ -78,7 +74,7 @@ var Q = require("q");
       accessToken: opts.accessToken,
       api: opts.api,
       tmpl: opts.tmpl,
-      setEnv: opts.setEnv || _.noop
+      setContext: opts.setContext || _.noop
     };
 
     // The Prismic.io API endpoint
@@ -118,7 +114,7 @@ var Q = require("q");
         _.assign(binding, {
           form: dataset.form || 'everything',
           render: function(api) {
-            return renderQuery(global, scriptContent, conf.args, api);
+            return renderQuery(scriptContent, conf.args, api);
           }
         });
         conf.bindings[name] = binding;
@@ -129,13 +125,13 @@ var Q = require("q");
     return conf;
   }
 
-  function initRender(router, opts, global) {
+  function initRender(router, opts) {
     if (!opts) { opts = {}; }
-    var conf = opts.conf || initConf(global, opts);
-    return render(router, conf, global);
+    var conf = opts.conf || initConf(opts);
+    return render(router, conf);
   }
 
-  var render = function(router, conf, global) {
+  var render = function(router, conf) {
     return getAPI(conf).then(function(api) {
       return Q
         .all(_.map(conf.bindings, function(binding, name) {
@@ -181,8 +177,9 @@ var Q = require("q");
           if (conf.helpers) { _.extend(documentSets, conf.helpers); }
           _.extend(documentSets, conf.args);
 
-          conf.setEnv(documentSets);
-          var result = renderContent(global, conf.tmpl, documentSets)
+          var ctx = vm.createContext(documentSets);
+          conf.setContext(ctx);
+          var result = renderContent(conf.tmpl, ctx)
             .replace(/(<img[^>]*)data-src="([^"]*)"/ig, '$1src="$2"');
 
           return {api: api, content: result};
@@ -219,5 +216,6 @@ var Q = require("q");
   exporter.parseRoutingInfos = parseRoutingInfos;
   exporter.renderRoute = renderRoute;
   exporter.renderTemplate = renderTemplate;
+  exporter.requireFile = requireFile;
 
 }(typeof exports === 'object' && exports ? exports : (typeof module === "object" && module && typeof module.exports === "object" ? module.exports : window)));

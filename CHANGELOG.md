@@ -1,3 +1,11 @@
+###  Feature
+
+- Templates can now include Javascript files using `require`
+  - Theses files are evaluated inside the template context
+  - They are cached (but it's possible to bypass the cache)
+- Added `clean` task
+- Fixed a bug which may block generation
+
 ## 0.0.5
 
 ### Feature

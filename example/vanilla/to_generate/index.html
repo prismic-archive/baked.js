@@ -6,12 +6,16 @@
     <title>Your prismic.io singlepage project</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="prismic-api" content="https://lesbonneschoses.prismic.io/api">
-    <!-- meta name="prismic-oauth-client-id" content=""> -->
+    <meta name="prismic-api" content="https://lesbonneschoses-ulzozro531ca879z.prismic.io/api">
+    <meta name="prismic-oauth-client-id" content="UxWopwEAAPN0sBcH">
 
     <script src="/baked.js"></script>
   </head>
   <body>
+
+    [% var lib = require("myLib.js") %]
+    [% console.log("required and assigned:", lib) %]
+    [% console.log("required and fetched from global:", myLib) %]
 
     <div><a href="[%= url_to('search', {typ: 'product', tag: 'Featured'}) %]">
       Search

@@ -6,28 +6,27 @@
     <title>Your prismic.io singlepage project</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="prismic-api" content="https://lesbonneschoses.prismic.io/api">
-    <!-- meta name="prismic-oauth-client-id" content=""> -->
-    <meta name="prismic-routing-pattern" content="$id">
+    <meta name="prismic-api" content="https://lesbonneschoses-ulzozro531ca879z.prismic.io/api">
+    <meta name="prismic-oauth-client-id" content="UxWopwEAAPN0sBcH">
     <meta name="prismic-routing-param" content="id">
 
     <script src="/baked.js"></script>
   </head>
   <body>
 
-    <script type="text/prismic-query" data-binding="blogPost">
+    <script type="text/prismic-query" data-binding="product">
       [
         [:d = any(document.id, ["$id"])]
       ]
     </script>
 
-    [% blogPost = blogPost[0]; %]
+    [% product = product[0]; %]
 
-    <h1>[%= blogPost.getStructuredText("blog-post.body").getTitle().text %]</h1>
+    <h1>[%= product.getText('product.name') %]</h1>
 
-    <article>
-      [%= blogPost.getStructuredText("blog-post.body").getFirstParagraph().text %]
-    </article>
+    <div>
+      <img data-src="[%= product.getImageView('product.image', 'icon').url %]">
+    </div>
 
     [%- partial('/footer') %]
 

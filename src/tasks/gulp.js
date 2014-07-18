@@ -8,6 +8,8 @@ var gulp = require('gulp');
 var path = require('path');
 var Q = require('q');
 var watch = require('gulp-watch');
+var ignore = require('gulp-ignore');
+var rimraf = require('gulp-rimraf');
 
 var cli = require('../cli');
 
@@ -47,6 +49,7 @@ function init(cfg) {
     libName: cfg.libName || 'baked.js',
     baked: cfg.baked || require('../server')
   });
+  return config;
 }
 
 var config = {};
@@ -57,71 +60,91 @@ function pathTo(localPath) {
 
 /* tasks */
 
-gulp.task('baked:init', function() {
-  if (!initialized) {
-    init();
-  }
-});
+function defineTasks(gulp) {
 
-gulp.task('baked:generate:lib', ['baked:init'], function() {
-  baked = ReloadBaked();
-  return gulp.src(pathTo('src/browser.js'))
-    .pipe(browserify({
-      options: {
-        alias: ['../fake:canvas']
-      }
-    }))
-    .pipe(concat(config.libName))
-    .pipe(gulp.dest(config.build_dir));
-});
+  gulp.task('baked:init', function() {
+    if (!initialized) {
+      init();
+    }
+  });
 
-gulp.task('baked:generate:content', ['baked:init'], function () {
-  return Q.fcall(config.beforeGenerate || _.identity)
-    .then(function () {
-      return config.baked.generate(config.options);
-    })
-    .then(config.afterGenerate || _.identity)
-    .then(
-      function () { console.info("Ne mangez pas trop vite"); },
-      function (err) { console.error(err.stack); throw err; }
-    );
-});
+  gulp.task('baked:generate:lib', ['baked:init'], function() {
+    baked = ReloadBaked();
+    return gulp.src(pathTo('src/browser.js'))
+      .pipe(browserify({
+        options: {
+          alias: ['../fake:canvas']
+        }
+      }))
+      .pipe(concat(config.libName))
+      .pipe(gulp.dest(config.build_dir));
+  });
 
-gulp.task('baked:copy-lib', ['baked:generate:lib', 'baked:generate:content'], function () {
-  return gulp
-    .src(path.join(config.build_dir, config.libName))
-    .pipe(gulp.dest(config.options.dst_dir));
-});
+  gulp.task('baked:generate:content', ['baked:init'], function () {
+    return Q.fcall(config.beforeGenerate || _.identity)
+      .then(function () {
+        return config.baked.generate(config.options);
+      })
+      .then(config.afterGenerate || _.identity)
+      .then(
+        function (failures) {
+          if (!_.isEmpty(failures)) {
+            console.error("" + failures.length + " errors:\n");
+            _.each(failures, function (failure) {
+              console.error(failure.src + ": ", failure.error);
+              console.error(failure.dst, "args:", failure.args||{}, "\n");
+            });
+          }
+          console.info("Ne mangez pas trop vite");
+        },
+        function (err) { console.error(err.stack); throw err; }
+      );
+  });
 
-gulp.task('baked:generate', ['baked:generate:content', 'baked:copy-lib']);
+  gulp.task('baked:copy-lib', ['baked:generate:lib', 'baked:generate:content'], function () {
+    return gulp
+      .src(path.join(config.build_dir, config.libName))
+      .pipe(gulp.dest(config.options.dst_dir));
+  });
 
-gulp.task('baked:server', function () {
-  var port = 8282;
-  http.createServer(ecstatic({
-    root: config.options.dst_dir,
-    baseDir: '/',
-    cache: 1,
-    showDir: false,
-    autoIndex: true,
-    defaultExt: 'html'
-  })).listen(port);
-  console.info("Listen connection on http://127.0.0.1:" + port);
-});
+  gulp.task('baked:generate', ['baked:generate:content', 'baked:copy-lib']);
 
-gulp.task('baked:watch:src', ['baked:init'], function () {
-  gulp.watch(root + '/src/**/*.js', ['baked:generate']);
-});
+  gulp.task('baked:server', function () {
+    var port = 8282;
+    http.createServer(ecstatic({
+      root: config.options.dst_dir,
+      baseDir: '/',
+      cache: 1,
+      showDir: false,
+      autoIndex: true,
+      defaultExt: 'html'
+    })).listen(port);
+    console.info("Listen connection on http://127.0.0.1:" + port);
+  });
 
-gulp.task('baked:watch:content', ['baked:init'], function () {
-  gulp.watch(config.options.src_dir + '/**/*', ['baked:generate:content']);
-});
+  gulp.task('baked:watch:src', ['baked:init'], function () {
+    gulp.watch(root + '/src/**/*.js', ['baked:generate']);
+  });
 
-gulp.task('baked:watch', ['baked:watch:src', 'baked:watch:content']);
+  gulp.task('baked:watch:content', ['baked:init'], function () {
+    gulp.watch(config.options.src_dir + '/**/*', ['baked:generate:content']);
+  });
 
-/* default tasks */
+  gulp.task('baked:watch', ['baked:watch:src', 'baked:watch:content']);
 
-gulp.task('baked:serve', ['baked:generate', 'baked:server', 'baked:watch']);
-gulp.task('baked:default', ['baked:generate']);
+  gulp.task('baked:clean', ['baked:init'], function() {
+    return gulp.src(config.options.dst_dir + '/**/*', { read: false })
+      .pipe(ignore(config.options.dst_dir + ' /.gitkeep'))
+      .pipe(rimraf());
+  });
+
+  /* default tasks */
+
+  gulp.task('baked:serve', ['baked:generate', 'baked:server', 'baked:watch']);
+  gulp.task('baked:default', ['baked:generate']);
+
+}
+defineTasks(gulp);
 
 /* exports */
 
@@ -129,3 +152,4 @@ exports.config = config;
 exports.init = init;
 exports.parseOptions = parseOptions;
 exports.ReloadBaked = ReloadBaked;
+exports.defineTasks = defineTasks;
