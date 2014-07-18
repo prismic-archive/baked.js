@@ -220,9 +220,12 @@ gulp
 <h2>
 <a name="internals" class="anchor" href="#internals"><span class="octicon octicon-link"></span></a>Internals</h2>
 
-<p>baked.js is built on top of <a href="nodejs.org">Node.js</a> and use <a href="https://github.com/andreasgal/dom.js/">dom.js</a> to emulate the DOM.</p>
+<p>baked.js is built on top of <a href="nodejs.org">Node.js</a>.</p>
 
-<p>It uses <a href="https://github.com/kriskowal/q">Q</a> and <a href="http://lodash.com">lodash</a>, and let <a href="gulpjs.com">Gulp</a> and <a href="browserify.org">browserify</a> handle the generation of the browser library.</p>
+<p>It uses <a href="https://github.com/kriskowal/q">Q</a> and <a href="http://lodash.com">lodash</a>,
+let <a href="gulpjs.com">Gulp</a> and <a href="browserify.org">browserify</a> handle the generation
+of the browser library and uses <a href="https://github.com/visionmedia/ejs">EJS</a> for
+the template rendering.</p>
 
 <h3>
 <a name="dynamic-browser-mode" class="anchor" href="#dynamic-browser-mode"><span class="octicon octicon-link"></span></a>Dynamic browser mode</h3>
@@ -241,7 +244,7 @@ gulp
 
 <ul>
 <li>Every statically rendered page is able to re-generate itself, and then to emulate the navigation in the others pages (using <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/history.html#the-history-interface">HTML5's History API</a>).</li>
-<li>It allows to specify specific <code>access_token</code> and <code>ref</code>, in order to render the content using a specific prismic.io's release.</li>
+<li>It allows to specify specific <code>access_token</code> and <code>ref</code>, in order to render the content using a specific prismic.io's release. These can be set automatically using the <a href="#auth2-authentication">OAuth2 authentication</a>.</li>
 </ul>
 </li>
 </ul><p>The dynamic mode needs some specific components:</p>
@@ -270,17 +273,61 @@ gulp
 </li>
 </ul>
 </li>
-</ul><h2>
-<a name="notes" class="anchor" href="#notes"><span class="octicon octicon-link"></span></a>Notes</h2>
+</ul><h4>
+<a name="specific-ref-to-use" class="anchor" href="#specific-ref-to-use"><span class="octicon octicon-link"></span></a>Specific ref to use</h4>
 
-<ul>
-<li>the server build a DOM structure (using JSDOM) in order to navigate inside it, so:
+<p>baked.js provides a helper to easilly switch between refs.</p>
 
-<ul>
-<li>The tags <code>&lt;% %&gt;</code> can't be used, because JSDOM doesn't like them</li>
-</ul>
-</li>
-</ul><h3>
+<p>It listen changes made on elements containing the attribute
+“<code>data-prismic-action="update"</code>” and update the ref (and re-generate)
+accordingly.</p>
+
+<p>Here an example of use:</p>
+
+<pre lang="ejs"><code>&lt;select data-prismic-action="update"&gt;
+  [% _.each(refs, function (r) { %]
+    [% if (r.ref == ref) { %]
+      &lt;option value="[%= r.ref %]" selected="selected"&gt;[%= r.label %]&lt;/option&gt;
+    [% } else { %]
+      &lt;option value="[%= r.ref %]"&gt;[%= r.label %]&lt;/option&gt;
+    [% } %]
+  [% }) %]
+&lt;/select&gt;
+</code></pre>
+
+<h4>
+<a name="oauth2-authentication" class="anchor" href="#oauth2-authentication"><span class="octicon octicon-link"></span></a>OAuth2 authentication</h4>
+
+<p>baked.js provides a helper to authenticate to your prismic.io application
+using OAuth2.</p>
+
+<p>It listen the “click” events on elements containing attributes
+“<code>data-prismic-action="signout"</code>” or “<code>data-prismic-action="signin"</code>.”</p>
+
+<p>In order to work, this feature needs a meta tag “<code>prismic-oauth-client-id</code>”
+to be defined.</p>
+
+<p>Here an example:</p>
+
+<pre lang="ejs"><code>&lt;meta name="prismic-oauth-client-id" content="YOUR_CLIENT_ID"&gt;
+...
+[% if (loggedIn) { %]
+  &lt;select data-prismic-action="update"&gt;
+    [% _.each(refs, function (r) { %]
+      [% if (r.ref == ref) { %]
+        &lt;option value="[%= r.ref %]" selected="selected"&gt;[%= r.label %]&lt;/option&gt;
+      [% } else { %]
+        &lt;option value="[%= r.ref %]"&gt;[%= r.label %]&lt;/option&gt;
+      [% } %]
+    [% }) %]
+  &lt;/select&gt;
+  &lt;button data-prismic-action="signout"&gt;Sign out&lt;/button&gt;
+[% } else { %]
+  &lt;button data-prismic-action="signin"&gt;Sign in&lt;/button&gt;
+[% } %]
+</code></pre>
+
+<h3>
 <a name="licence" class="anchor" href="#licence"><span class="octicon octicon-link"></span></a>Licence</h3>
 
 <p>This software is licensed under the Apache 2 license, quoted below.</p>
