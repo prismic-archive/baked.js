@@ -1,3 +1,5 @@
+## 0.0.6
+
 ###  Feature
 
 - Templates can now include Javascript files using `require`
