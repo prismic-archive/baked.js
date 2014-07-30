@@ -30,8 +30,15 @@ function parseOptions() {
   try {
     var res = cli.parse();
     var options = res.options;
-    if (!options.src_dir) { options.src_dir = 'to_generate'; }
-    if (!options.dst_dir) { options.dst_dir = 'generated'; }
+
+    // it's better to use $PWD because cwd() returns the gulpfile.js's
+    // directory. However $PWD is only available on *nix systems, so we
+    // still use cwd() as fallback (better than nothing).
+    var pwd = process.env['PWD'];
+    if (!pwd) { pwd = process.cwd(); }
+
+    if (!options.src_dir) { options.src_dir = path.join(pwd, 'to_generate'); }
+    if (!options.dst_dir) { options.dst_dir = path.join(pwd, 'generated'); }
     return options;
   } catch (e) {
     console.error(e.message);
