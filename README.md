@@ -61,7 +61,7 @@ Here is the complete steps (with installation):
 ```sh
 # in baked.js directory
 npm install
-cd example
+cd example/vanilla
 gulp
 ```
 
