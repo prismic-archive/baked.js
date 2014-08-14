@@ -116,6 +116,13 @@ var Router = require('./router');
     };
   };
 
+  LocalRouter.prototype.pathToHereDynCb = function() {
+    var _this = this;
+    return function () {
+      return _this.pathToDynCb()(_this.src(), _this.args());
+    };
+  };
+
   LocalRouter.prototype.partialFile = function (name) {
     return this.partials[name];
   };

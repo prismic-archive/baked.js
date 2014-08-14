@@ -38,7 +38,8 @@ var baked = require("./baked");
   }
 
   function srcForFile(router, file) {
-    return router.src_dir + file + ".html";
+    if (!/\.html$/.test(file)) file += '.html';
+    return router.src_dir.replace(/\/$/, '') + '/' + file.replace(/^\//, '');
   }
 
   function isPartial(file) {
@@ -180,6 +181,14 @@ var baked = require("./baked");
   Router.prototype.pathToStaticCb = function (here_src, here_dst) {
     var _this = this;
     return function (file, args) {
+      return _this.pathToStatic(file, args, here_src, here_dst);
+    };
+  };
+
+  Router.prototype.pathToHereStaticCb = function (here_src, here_dst, args) {
+    var _this = this;
+    return function () {
+      var file = here_src.replace(_this.src_dir, '').replace(/\.html$/, '');
       return _this.pathToStatic(file, args, here_src, here_dst);
     };
   };

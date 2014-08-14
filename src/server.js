@@ -138,6 +138,7 @@ var Router = require("./router");
             }
             return router.pathToStaticCb(src, dst)(file, args);
           },
+          pathToHere: router.pathToHereStaticCb(src, dst, args),
           partial: router.partialCb(src, env, readFileSync),
           require: router.requireCb(src, env, readFileSync)
         },

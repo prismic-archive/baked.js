@@ -2,6 +2,7 @@
 
 - Only errors are now displayed by default.
     + (ok this is not an error but it's still cool)
+- Add `pathToHere` helper (returns the path of the current page)
 
 ### Changes
 
