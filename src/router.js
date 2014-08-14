@@ -148,10 +148,12 @@ var baked = require("./baked");
     if (router.generatedRoutes[globalPath]) {
       var existing = router.generatedRoutes[globalPath];
       if (!_.isEqual(existing.to, infos.to) || !_.isEqual(existing.args, infos.args)) {
-        throw "The URL " + globalPath +
-              " (by: " + infos.by + " to:" + infos.to + " args:" + JSON.stringify(infos.args) + ")" +
-              " has been already generated" +
-              " (by: " + existing.by + " to:" + existing.to + " args:" + JSON.stringify(existing.args) + ")";
+        throw new Error(
+          "The URL " + globalPath +
+          " (by: " + infos.by + " to:" + infos.to + " args:" + JSON.stringify(infos.args) + ")" +
+          " has been already generated" +
+          " (by: " + existing.by + " to:" + existing.to + " args:" + JSON.stringify(existing.args) + ")"
+        );
       }
     } else {
       router.generatedRoutes[globalPath] = infos;
@@ -166,7 +168,7 @@ var baked = require("./baked");
     if (_.isString(parsedArgs)) { parsedArgs = {id: parsedArgs}; }
     var params = getParamsFromFile(this, fileFromHere);
     if (!params) {
-      throw "Bad arguments (file '" + file + "' not found)";
+      throw new Error("Bad arguments (file '" + file + "' not found)");
     } else if (_.all(params.params, function (param) { return parsedArgs && !!parsedArgs[param]; })) {
       var call = addCall(this, fileFromHere, parsedArgs);
       var filename = this.filename(fileFromHere, parsedArgs, here_dst);
@@ -174,7 +176,7 @@ var baked = require("./baked");
       addGeneratedRoute(this, filename, call, here_dst, fileFromHere, here_src);
       return filename.replace(/\/index\.html$/, '/');
     } else {
-      throw "Bad arguments (bad arguments " + JSON.stringify(args) + " for file '" + file + "')";
+      throw new Error("Bad arguments (bad arguments " + JSON.stringify(args) + " for file '" + file + "')");
     }
   };
 
