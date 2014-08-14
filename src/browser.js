@@ -66,7 +66,9 @@ window.vm = require('vm');
           }
           return localRouter.pathToDynCb()(file, args);
         },
+        urlTo: localRouter.urlToDynCb(),
         pathToHere: localRouter.pathToHereDynCb(),
+        urlToHere: localRouter.urlToHereDynCb(),
         partial: localRouter.partialCb(env),
         require: localRouter.requireCb(env)
       },

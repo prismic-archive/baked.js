@@ -9,10 +9,16 @@
     <meta name="prismic-api" content="https://lesbonneschoses-ulzozro531ca879z.prismic.io/api">
     <meta name="prismic-oauth-client-id" content="UxWopwEAAPN0sBcH">
     <meta name="prismic-routing-pattern" content="/blog.html">
+    <meta name="prismic-url-base" content="http://localhost:8282/">
+    <meta property="og:url" content="[%= urlToHere() %]" />
 
     <script src="/baked.js"></script>
   </head>
   <body>
+
+    [%= urlToHere() %]<br>
+    [%= urlTo('/index') %]<br>
+    [%= urlTo('index') %]
 
 
     <h1>Blog</h1>

@@ -160,24 +160,36 @@ var baked = require("./baked");
     }
   }
 
-  Router.prototype.pathToStatic = function (file, args, here_src, here_dst) {
+  function pathOrUrlTo(router, file, args, here_src, here_dst, isUrl) {
     var parsedArgs = args || {};
-    if (here_src) { here_src = here_src.replace(this.src_dir, ''); }
-    if (here_dst) { here_dst = here_dst.replace(this.dst_dir, ''); }
+    if (here_src) { here_src = here_src.replace(router.src_dir, ''); }
+    if (here_dst) { here_dst = here_dst.replace(router.dst_dir, ''); }
     var fileFromHere = findFileFromHere(file, here_src);
     if (_.isString(parsedArgs)) { parsedArgs = {id: parsedArgs}; }
-    var params = getParamsFromFile(this, fileFromHere);
+    var params = getParamsFromFile(router, fileFromHere);
     if (!params) {
       throw new Error("Bad arguments (file '" + file + "' not found)");
     } else if (_.all(params.params, function (param) { return parsedArgs && !!parsedArgs[param]; })) {
-      var call = addCall(this, fileFromHere, parsedArgs);
-      var filename = this.filename(fileFromHere, parsedArgs, here_dst);
+      var call = addCall(router, fileFromHere, parsedArgs);
+      var filename = router.filename(fileFromHere, parsedArgs, here_dst);
       filename = findFileFromHere(filename, here_dst);
-      addGeneratedRoute(this, filename, call, here_dst, fileFromHere, here_src);
-      return filename.replace(/\/index\.html$/, '/');
+      addGeneratedRoute(router, filename, call, here_dst, fileFromHere, here_src);
+      var path = filename.replace(/\/index\.html$/, '/');
+      if (isUrl) {
+        if (!params.url) {
+          throw new Error("Can't build an URL without 'prismic-url-base' param");
+        }
+        return params.url.replace(/\/$/, '') + '/' + path.replace(/^\//, '');
+      } else {
+        return path;
+      }
     } else {
       throw new Error("Bad arguments (bad arguments " + JSON.stringify(args) + " for file '" + file + "')");
     }
+  }
+
+  Router.prototype.pathToStatic = function (file, args, here_src, here_dst) {
+    return pathOrUrlTo(this, file, args, here_src, here_dst);
   };
 
   Router.prototype.pathToStaticCb = function (here_src, here_dst) {
@@ -187,11 +199,30 @@ var baked = require("./baked");
     };
   };
 
+  Router.prototype.urlToStatic = function (file, args, here_src, here_dst) {
+    return pathOrUrlTo(this, file, args, here_src, here_dst, true);
+  };
+
+  Router.prototype.urlToStaticCb = function (here_src, here_dst) {
+    var _this = this;
+    return function (file, args) {
+      return _this.urlToStatic(file, args, here_src, here_dst);
+    };
+  };
+
   Router.prototype.pathToHereStaticCb = function (here_src, here_dst, args) {
     var _this = this;
     return function () {
       var file = here_src.replace(_this.src_dir, '').replace(/\.html$/, '');
       return _this.pathToStatic(file, args, here_src, here_dst);
+    };
+  };
+
+  Router.prototype.urlToHereStaticCb = function (here_src, here_dst, args) {
+    var _this = this;
+    return function () {
+      var file = here_src.replace(_this.src_dir, '').replace(/\.html$/, '');
+      return _this.urlToStatic(file, args, here_src, here_dst);
     };
   };
 

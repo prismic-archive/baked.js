@@ -3,6 +3,9 @@
 - Only errors are now displayed by default.
     + (ok this is not an error but it's still cool)
 - Add `pathToHere` helper (returns the path of the current page)
+- Add `urlTo` and `urlToHere` helpers (return the full URL)
+    + do not confuse the new `urlTo` helper
+    and the old (badly named) helper `url_to` which returns only a path.
 
 ### Changes
 
