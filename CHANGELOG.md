@@ -1,3 +1,8 @@
+### Feature
+
+- Only errors are now displayed by default.
+    + (ok this is not an error but it's still cool)
+
 ## 0.0.6
 
 ###  Feature

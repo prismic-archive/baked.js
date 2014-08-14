@@ -20,13 +20,13 @@ var Router = require("./router");
   /* ***                                                               *** */
   /* ***************************************************************** *** */
 
-  function buildLogger() {
+  function buildLogger(opts) {
     return new (winston.Logger)({
       transports: [
         new (winston.transports.Console)({
           json: false,
           timestamp: true,
-          level: 'debug',
+          level: opts.debug ? 'debug' : 'warn',
           colorize: true
         })
       ]
@@ -355,7 +355,7 @@ var Router = require("./router");
 
   function run(opts) {
     return Q.fcall(function () {
-      var ctx = _.assign({logger: buildLogger()}, opts, {
+      var ctx = _.assign({logger: buildLogger(opts)}, opts, {
         src_dir: opts.src_dir.replace(/\/$/, ''),
         dst_dir: opts.dst_dir.replace(/\/$/, '')
       });
