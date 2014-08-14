@@ -337,7 +337,7 @@ var baked = require("./baked");
       var file = getRequirePath(_this, name, src);
       var content = readFile(file);
       var res;
-      if (opts.no_cache) {
+      if (opts.noCache || opts.no_cache) {
         res = baked.requireFile(content, env.ctx, src);
       } else {
         res = _this.loaded[file];
