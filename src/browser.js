@@ -58,7 +58,14 @@ window.vm = require('vm');
     var conf = baked.initConf({
       logger: console,
       helpers: {
-        url_to: localRouter.urlToDynCb(),
+        pathTo: localRouter.pathToDynCb(),
+        url_to: function (file, args) {
+          if (!window.deprecationUrlTo) {
+            console.log("url_to is deprecated, please use pathTo instead");
+            window.deprecationUrlTo = true;
+          }
+          return localRouter.pathToDynCb()(file, args);
+        },
         partial: localRouter.partialCb(env),
         require: localRouter.requireCb(env)
       },

@@ -157,7 +157,7 @@ var baked = require("./baked");
     }
   }
 
-  Router.prototype.urlToStatic = function (file, args, here_src, here_dst) {
+  Router.prototype.pathToStatic = function (file, args, here_src, here_dst) {
     var parsedArgs = args || {};
     if (here_src) { here_src = here_src.replace(this.src_dir, ''); }
     if (here_dst) { here_dst = here_dst.replace(this.dst_dir, ''); }
@@ -177,10 +177,10 @@ var baked = require("./baked");
     }
   };
 
-  Router.prototype.urlToStaticCb = function (here_src, here_dst) {
+  Router.prototype.pathToStaticCb = function (here_src, here_dst) {
     var _this = this;
     return function (file, args) {
-      return _this.urlToStatic(file, args, here_src, here_dst);
+      return _this.pathToStatic(file, args, here_src, here_dst);
     };
   };
 

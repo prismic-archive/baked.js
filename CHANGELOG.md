@@ -3,6 +3,11 @@
 - Only errors are now displayed by default.
     + (ok this is not an error but it's still cool)
 
+### Changes
+
+- The `url_to` helper has been renamed into `pathTo`
+    + the old version is still supported by deprecated
+
 ## 0.0.6
 
 ###  Feature

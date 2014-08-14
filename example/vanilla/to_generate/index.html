@@ -17,11 +17,11 @@
     [% console.log("required and assigned:", lib) %]
     [% console.log("required and fetched from global:", myLib) %]
 
-    <div><a href="[%= url_to('search', {typ: 'product', tag: 'Featured'}) %]">
+    <div><a href="[%= pathTo('search', {typ: 'product', tag: 'Featured'}) %]">
       Search
     </a></div>
 
-    <div><a href="[%= url_to('blog/index') %]">blog</a></div>
+    <div><a href="[%= pathTo('blog/index') %]">blog</a></div>
 
     [%- partial('/footer') %]
 

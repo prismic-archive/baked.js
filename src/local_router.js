@@ -102,7 +102,7 @@ var Router = require('./router');
       .value()[0];
   };
 
-  LocalRouter.prototype.urlToDynCb = function() {
+  LocalRouter.prototype.pathToDynCb = function() {
     var _this = this;
     return function (file, args) {
       var src = _this.findFileFromSrc(file);

@@ -130,7 +130,14 @@ var Router = require("./router");
         args: args,
         setContext: function (ctx) { env.ctx = ctx; },
         helpers: {
-          url_to: router.urlToStaticCb(src, dst),
+          pathTo: router.pathToStaticCb(src, dst),
+          url_to: function (file, args) {
+            if (!global.deprecationUrlTo) {
+              ctx.logger.warn("url_to is deprecated, please use pathTo instead");
+              global.deprecationUrlTo = true;
+            }
+            return router.pathToStaticCb(src, dst)(file, args);
+          },
           partial: router.partialCb(src, env, readFileSync),
           require: router.requireCb(src, env, readFileSync)
         },
