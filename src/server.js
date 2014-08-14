@@ -197,7 +197,10 @@ var Router = require("./router");
       }
     }, ctx).then(
       function () { return null; },  // only errors are returned
-      function (err) { return {src: src, dst: dst, args: args, error: err}; }
+      function (err) {
+        console.error(err.stack);
+        return {src: src, dst: dst, args: args, error: err};
+      }
     );
   }
 
