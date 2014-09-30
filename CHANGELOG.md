@@ -6,16 +6,15 @@
 - Add `urlTo` and `urlToHere` helpers (return the full URL)
   + do not confuse the new `urlTo` helper
     and the old (badly named) helper `url_to` which returns only a path.
+- Add a global configuration file
 
 ### Changes
 
 - The `url_to` helper has been renamed into `pathTo`
   + the old version is still supported by deprecated
-- Replace `src_dir` and `dst_dir` by `srcDir` and `dstDir`
+- Replace `src_dir` and `dst_dir` by `srcDir` and `dstDir`, but it should not break existing gulpfiles
   + the `init()` helper still supports `src_dir` and `dst_dir`
-  + the `parseOptions()` helper no longer returns them
-  + the `baked.config` will returns `src_dir` and `src_dst` as copies of `srcDir` and `dstDir`
-    * if these attributes are replaced, the change won't affect the generation
+  + the `parseOptions()` helper's response and the `baked.config.options` object have `src_dir` and `dst_dir` as r/w properties.
 
 ## 0.0.6
 

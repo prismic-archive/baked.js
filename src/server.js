@@ -6,10 +6,10 @@ var util = require("util");
 var Q = require("q");
 var _ = require("lodash");
 var moment = require("moment");
-var winston = require('winston');
 
 var baked = require("./baked");
 var Router = require("./router");
+var Configuration = require("./configuration");
 
 (function (global, undefined) {
   "use strict";
@@ -19,19 +19,6 @@ var Router = require("./router");
   /* *** HELPERS                                                       *** */
   /* ***                                                               *** */
   /* ***************************************************************** *** */
-
-  function buildLogger(opts) {
-    return new (winston.Logger)({
-      transports: [
-        new (winston.transports.Console)({
-          json: false,
-          timestamp: true,
-          level: opts.debug ? 'debug' : 'warn',
-          colorize: true
-        })
-      ]
-    });
-  }
 
   function sequence(arr, fn, ctx) {
     if (ctx.async) {
@@ -362,17 +349,19 @@ var Router = require("./router");
 
   /* ***************************************************************** *** */
   /* ***                                                               *** */
+  /* *** READING CONFIGURATION FILE                                    *** */
+  /* ***                                                               *** */
+  /* ***************************************************************** *** */
+
+  /* ***************************************************************** *** */
+  /* ***                                                               *** */
   /* *** MAIN FUNCTION                                                 *** */
   /* ***                                                               *** */
   /* ***************************************************************** *** */
 
-  function run(opts) {
+  function run(ctx) {
     return Q.fcall(function () {
-      var ctx = _.assign({logger: buildLogger(opts)}, opts, {
-        srcDir: opts.srcDir.replace(/\/$/, ''),
-        dstDir: opts.dstDir.replace(/\/$/, '')
-      });
-      ctx.logger.info("ctx:", _.assign({}, ctx, {logger: '<LOGGER>'}));
+      ctx.logger.debug("ctx:", ctx);
       if (ctx.debug) Q.longStackSupport = true;
       return logAndTime("Generation", function () {
         return createPaths([ctx.dstDir], ctx)

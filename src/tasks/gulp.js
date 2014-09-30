@@ -12,6 +12,7 @@ var ignore = require('gulp-ignore');
 var rimraf = require('gulp-rimraf');
 
 var cli = require('../cli');
+var Configuration = require('../configuration');
 
 // Reload the Baked lib
 // This function allows to update the lib's code without having to restart gulp
@@ -31,14 +32,16 @@ function parseOptions() {
     var res = cli.parse();
     var options = res.options;
 
-    // it's better to use $PWD because cwd() returns the gulpfile.js's
-    // directory. However $PWD is only available on *nix systems, so we
-    // still use cwd() as fallback (better than nothing).
-    var pwd = process.env.PWD;
-    if (!pwd) { pwd = process.cwd(); }
+    // supports gulpfiles using src_dir insteaf of srcDir from baked.config
+    Object.defineProperty(options, "src_dir", {
+      get: function () { return options.srcDir; },
+      set: function (value) { options.srcDir = value; }
+    });
+    Object.defineProperty(options, "dst_dir", {
+      get: function () { return options.dstDir; },
+      set: function (value) { options.dstDir = value; }
+    });
 
-    if (!options.srcDir) { options.srcDir = path.join(pwd, 'to_generate'); }
-    if (!options.dstDir) { options.dstDir = path.join(pwd, 'generated'); }
     return options;
   } catch (e) {
     console.error(e.message);
@@ -47,19 +50,31 @@ function parseOptions() {
 }
 
 var initialized = false;
+var config = {};
 function init(cfg) {
   initialized = true;
   if (!cfg) cfg = {};
-  var options = _.assign({}, cfg.options);
+  var argOptions = _.defaults({}, cfg.options);
+
   // supports gulpfiles providing src_dir insteaf of srcDir to init()
-  if (!options.srcDir) { options.srcDir = options.src_dir; }
-  if (!options.dstDir) { options.dstDir = options.dst_dir; }
+  if (!argOptions.srcDir) { argOptions.srcDir = argOptions.src_dir; }
+  if (!argOptions.dstDir) { argOptions.dstDir = argOptions.dst_dir; }
+
+  var cliOptions = parseOptions();
+  var configuration = Configuration.readFromFileSync(_.assign(argOptions, cliOptions));
+
   // supports gulpfiles using src_dir insteaf of srcDir from baked.config
-  options.src_dir = options.srcDir;
-  options.dst_dir = options.dstDir;
-  // -
+  Object.defineProperty(configuration, "src_dir", {
+    get: function () { return configuration.srcDir; },
+    set: function (value) { configuration.srcDir = value; }
+  });
+  Object.defineProperty(configuration, "dst_dir", {
+    get: function () { return configuration.dstDir; },
+    set: function (value) { configuration.dstDir = value; }
+  });
+
   _.assign(config, {
-    options: _.assign(options, parseOptions()),
+    options: configuration,
     buildDir: cfg.buildDir || pathTo('build'),
     libName: cfg.libName || 'baked.js',
     baked: cfg.baked || require('../server')
@@ -67,7 +82,6 @@ function init(cfg) {
   return config;
 }
 
-var config = {};
 var root = path.join(__dirname, '../..');
 function pathTo(localPath) {
   return path.join(root, localPath);
