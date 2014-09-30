@@ -1,19 +1,21 @@
 ### Feature
 
 - Only errors are now displayed by default.
-    + (ok this is not an error but it's still cool)
+  + (ok this is not an error but it's still cool)
 - Add `pathToHere` helper (returns the path of the current page)
 - Add `urlTo` and `urlToHere` helpers (return the full URL)
-    + do not confuse the new `urlTo` helper
+  + do not confuse the new `urlTo` helper
     and the old (badly named) helper `url_to` which returns only a path.
 
 ### Changes
 
 - The `url_to` helper has been renamed into `pathTo`
-    + the old version is still supported by deprecated
+  + the old version is still supported by deprecated
 - Replace `src_dir` and `dst_dir` by `srcDir` and `dstDir`
   + the `init()` helper still supports `src_dir` and `dst_dir`
   + the `parseOptions()` helper no longer returns them
+  + the `baked.config` will returns `src_dir` and `src_dst` as copies of `srcDir` and `dstDir`
+    * if these attributes are replaced, the change won't affect the generation
 
 ## 0.0.6
 

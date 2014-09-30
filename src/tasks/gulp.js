@@ -51,9 +51,12 @@ function init(cfg) {
   initialized = true;
   if (!cfg) cfg = {};
   var options = _.assign({}, cfg.options);
-  // supports gulpfiles defining src_dir insteaf of srcDir
+  // supports gulpfiles providing src_dir insteaf of srcDir to init()
   if (!options.srcDir) { options.srcDir = options.src_dir; }
   if (!options.dstDir) { options.dstDir = options.dst_dir; }
+  // supports gulpfiles using src_dir insteaf of srcDir from baked.config
+  options.src_dir = options.srcDir;
+  options.dst_dir = options.dstDir;
   // -
   _.assign(config, {
     options: _.assign(options, parseOptions()),

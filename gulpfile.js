@@ -11,7 +11,7 @@ gulp.task('clean', ['baked:clean']);
 // You can define your own custom tasks
 //
 //     gulp.task('deploy', ['baked:generate'], function () {
-//       pleaseDeployMyContent(baked.config.dst_dir);
+//       pleaseDeployMyContent(baked.config.dstDir);
 //     });
 
 
