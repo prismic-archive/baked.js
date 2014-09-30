@@ -282,7 +282,7 @@ var Configuration = require("./configuration");
           .ninvoke(fs, 'readFile', src, "utf8")
           .then(function (content) {
             var result = {};
-            var infos = baked.parseRoutingInfos(content);
+            var infos = baked.parseRoutingInfos(content, ctx);
             if (infos) {
               result[src] = infos;
               return result;
