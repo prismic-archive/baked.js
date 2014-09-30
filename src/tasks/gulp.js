@@ -60,7 +60,7 @@ function init(cfg) {
   // -
   _.assign(config, {
     options: _.assign(options, parseOptions()),
-    build_dir: cfg.build_dir || pathTo('build'),
+    buildDir: cfg.buildDir || pathTo('build'),
     libName: cfg.libName || 'baked.js',
     baked: cfg.baked || require('../server')
   });
@@ -92,7 +92,7 @@ function defineTasks(gulp) {
         }
       }))
       .pipe(concat(config.libName))
-      .pipe(gulp.dest(config.build_dir));
+      .pipe(gulp.dest(config.buildDir));
   });
 
   gulp.task('baked:generate:content', ['baked:init'], function () {
@@ -118,7 +118,7 @@ function defineTasks(gulp) {
 
   gulp.task('baked:copy-lib', ['baked:generate:lib', 'baked:generate:content'], function () {
     return gulp
-      .src(path.join(config.build_dir, config.libName))
+      .src(path.join(config.buildDir, config.libName))
       .pipe(gulp.dest(config.options.dstDir));
   });
 
