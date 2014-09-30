@@ -7,7 +7,7 @@ var _ = require('lodash');
     var pwd = '/' + _.compact((process.env.PWD || '').split('/')).join('/') + '/';
     var name = _.first(process.argv, 2).join(' ').replace(pwd, '');
     var msg =
-      "usage: " + name + " [opts] <src> <dest>\n" +
+      "usage: " + name + " [opts] --src <src> --dst <dest>\n" +
       "\n" +
       "opts:\n" +
       "  --[no-]async    -- Run asynchronously (default: true)\n" +
