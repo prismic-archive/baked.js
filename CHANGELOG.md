@@ -11,6 +11,9 @@
 
 - The `url_to` helper has been renamed into `pathTo`
     + the old version is still supported by deprecated
+- Replace `src_dir` and `dst_dir` by `srcDir` and `dstDir`
+  + the `init()` helper still supports `src_dir` and `dst_dir`
+  + the `parseOptions()` helper no longer returns them
 
 ## 0.0.6
 

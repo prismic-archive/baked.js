@@ -22,8 +22,8 @@ var baked = require("./baked");
     this.partials = partials;
     this.requires = requires;
     this.loaded = {};
-    this.src_dir = opts.src_dir;
-    this.dst_dir = opts.dst_dir;
+    this.srcDir = opts.srcDir;
+    this.dstDir = opts.dstDir;
     this.calls = {};
     this.generatedRoutes = {};
   }
@@ -39,7 +39,7 @@ var baked = require("./baked");
 
   function srcForFile(router, file) {
     if (!/\.html$/.test(file)) file += '.html';
-    return router.src_dir.replace(/\/$/, '') + '/' + file.replace(/^\//, '');
+    return router.srcDir.replace(/\/$/, '') + '/' + file.replace(/^\//, '');
   }
 
   function isPartial(file) {
@@ -52,7 +52,7 @@ var baked = require("./baked");
 
   Router.prototype.cleanFilename = function(src) {
     return src
-      .replace(this.src_dir, '')
+      .replace(this.srcDir, '')
       .replace(/\.html$/, '');
   };
 
@@ -162,8 +162,8 @@ var baked = require("./baked");
 
   function pathOrUrlTo(router, file, args, here_src, here_dst, isUrl) {
     var parsedArgs = args || {};
-    if (here_src) { here_src = here_src.replace(router.src_dir, ''); }
-    if (here_dst) { here_dst = here_dst.replace(router.dst_dir, ''); }
+    if (here_src) { here_src = here_src.replace(router.srcDir, ''); }
+    if (here_dst) { here_dst = here_dst.replace(router.dstDir, ''); }
     var fileFromHere = findFileFromHere(file, here_src);
     if (_.isString(parsedArgs)) { parsedArgs = {id: parsedArgs}; }
     var params = getParamsFromFile(router, fileFromHere);
@@ -213,7 +213,7 @@ var baked = require("./baked");
   Router.prototype.pathToHereStaticCb = function (here_src, here_dst, args) {
     var _this = this;
     return function () {
-      var file = here_src.replace(_this.src_dir, '').replace(/\.html$/, '');
+      var file = here_src.replace(_this.srcDir, '').replace(/\.html$/, '');
       return _this.pathToStatic(file, args, here_src, here_dst);
     };
   };
@@ -221,7 +221,7 @@ var baked = require("./baked");
   Router.prototype.urlToHereStaticCb = function (here_src, here_dst, args) {
     var _this = this;
     return function () {
-      var file = here_src.replace(_this.src_dir, '').replace(/\.html$/, '');
+      var file = here_src.replace(_this.srcDir, '').replace(/\.html$/, '');
       return _this.urlToStatic(file, args, here_src, here_dst);
     };
   };
@@ -272,7 +272,7 @@ var baked = require("./baked");
   };
 
   Router.prototype.globalFilename = function (file, args, here) {
-    return this.dst_dir + '/' + this.filename(file, args, here);
+    return this.dstDir + '/' + this.filename(file, args, here);
   };
 
   Router.prototype.filenameForCall = function (call) {
@@ -285,8 +285,8 @@ var baked = require("./baked");
 
   Router.prototype.routerInfosForFile = function (src, dst, args) {
     return {
-      src: src.replace(this.src_dir, ''),
-      dst: dst.replace(this.dst_dir, ''),
+      src: src.replace(this.srcDir, ''),
+      dst: dst.replace(this.dstDir, ''),
       args: args
     };
   };
@@ -294,26 +294,26 @@ var baked = require("./baked");
   Router.prototype.routerInfos = function () {
     return {
       params: _.transform(this.params, function (result, value, name) {
-        result[name.replace(this.src_dir, '')] = value;
+        result[name.replace(this.srcDir, '')] = value;
       }, null, this),
       partials: _.map(this.partials, function (name) {
-        return name.replace(this.src_dir, '');
+        return name.replace(this.srcDir, '');
       }, this),
       requires: _.map(this.requires, function (name) {
-        return name.replace(this.src_dir, '');
+        return name.replace(this.srcDir, '');
       }, this)
     };
   };
 
   function getPartialPath(router, name, here) {
-    var path = findFileFromHere(name, here.replace(router.src_dir, ''));
+    var path = findFileFromHere(name, here.replace(router.srcDir, ''));
     var pathEls = els(path);
     if (_.isEmpty(pathEls)) return null;
     var file = pathEls[pathEls.length - 1];
     if (!/^_/.test(file)) { file = '_' + file; }
     if (!/\.html$/.test(file)) { file += '.html'; }
     pathEls[pathEls.length - 1] = file;
-    return router.src_dir + (/^\//.test(path) ? '/' : '') + pathEls.join('/');
+    return router.srcDir + (/^\//.test(path) ? '/' : '') + pathEls.join('/');
   }
 
   Router.prototype.partialCb = function(src, env, readFile) {
@@ -326,8 +326,8 @@ var baked = require("./baked");
   };
 
   function getRequirePath(router, name, here) {
-    var path = findFileFromHere(name, here.replace(router.src_dir, ''));
-    return router.src_dir + path;
+    var path = findFileFromHere(name, here.replace(router.srcDir, ''));
+    return router.srcDir + path;
   }
 
   Router.prototype.requireCb = function(src, env, readFile) {
@@ -349,14 +349,14 @@ var baked = require("./baked");
     };
   };
 
-  function create(params, partials, requires, src_dir) {
-    if (!src_dir) {
-      src_dir = partials;
+  function create(params, partials, requires, srcDir) {
+    if (!srcDir) {
+      srcDir = partials;
       partials = _.keys(_.pick(params, function (v) { return v.partial; }));
       requires = _.keys(_.pick(params, function (v) { return v.require; }));
       params = _.pick(params, function (v) { return !v.partial && !v.require; });
     }
-    return new Router(params, partials, requires, src_dir);
+    return new Router(params, partials, requires, srcDir);
   }
 
   Global.create = create;

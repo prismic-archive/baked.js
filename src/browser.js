@@ -161,8 +161,8 @@ window.vm = require('vm');
       .then(function (response) {
         var routerInfos = JSON.parse(response.responseText);
         return Router.create(routerInfos.params, routerInfos.partials, routerInfos.requires, {
-          src_dir: '',
-          dst_dir: ''
+          srcDir: '',
+          dstDir: ''
         });
       })
       .then(function (router) {

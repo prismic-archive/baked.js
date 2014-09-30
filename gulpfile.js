@@ -19,8 +19,8 @@ gulp.task('clean', ['baked:clean']);
 //
 //     baked.init({
 //       options: {
-//         src_dir: 'to_generate',
-//         dst_dir: 'generated'
+//         srcDir: 'to_generate',
+//         dstDir: 'generated'
 //       },
 //       libName: 'baked.js'
 //     });

@@ -31,13 +31,13 @@ var _ = require('lodash');
           i++;
           var src = args[i];
           if (!src) { throw new Error("missing src"); }
-          options.src_dir = src;
+          options.srcDir = src;
           break;
         case '--dst' :
           i++;
           var dst = args[i];
           if (!dst) { throw new Error("missing dst"); }
-          options.dst_dir = dst;
+          options.dstDir = dst;
           break;
         case '--' :
           rest.concat(args);

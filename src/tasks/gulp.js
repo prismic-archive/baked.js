@@ -37,8 +37,8 @@ function parseOptions() {
     var pwd = process.env.PWD;
     if (!pwd) { pwd = process.cwd(); }
 
-    if (!options.src_dir) { options.src_dir = path.join(pwd, 'to_generate'); }
-    if (!options.dst_dir) { options.dst_dir = path.join(pwd, 'generated'); }
+    if (!options.srcDir) { options.srcDir = path.join(pwd, 'to_generate'); }
+    if (!options.dstDir) { options.dstDir = path.join(pwd, 'generated'); }
     return options;
   } catch (e) {
     console.error(e.message);
@@ -50,8 +50,13 @@ var initialized = false;
 function init(cfg) {
   initialized = true;
   if (!cfg) cfg = {};
+  var options = _.assign({}, cfg.options);
+  // supports gulpfiles defining src_dir insteaf of srcDir
+  if (!options.srcDir) { options.srcDir = options.src_dir; }
+  if (!options.dstDir) { options.dstDir = options.dst_dir; }
+  // -
   _.assign(config, {
-    options: cfg.options || parseOptions(),
+    options: _.assign(options, parseOptions()),
     build_dir: cfg.build_dir || pathTo('build'),
     libName: cfg.libName || 'baked.js',
     baked: cfg.baked || require('../server')
@@ -111,7 +116,7 @@ function defineTasks(gulp) {
   gulp.task('baked:copy-lib', ['baked:generate:lib', 'baked:generate:content'], function () {
     return gulp
       .src(path.join(config.build_dir, config.libName))
-      .pipe(gulp.dest(config.options.dst_dir));
+      .pipe(gulp.dest(config.options.dstDir));
   });
 
   gulp.task('baked:generate', ['baked:generate:content', 'baked:copy-lib']);
@@ -119,7 +124,7 @@ function defineTasks(gulp) {
   gulp.task('baked:server', function () {
     var port = 8282;
     http.createServer(ecstatic({
-      root: config.options.dst_dir,
+      root: config.options.dstDir,
       baseDir: '/',
       cache: 1,
       showDir: false,
@@ -134,14 +139,14 @@ function defineTasks(gulp) {
   });
 
   gulp.task('baked:watch:content', ['baked:init'], function () {
-    gulp.watch(config.options.src_dir + '/**/*', ['baked:generate:content']);
+    gulp.watch(config.options.srcDir + '/**/*', ['baked:generate:content']);
   });
 
   gulp.task('baked:watch', ['baked:watch:src', 'baked:watch:content']);
 
   gulp.task('baked:clean', ['baked:init'], function() {
-    return gulp.src(config.options.dst_dir + '/**/*', { read: false })
-      .pipe(ignore(config.options.dst_dir + ' /.gitkeep'))
+    return gulp.src(config.options.dstDir + '/**/*', { read: false })
+      .pipe(ignore(config.options.dstDir + ' /.gitkeep'))
       .pipe(rimraf());
   });
 
