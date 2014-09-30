@@ -57,6 +57,7 @@ var winston = require('winston');
     this.srcDir = removeTrailingSlash(merge.srcDir || path.join(this.pwd, 'to_generate'));
     this.dstDir = removeTrailingSlash(merge.dstDir || path.join(this.pwd, 'generated'));
     this.api = merge.api;
+    this.urlBase = merge.urlBase;
 
     this.updateLogger();
   }

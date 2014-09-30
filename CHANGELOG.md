@@ -6,7 +6,10 @@
 - Add `urlTo` and `urlToHere` helpers (return the full URL)
   + do not confuse the new `urlTo` helper
     and the old (badly named) helper `url_to` which returns only a path.
-- Add a global configuration file, which handles the API's URL
+- Add a global configuration file, which handles:
+  - the logger level
+  - the API's URL
+  - the base URL
 
 ### Changes
 

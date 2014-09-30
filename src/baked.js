@@ -197,6 +197,7 @@ var vm = require("vm");
     var match;
     var res = {
       api: ctx.api,
+      url: ctx.urlBase,
       params: []
     };
     if ((match = rxAPI.exec(content)) !== null) {
