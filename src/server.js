@@ -132,7 +132,8 @@ var Configuration = require("./configuration");
           require: router.requireCb(src, env, readFileSync)
         },
         tmpl: content,
-        api: router.api(src)
+        api: router.api(src),
+        requestHandler: ctx.requestHandler
       }).then(function (result) {
         var routerInfos = router.routerInfosForFile(src, dst, args);
         var scriptTag = '<script>' +

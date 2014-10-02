@@ -15,7 +15,7 @@ var vm = require("vm");
         deferred.reject(err);
       }
       else deferred.resolve(api);
-    }, conf.accessToken);
+    }, conf.accessToken, conf.requestHandler);
     return deferred.promise;
   }
 
@@ -74,7 +74,8 @@ var vm = require("vm");
       accessToken: opts.accessToken,
       api: opts.api,
       tmpl: opts.tmpl,
-      setContext: opts.setContext || _.noop
+      setContext: opts.setContext || _.noop,
+      requestHandler: opts.requestHandler
     };
 
     // The Prismic.io API endpoint
