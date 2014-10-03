@@ -236,7 +236,8 @@ var Configuration = require("./configuration");
               });
           }, ctx);
         });
-    }, ctx);
+    }, ctx)
+    .then(_.flatten.bind(_));
   }
 
   function renderDynamicCall(call, dstDir, router, ctx) {
