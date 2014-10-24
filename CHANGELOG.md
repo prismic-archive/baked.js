@@ -1,3 +1,5 @@
+## 0.0.7
+
 ### Big change
 
 baked is now a npm module containing an executable!

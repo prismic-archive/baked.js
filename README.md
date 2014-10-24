@@ -5,12 +5,8 @@ baked.js is a static website generator, using Node.js, which embed an updated ve
 
 ## Install
 
-To use it, you first need to install its dependencies
-
 ```sh
-git clone https://github.com/prismicio/baked.js.git
-cd baked.js
-npm install
+npm install -g baked
 ```
 
 ## Use
@@ -20,18 +16,24 @@ npm install
 Run the command:
 
 ```sh
-gulp
+baked
 ```
 
 It will generate all files from `to_generate/` into `generated/`.
 
 (It also copy the current version of the library inside the `generated/` directory, for [dynamic browser mode](#dynamic-browser-mode)).
 
-You can customize options in the `gulpfile.js` file or using command line arguments:
+You can set some options using command line arguments:
 
 - `--no-async`: Generate files one by one (slower but easier to debug)
 - `--src <src_dir>`: Specify the source directory
 - `--dst <dst_dir>`: Specify the directory where generated files will be stored
+
+### Custom generation
+
+You can specify your own gulpfile.js and use the tasks you defined.
+
+Have a look on the examples to see how you can achieve this.
 
 ## Local server
 
@@ -49,21 +51,15 @@ This task:
 
 Go to [http://127.0.0.1:8282](http://127.0.0.1:8282) using your favorite browser and you will see the result.
 
-## Try on the example
+## Try on the examples
 
-An examples of sources directory is available in the `example/` directory.
+Some examples of sources directory is available in the `examples/` directory.
 
-You can test it directly after the installation. Just go in this directory and
-run baked as usual (gulp will find its `gulpfile.js` in the parent directory).
-
-Here is the complete steps (with installation):
-
-```sh
-# in baked.js directory
-npm install
-cd example/vanilla
-gulp
-```
+- the `blank` example presents a blank project based on baked.js
+- the `stylus` example presents a project based on baked.js and using Stylus
+  - to test it, install its dependencies (`npm install`) then run `gulp`
+- the `vanilla` example presents a project containing only sources
+  - to test it, install baked (`npm install -g baked`) then run `baked`
 
 ## Template
 
