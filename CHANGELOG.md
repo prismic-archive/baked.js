@@ -1,3 +1,5 @@
+## 0.0.8
+
 ### Changes
 
 - Stop generating a local version of the library
