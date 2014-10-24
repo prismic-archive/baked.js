@@ -1,8 +1,6 @@
 var http = require('http');
 
 var _ = require('lodash');
-var browserify = require('gulp-browserify');
-var concat = require('gulp-concat');
 var ecstatic = require('ecstatic');
 var gulp = require('gulp');
 var path = require('path');
@@ -13,18 +11,6 @@ var rimraf = require('gulp-rimraf');
 
 var cli = require('./src/cli');
 var Configuration = require('./src/configuration');
-
-// Reload the Baked lib
-// This function allows to update the lib's code without having to restart gulp
-function ReloadBaked() {
-  require('./src/ext/starts_with');
-  _.each(require.cache, function (value, key) {
-    if (key.startsWith(pathTo('src'))) {
-      delete require.cache[key];
-    }
-  });
-  return require('./src/server');
-}
 
 // Simple options parsing
 function parseOptions() {
@@ -76,7 +62,6 @@ function init(cfg) {
   _.assign(config, {
     options: configuration,
     buildDir: cfg.buildDir || pathTo('build'),
-    libName: cfg.libName || 'baked.js',
     baked: cfg.baked || require('./src/server')
   });
   return config;
@@ -97,19 +82,7 @@ function defineTasks(gulp) {
     }
   });
 
-  gulp.task('baked:generate:lib', ['baked:init'], function() {
-    baked = ReloadBaked();
-    return gulp.src(pathTo('src/browser.js'))
-      .pipe(browserify({
-        options: {
-          alias: ['../fake:canvas']
-        }
-      }))
-      .pipe(concat(config.libName))
-      .pipe(gulp.dest(config.buildDir));
-  });
-
-  gulp.task('baked:generate:content', ['baked:init'], function () {
+  gulp.task('baked:generate', ['baked:init'], function () {
     return Q.fcall(config.beforeGenerate || _.identity)
       .then(function () {
         return config.baked.generate(config.options);
@@ -130,14 +103,6 @@ function defineTasks(gulp) {
       );
   });
 
-  gulp.task('baked:copy-lib', ['baked:generate:lib', 'baked:generate:content'], function () {
-    return gulp
-      .src(path.join(config.buildDir, config.libName))
-      .pipe(gulp.dest(config.options.dstDir));
-  });
-
-  gulp.task('baked:generate', ['baked:generate:content', 'baked:copy-lib']);
-
   gulp.task('baked:server', function () {
     var port = 8282;
     http.createServer(ecstatic({
@@ -151,15 +116,9 @@ function defineTasks(gulp) {
     console.info("Listen connection on http://127.0.0.1:" + port);
   });
 
-  gulp.task('baked:watch:src', ['baked:init'], function () {
-    gulp.watch(root + '/src/**/*.js', ['baked:generate']);
+  gulp.task('baked:watch', ['baked:init'], function () {
+    gulp.watch(config.options.srcDir + '/**/*', ['baked:generate']);
   });
-
-  gulp.task('baked:watch:content', ['baked:init'], function () {
-    gulp.watch(config.options.srcDir + '/**/*', ['baked:generate:content']);
-  });
-
-  gulp.task('baked:watch', ['baked:watch:src', 'baked:watch:content']);
 
   gulp.task('baked:clean', ['baked:init'], function() {
     return gulp.src(config.options.dstDir + '/**/*', { read: false })
@@ -180,5 +139,4 @@ defineTasks(gulp);
 exports.config = config;
 exports.init = init;
 exports.parseOptions = parseOptions;
-exports.ReloadBaked = ReloadBaked;
 exports.defineTasks = defineTasks;

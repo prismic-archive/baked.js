@@ -1,3 +1,11 @@
+### Changes
+
+- Stop generating a local version of the library
+  + In order to use the dynamic generation, you should either
+    * refer to an official library (for instance `https://prismicio.github.io/baked.js/baked-0.0.7.js`)
+    * build yourself you own version of the library and put it yourself in the generated directory
+  + This change allows to simplify the use, and reduce the building time ()
+
 ## 0.0.7
 
 ### Big change
