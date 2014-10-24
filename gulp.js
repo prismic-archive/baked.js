@@ -11,19 +11,19 @@ var watch = require('gulp-watch');
 var ignore = require('gulp-ignore');
 var rimraf = require('gulp-rimraf');
 
-var cli = require('../cli');
-var Configuration = require('../configuration');
+var cli = require('./src/cli');
+var Configuration = require('./src/configuration');
 
 // Reload the Baked lib
 // This function allows to update the lib's code without having to restart gulp
 function ReloadBaked() {
-  require('../ext/starts_with');
+  require('./src/ext/starts_with');
   _.each(require.cache, function (value, key) {
     if (key.startsWith(pathTo('src'))) {
       delete require.cache[key];
     }
   });
-  return require('../server');
+  return require('./src/server');
 }
 
 // Simple options parsing
@@ -77,12 +77,12 @@ function init(cfg) {
     options: configuration,
     buildDir: cfg.buildDir || pathTo('build'),
     libName: cfg.libName || 'baked.js',
-    baked: cfg.baked || require('../server')
+    baked: cfg.baked || require('./src/server')
   });
   return config;
 }
 
-var root = path.join(__dirname, '../..');
+var root = __dirname;
 function pathTo(localPath) {
   return path.join(root, localPath);
 }

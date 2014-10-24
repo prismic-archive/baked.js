@@ -1,0 +1,7 @@
+{
+  "name": "baked-example-blank",
+  "devDependencies": {
+    "gulp": "^3.7.0",
+    "baked": "^0.0.7"
+  }
+}

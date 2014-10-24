@@ -1,11 +1,28 @@
 {
   "name": "baked",
   "description": "A singlepage static builder for prismic.io",
-  "version": "0.0.6",
-  "engines": [
-    "node >=0.5.0"
+  "version": "0.0.7",
+  "homepage": "https://prismicio.github.io/baked.js/",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/prismicio/baked.js"
+  },
+  "author": "Étienne Vallette d'Osia <evo@zengularity.com> (http://prismic.io)",
+  "keywords": [
+    "tool",
+    "generator",
+    "static",
+    "prismic.io"
   ],
-  "devDependencies": {
+  "files": [
+    "bin",
+    "src",
+    "gulp.js"
+  ],
+  "bin": {
+    "baked": "./bin/baked"
+  },
+  "dependencies": {
     "ecstatic": "^0.5.4",
     "ejs": "^1.0.0",
     "gulp": "^3.7.0",
@@ -21,7 +38,12 @@
     "q": "^1.0.1",
     "winston": "^0.7.3"
   },
-  "scripts": {
-    "start": "gulp"
+  "devDependencies": {},
+  "engines": [
+    "node >= 0.5.0"
+  ],
+  "license": "Apache 2.0",
+  "bugs": {
+    "url": "https://github.com/prismicio/baked.js/issues"
   }
 }

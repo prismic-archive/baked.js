@@ -1,8 +1,7 @@
 // Loads the main gulp library
 var gulp = require('gulp');
 // Loads the baked.js's tasks
-//    IF YOU COPY THIS FILE don't forget to adapt this path
-var baked = require('./../../src/tasks/gulp');
+var baked = require('baked/gulp');
 // Libraries used in this file
 var stylus = require('gulp-stylus');
 var watch = require('gulp-watch');

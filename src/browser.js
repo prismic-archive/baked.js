@@ -53,6 +53,7 @@ window.vm = require('vm');
       args = _.assign({}, localArgs, function (prev, cur) {
         return _.isEmpty(cur) ? prev : cur;
       });
+      if (args.clientId) { clientId = args.oauthClientId; }
     }
     var env = {};
     var conf = baked.initConf({

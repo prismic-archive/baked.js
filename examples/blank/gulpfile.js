@@ -1,7 +1,7 @@
 // Loads the main gulp library
 var gulp = require('gulp');
 // Loads the baked.js's tasks
-var baked = require('./src/tasks/gulp');
+var baked = require('baked/gulp');
 
 // Defaults tasks (you are free to change them)
 gulp.task('serve', ['baked:serve']);
