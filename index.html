@@ -38,11 +38,7 @@
 <h2>
 <a name="install" class="anchor" href="#install"><span class="octicon octicon-link"></span></a>Install</h2>
 
-<p>To use it, you first need to install its dependencies</p>
-
-<div class="highlight highlight-sh"><pre>git clone https://github.com/prismicio/baked.js.git
-<span class="nb">cd </span>baked.js
-npm install
+<div class="highlight highlight-sh"><pre>npm install -g baked
 </pre></div>
 
 <h2>
@@ -53,14 +49,14 @@ npm install
 
 <p>Run the command:</p>
 
-<div class="highlight highlight-sh"><pre>gulp
+<div class="highlight highlight-sh"><pre>baked
 </pre></div>
 
 <p>It will generate all files from <code>to_generate/</code> into <code>generated/</code>.</p>
 
 <p>(It also copy the current version of the library inside the <code>generated/</code> directory, for <a href="#dynamic-browser-mode">dynamic browser mode</a>).</p>
 
-<p>You can customize options in the <code>gulpfile.js</code> file or using command line arguments:</p>
+<p>You can set some options using command line arguments:</p>
 
 <ul>
 <li>
@@ -69,7 +65,16 @@ npm install
 <code>--src &lt;src_dir&gt;</code>: Specify the source directory</li>
 <li>
 <code>--dst &lt;dst_dir&gt;</code>: Specify the directory where generated files will be stored</li>
-</ul><h2>
+</ul>
+
+<h3>
+<a name="custom-generation" class="anchor" href="#custom-generation"><span class="octicon octicon-link"></span></a>Custom generation</h3>
+
+<p>You can specify your own gulpfile.js and use the tasks you defined.</p>
+
+<p>Have a look on the examples to see how you can achieve this.</p>
+
+<h2>
 <a name="local-server" class="anchor" href="#local-server"><span class="octicon octicon-link"></span></a>Local server</h2>
 
 <p>Run the command:</p>
@@ -83,23 +88,32 @@ npm install
 <li>generates the content (as “<code>gulp</code>” does)</li>
 <li>starts an HTTP server which serves the generated files</li>
 <li>watches modification on your sources (and the baked.js sources) and re-generate on every changes</li>
-</ul><p>Go to <a href="http://127.0.0.1:8282">http://127.0.0.1:8282</a> using your favorite browser and you will see the result.</p>
+</ul>
+
+<p>Go to <a href="http://127.0.0.1:8282">http://127.0.0.1:8282</a> using your favorite browser and you will see the result.</p>
 
 <h2>
-<a name="try-on-the-example" class="anchor" href="#try-on-the-example"><span class="octicon octicon-link"></span></a>Try on the example</h2>
+<a name="try-on-the-examples" class="anchor" href="#try-on-the-examples"><span class="octicon octicon-link"></span></a>Try on the examples</h2>
 
-<p>An examples of sources directory is available in the <code>example/</code> directory.</p>
+<p>Some examples of sources directory is available in the <code>examples/</code> directory.</p>
 
-<p>You can test it directly after the installation. Just go in this directory and
-run baked as usual (gulp will find its <code>gulpfile.js</code> in the parent directory).</p>
+<ul>
+<li>the <code>blank</code> example presents a blank project based on baked.js</li>
+<li>the <code>stylus</code> example presents a project based on baked.js and using Stylus
 
-<p>Here is the complete steps (with installation):</p>
+<ul>
+<li>to test it, install its dependencies (<code>npm install</code>) then run <code>gulp</code>
+</li>
+</ul>
+</li>
+<li>the <code>vanilla</code> example presents a project containing only sources
 
-<div class="highlight highlight-sh"><pre><span class="c"># in baked.js directory</span>
-npm install
-<span class="nb">cd </span>example
-gulp
-</pre></div>
+<ul>
+<li>to test it, install baked (<code>npm install -g baked</code>) then run <code>baked</code>
+</li>
+</ul>
+</li>
+</ul>
 
 <h2>
 <a name="template" class="anchor" href="#template"><span class="octicon octicon-link"></span></a>Template</h2>
@@ -125,7 +139,9 @@ gulp
 <code>tags</code>: The tags list</li>
 <li>
 <code>master</code>: The master ref</li>
-</ul><div class="highlight highlight-html"><pre>[% _.each(tags, function (tag) { %]
+</ul>
+
+<div class="highlight highlight-html"><pre>[% _.each(tags, function (tag) { %]
   <span class="nt">&lt;span&gt;</span>[%= tag %]<span class="nt">&lt;/span&gt;</span>
 [% }) %]
 </pre></div>
@@ -247,7 +263,9 @@ the template rendering.</p>
 <li>It allows to specify specific <code>access_token</code> and <code>ref</code>, in order to render the content using a specific prismic.io's release. These can be set automatically using the <a href="#auth2-authentication">OAuth2 authentication</a>.</li>
 </ul>
 </li>
-</ul><p>The dynamic mode needs some specific components:</p>
+</ul>
+
+<p>The dynamic mode needs some specific components:</p>
 
 <ul>
 <li>The template of every content file (stored in the <code>.html.tmpl</code> files)
@@ -273,7 +291,9 @@ the template rendering.</p>
 </li>
 </ul>
 </li>
-</ul><h4>
+</ul>
+
+<h4>
 <a name="specific-ref-to-use" class="anchor" href="#specific-ref-to-use"><span class="octicon octicon-link"></span></a>Specific ref to use</h4>
 
 <p>baked.js provides a helper to easilly switch between refs.</p>
@@ -344,5 +364,7 @@ to be defined.</p>
     </div>
     <!--[if !IE]><script>fixScale(document);</script><![endif]-->
 
-  </body>
+
+
+</body>
 </html>
