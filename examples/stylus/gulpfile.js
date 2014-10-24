@@ -1,14 +1,13 @@
 // Loads the main gulp library
 var gulp = require('gulp');
 // Loads the baked.js's tasks
-//    IF YOU COPY THIS FILE don't forget to adapt this path
-var baked = require('./../../src/tasks/gulp');
+var baked = require('baked/gulp');
 // Libraries used in this file
 var stylus = require('gulp-stylus');
 var watch = require('gulp-watch');
 
 // Load and get the baked configuration
-// in order to use src_dir and src_dst
+// in order to use srcDir and dstDir
 var config = baked.init();
 
 // This example uses its specific package.json file so its gulp instance seems
@@ -18,8 +17,8 @@ baked.defineTasks(gulp);
 
 var paths = {
   stylus: {
-    src: config.options.src_dir + '/**/*.styl',
-    dst: config.options.dst_dir
+    src: config.options.srcDir + '/**/*.styl',
+    dst: config.options.dstDir
   }
 };
 

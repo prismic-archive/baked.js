@@ -1,0 +1,8 @@
+{
+  "name": "baked-example-stylus",
+  "devDependencies": {
+    "gulp": "^3.7.0",
+    "gulp-stylus": "^1.0.2",
+    "baked": "0.0.7"
+  }
+}

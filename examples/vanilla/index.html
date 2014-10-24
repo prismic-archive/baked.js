@@ -6,22 +6,27 @@
     <title>Your prismic.io singlepage project</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="prismic-api" content="https://lesbonneschoses-ulzozro531ca879z.prismic.io/api">
-    <meta name="prismic-oauth-client-id" content="UxWopwEAAPN0sBcH">
+    <meta property="og:url" content="[%= urlToHere() %]" />
 
     <script src="/baked.js"></script>
   </head>
   <body>
 
+    <!-- Require a library then use it -->
     [% var lib = require("myLib.js") %]
     [% console.log("required and assigned:", lib) %]
+
+    <!-- To use a global variable defined by a required lib -->
+    <!-- it's important to use the noCache options -->
+    <!-- otherwise the javascript part will failed the 2nd time it will called -->
+    [% require("myLib.js", {noCache: true}) %]
     [% console.log("required and fetched from global:", myLib) %]
 
-    <div><a href="[%= url_to('search', {typ: 'product', tag: 'Featured'}) %]">
+    <div><a href="[%= pathTo('search', {typ: 'product', tag: 'Featured'}) %]">
       Search
     </a></div>
 
-    <div><a href="[%= url_to('blog/index') %]">blog</a></div>
+    <div><a href="[%= pathTo('blog/index') %]">blog</a></div>
 
     [%- partial('/footer') %]
 

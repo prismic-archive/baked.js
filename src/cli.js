@@ -7,11 +7,15 @@ var _ = require('lodash');
     var pwd = '/' + _.compact((process.env.PWD || '').split('/')).join('/') + '/';
     var name = _.first(process.argv, 2).join(' ').replace(pwd, '');
     var msg =
-      "usage: " + name + " [opts] <src> <dest>\n" +
+      "usage: " + name + " [opts]\n" +
       "\n" +
       "opts:\n" +
-      "  --[no-]async    -- Run asynchronously (default: true)\n" +
-      "  --[no-]debug    -- Better stacktraces (default: false)\n";
+      "  --src <src>       -- The source directory" +
+      "  --dst <dst>       -- The destination directory" +
+      "  --config <config> -- Configuration file" +
+      "  --config <config> -- Configuration file" +
+      "  --[no-]async      -- Run asynchronously (default: true)\n" +
+      "  --[no-]debug      -- Better stacktraces (default: false)\n";
     return msg;
   }
 
@@ -27,17 +31,23 @@ var _ = require('lodash');
         case '-d' :
         case '--debug' : options.debug = true; break;
         case '--no-debug' : options.debug = false; break;
+        case '--config' :
+          i++;
+          var configFile = args[i];
+          if (!configFile) { throw new Error("missing config"); }
+          options.configFile = configFile;
+          break;
         case '--src' :
           i++;
           var src = args[i];
           if (!src) { throw new Error("missing src"); }
-          options.src_dir = src;
+          options.srcDir = src;
           break;
         case '--dst' :
           i++;
           var dst = args[i];
           if (!dst) { throw new Error("missing dst"); }
-          options.dst_dir = dst;
+          options.dstDir = dst;
           break;
         case '--' :
           rest.concat(args);

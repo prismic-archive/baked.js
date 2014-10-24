@@ -6,13 +6,16 @@
     <title>Your prismic.io singlepage project</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="prismic-api" content="https://lesbonneschoses-ulzozro531ca879z.prismic.io/api">
-    <meta name="prismic-oauth-client-id" content="UxWopwEAAPN0sBcH">
     <meta name="prismic-routing-pattern" content="/blog.html">
+    <meta property="og:url" content="[%= urlToHere() %]" />
 
     <script src="/baked.js"></script>
   </head>
   <body>
+
+    [%= urlToHere() %]<br>
+    [%= urlTo('/index') %]<br>
+    [%= urlTo('index') %]
 
 
     <h1>Blog</h1>
@@ -27,7 +30,7 @@
 
       <article>
         <h2>
-          <a href="[%= url_to('post', {id: post.id}) %]">
+          <a href="[%= pathTo('post', {id: post.id}) %]">
             [%= post.getStructuredText("blog-post.body").getTitle().text %]
           </a>
         </h2>

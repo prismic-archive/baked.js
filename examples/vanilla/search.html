@@ -6,11 +6,11 @@
     <title>Your prismic.io singlepage project</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="prismic-api" content="https://lesbonneschoses-ulzozro531ca879z.prismic.io/api">
     <meta name="prismic-oauth-client-id" content="UxWopwEAAPN0sBcH">
     <meta name="prismic-routing-pattern" content="search/$typ/$tag">
     <meta name="prismic-routing-param" content="typ">
     <meta name="prismic-routing-param" content="tag">
+    <meta property="og:url" content="[%= urlToHere() %]" />
 
     <script src="/baked.js"></script>
   </head>
@@ -29,7 +29,7 @@
 
       <div>
         <h2>
-          <a href="[%= url_to('product', {id: product.id}) %]">
+          <a href="[%= pathTo('product', {id: product.id}) %]">
             [%= product.getText('product.name') %]
           </a>
         </h2>
@@ -50,7 +50,7 @@
 
       <article>
         <h2>
-          <a href="[%= url_to('blog/post', {id: post.id}) %]">
+          <a href="[%= pathTo('blog/post', {id: post.id}) %]">
             [%= post.getStructuredText("blog-post.body").getTitle().text %]
           </a>
         </h2>

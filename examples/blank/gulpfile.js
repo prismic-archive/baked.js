@@ -1,7 +1,7 @@
 // Loads the main gulp library
 var gulp = require('gulp');
 // Loads the baked.js's tasks
-var baked = require('./src/tasks/gulp');
+var baked = require('baked/gulp');
 
 // Defaults tasks (you are free to change them)
 gulp.task('serve', ['baked:serve']);
@@ -11,7 +11,7 @@ gulp.task('clean', ['baked:clean']);
 // You can define your own custom tasks
 //
 //     gulp.task('deploy', ['baked:generate'], function () {
-//       pleaseDeployMyContent(baked.config.dst_dir);
+//       pleaseDeployMyContent(baked.config.options.dstDir);
 //     });
 
 
@@ -19,8 +19,8 @@ gulp.task('clean', ['baked:clean']);
 //
 //     baked.init({
 //       options: {
-//         src_dir: 'to_generate',
-//         dst_dir: 'generated'
+//         srcDir: 'to_generate',
+//         dstDir: 'generated'
 //       },
 //       libName: 'baked.js'
 //     });

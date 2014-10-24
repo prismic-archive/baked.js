@@ -53,12 +53,23 @@ window.vm = require('vm');
       args = _.assign({}, localArgs, function (prev, cur) {
         return _.isEmpty(cur) ? prev : cur;
       });
+      if (args.clientId) { clientId = args.oauthClientId; }
     }
     var env = {};
     var conf = baked.initConf({
       logger: console,
       helpers: {
-        url_to: localRouter.urlToDynCb(),
+        pathTo: localRouter.pathToDynCb(),
+        url_to: function (file, args) {
+          if (!window.deprecationUrlTo) {
+            console.log("url_to is deprecated, please use pathTo instead");
+            window.deprecationUrlTo = true;
+          }
+          return localRouter.pathToDynCb()(file, args);
+        },
+        urlTo: localRouter.urlToDynCb(),
+        pathToHere: localRouter.pathToHereDynCb(),
+        urlToHere: localRouter.urlToHereDynCb(),
         partial: localRouter.partialCb(env),
         require: localRouter.requireCb(env)
       },
@@ -151,8 +162,8 @@ window.vm = require('vm');
       .then(function (response) {
         var routerInfos = JSON.parse(response.responseText);
         return Router.create(routerInfos.params, routerInfos.partials, routerInfos.requires, {
-          src_dir: '',
-          dst_dir: ''
+          srcDir: '',
+          dstDir: ''
         });
       })
       .then(function (router) {

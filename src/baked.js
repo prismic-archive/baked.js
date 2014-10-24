@@ -15,12 +15,17 @@ var vm = require("vm");
         deferred.reject(err);
       }
       else deferred.resolve(api);
-    }, conf.accessToken);
+    }, conf.accessToken, conf.requestHandler);
     return deferred.promise;
   }
 
   var defaultHelpers = {
-    _: _
+    _: _,
+    times: function(n, f) {
+      for (var i=0; i < n; i++) {
+        f(i);
+      }
+    }
   };
 
   function renderTemplate(content, ctx) {
@@ -74,7 +79,8 @@ var vm = require("vm");
       accessToken: opts.accessToken,
       api: opts.api,
       tmpl: opts.tmpl,
-      setContext: opts.setContext || _.noop
+      setContext: opts.setContext || _.noop,
+      requestHandler: opts.requestHandler
     };
 
     // The Prismic.io API endpoint
@@ -185,28 +191,33 @@ var vm = require("vm");
           return {api: api, content: result};
         });
 
-    }, conf.accessToken);
+    });
 
   };
 
-  function parseRoutingInfos(content) {
+  function parseRoutingInfos(content, ctx) {
     var rxAPI = /<meta +name="prismic-api" +content="([^"]+)" *>/ig;
     var rxParam = /<meta +name="prismic-routing-param" +content="([a-z][a-z0-9]*)" *>/ig;
     var rxPattern = /<meta +name="prismic-routing-pattern" +content="([\/$a-z][\/${}a-z0-9.-_]*)" *>/ig;
+    var rxURLBase = /<meta +name="prismic-url-base" +content="([^"]+)" *>/ig;
     var match;
     var res = {
+      api: ctx.api,
+      url: ctx.urlBase,
       params: []
     };
     if ((match = rxAPI.exec(content)) !== null) {
       res.api = match[1];
-    } else {
-      return null;  // no api == no template
     }
+    if (!res.api) { return null; }  // no api == no template
     while ((match = rxParam.exec(content)) !== null) {
       res.params.push(match[1]);
     }
     if ((match = rxPattern.exec(content)) !== null) {
       res.route = match[1];
+    }
+    if ((match = rxURLBase.exec(content)) !== null) {
+      res.url = match[1];
     }
     return res;
   }

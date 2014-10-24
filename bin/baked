@@ -1,0 +1,39 @@
+#!/usr/bin/env node
+
+var fs = require('fs');
+var http = require('http');
+var https = require('https');
+var querystring = require('querystring');
+var url = require('url');
+
+var Q = require('q');
+var _ = require('lodash');
+
+var cli = require('../src/cli');
+var Configuration = require('../src/configuration');
+var baked = require('../src/server');
+
+Q
+  .invoke(cli, 'parse').get('options')
+  .then(Configuration.readFromFileSync)
+  .then(function (config) {
+    return baked.generate(config); })
+  .done(
+    function (failures) {
+      if (!_.isEmpty(failures)) {
+        console.error("" + failures.length + " errors:\n");
+        _.each(failures, function (failure) {
+          console.error(failure.src + ": ", failure.error);
+          console.error(failure.dst, "args:", failure.args, "\n");
+        });
+        process.exit(1);
+      } else {
+        console.info("Ne mangez pas trop vite");
+        process.exit(0);
+      }
+    },
+    function (err) {
+      console.error(err.stack);
+      throw err;  // exits with code 8
+    }
+  );

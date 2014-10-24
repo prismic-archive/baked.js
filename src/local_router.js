@@ -102,17 +102,41 @@ var Router = require('./router');
       .value()[0];
   };
 
+  function pathOrUrlTo(localRouter, file, args, isUrl) {
+    var src = localRouter.findFileFromSrc(file);
+    var url = localRouter.router.filename(src, args, localRouter.dst());
+    if (!/\.html$/.test(src)) { src += ".html"; }
+    url = localRouter.findFileFromDst(url);
+    var infos = {src: src, args: args, dst: url};
+    url = url.replace(/\/index\.html$/, '/');
+    localRouter.urls[url] = infos;
+    return isUrl ? document.location.origin + url + document.location.search : url;
+  }
+
+  LocalRouter.prototype.pathToDynCb = function() {
+    var _this = this;
+    return function (file, args) {
+      return pathOrUrlTo(_this, file, args);
+    };
+  };
+
   LocalRouter.prototype.urlToDynCb = function() {
     var _this = this;
     return function (file, args) {
-      var src = _this.findFileFromSrc(file);
-      var url = _this.router.filename(src, args, _this.dst());
-      if (!/\.html$/.test(src)) { src += ".html"; }
-      url = _this.findFileFromDst(url);
-      var infos = {src: src, args: args, dst: url};
-      url = url.replace(/\/index\.html$/, '/');
-      _this.urls[url] = infos;
-      return url;
+      return pathOrUrlTo(_this, file, args, true);
+    };
+  };
+
+  LocalRouter.prototype.pathToHereDynCb = function() {
+    var _this = this;
+    return function () {
+      return _this.pathToDynCb()(_this.src(), _this.args());
+    };
+  };
+
+  LocalRouter.prototype.urlToHereDynCb = function() {
+    return function () {
+      return document.location;
     };
   };
 
