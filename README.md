@@ -1,6 +1,8 @@
 baked.js
 ========
 
+[![NPM version](https://badge.fury.io/js/baked.svg)](http://badge.fury.io/js/baked)
+
 baked.js is a static website generator, using Node.js, which embed an updated version of the precedent JS script.
 
 ## Install
