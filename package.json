@@ -26,8 +26,6 @@
     "ecstatic": "^0.5.4",
     "ejs": "^1.0.0",
     "gulp": "^3.7.0",
-    "gulp-browserify": "^0.5.0",
-    "gulp-concat": "^2.2.0",
     "gulp-watch": "^0.6.8",
     "gulp-rimraf": "~0.1.0",
     "gulp-ignore": "~1.1.0",
@@ -38,7 +36,12 @@
     "q": "^1.0.1",
     "winston": "^0.7.3"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "gulp": "^3.7.0",
+    "gulp-browserify": "^0.5.0",
+    "gulp-concat": "^2.2.0",
+    "gulp-watch": "^0.6.8"
+  },
   "engines": [
     "node >= 0.5.0"
   ],

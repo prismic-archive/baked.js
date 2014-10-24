@@ -21,8 +21,6 @@ baked
 
 It will generate all files from `to_generate/` into `generated/`.
 
-(It also copy the current version of the library inside the `generated/` directory, for [dynamic browser mode](#dynamic-browser-mode)).
-
 You can set some options using command line arguments:
 
 - `--no-async`: Generate files one by one (slower but easier to debug)
