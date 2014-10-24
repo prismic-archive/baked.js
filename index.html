@@ -33,7 +33,7 @@
         <h1>
 <a name="bakedjs" class="anchor" href="#bakedjs"><span class="octicon octicon-link"></span></a>baked.js</h1>
 
-<p>baked.js is a static website generator, using Node.js, which embed an updated version of the precedent JS script.</p>
+<p>baked.js is a static website generator based on <a href="https://prismic.io">prismic.io</a>.</p>
 
 <h2>
 <a name="install" class="anchor" href="#install"><span class="octicon octicon-link"></span></a>Install</h2>
@@ -53,8 +53,6 @@
 </pre></div>
 
 <p>It will generate all files from <code>to_generate/</code> into <code>generated/</code>.</p>
-
-<p>(It also copy the current version of the library inside the <code>generated/</code> directory, for <a href="#dynamic-browser-mode">dynamic browser mode</a>).</p>
 
 <p>You can set some options using command line arguments:</p>
 
@@ -268,6 +266,7 @@ the template rendering.</p>
 <p>The dynamic mode needs some specific components:</p>
 
 <ul>
+<li>The baked.js library (for instance <code>&lt;script src="https://prismicio.github.io/baked.js/baked-0.0.8.js"&gt;&lt;/script&gt;</code>)</li>
 <li>The template of every content file (stored in the <code>.html.tmpl</code> files)
 
 <ul>
