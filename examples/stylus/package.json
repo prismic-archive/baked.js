@@ -3,6 +3,7 @@
   "devDependencies": {
     "baked": "0.0.8",
     "gulp": "^3.7.0",
-    "gulp-stylus": "^1.0.2"
+    "gulp-stylus": "^1.0.2",
+    "gulp-watch": "^0.6.8"
   }
 }
