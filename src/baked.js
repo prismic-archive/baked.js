@@ -19,9 +19,23 @@ var vm = require("vm");
     return deferred.promise;
   }
 
-  var defaultHelpers = {
-    _: _
+  var DEFAULT_HELPERS = {
+    _: _,
+    only: function(test) {
+      if (test) {
+        return function (block) { block(); };
+      } else {
+        return function (block) {};
+      }
+    }
   };
+
+  function defaultHelpers(conf) {
+    return _.assign({}, DEFAULT_HELPERS, {
+      onlyBrowser: DEFAULT_HELPERS.only(conf.mode == 'browser'),
+      onlyServer: DEFAULT_HELPERS.only(conf.mode == 'server')
+    });
+  }
 
   function renderTemplate(content, ctx) {
     ejs.open = '[%';
@@ -66,6 +80,7 @@ var vm = require("vm");
 
   function initConf(opts) {
     var conf = {
+      mode: opts.mode,
       env: opts.env || {},
       helpers: opts.helpers || {},
       logger: opts.logger,
@@ -157,6 +172,7 @@ var vm = require("vm");
         }))
         .then(function (results) {
           var env = _.assign({}, {
+            mode: conf.mode,
             api: api,
             bookmarks: api.bookmarks,
             types: api.types,
@@ -174,7 +190,7 @@ var vm = require("vm");
         }).then(function(documentSets) {
           documentSets.loggedIn = !!conf.accessToken;
 
-          _.extend(documentSets, defaultHelpers);
+          _.extend(documentSets, defaultHelpers(conf));
           if (conf.helpers) { _.extend(documentSets, conf.helpers); }
           _.extend(documentSets, conf.args);
 

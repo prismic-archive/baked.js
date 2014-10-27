@@ -113,6 +113,7 @@ var Configuration = require("./configuration");
     return logAndTime("render file '" + src + "' " + JSON.stringify(args), function () {
       var env = {};
       return baked.render(router, {
+        mode: 'server',
         logger: ctx.logger,
         args: args,
         setContext: function (ctx) { env.ctx = ctx; },

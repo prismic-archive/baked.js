@@ -57,6 +57,7 @@ window.vm = require('vm');
     }
     var env = {};
     var conf = baked.initConf({
+      mode: 'browser',
       logger: console,
       helpers: {
         pathTo: localRouter.pathToDynCb(),
