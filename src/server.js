@@ -133,7 +133,9 @@ var Configuration = require("./configuration");
         },
         tmpl: content,
         api: router.api(src),
-        requestHandler: ctx.requestHandler
+        requestHandler: ctx.requestHandler,
+        ref: process.env.BAKED_REF,
+        accessToken: process.env.BAKED_ACCESS_TOKEN
       }).then(function (result) {
         var routerInfos = router.routerInfosForFile(src, dst, args);
         var scriptTag = '<script>' +
