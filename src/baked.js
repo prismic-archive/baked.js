@@ -20,12 +20,7 @@ var vm = require("vm");
   }
 
   var defaultHelpers = {
-    _: _,
-    times: function(n, f) {
-      for (var i=0; i < n; i++) {
-        f(i);
-      }
-    }
+    _: _
   };
 
   function renderTemplate(content, ctx) {
