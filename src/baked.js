@@ -166,7 +166,7 @@ var vm = require("vm");
             });
           return deferred.promise
             .then(
-              function (documents) { return [name, documents.results]; },
+              function (documents) { return [name, documents]; },
               function (err) { conf.logger.error("Error while running query: \n%s\n", binding.predicates, err); }
             );
         }))

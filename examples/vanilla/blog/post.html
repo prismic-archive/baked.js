@@ -23,7 +23,7 @@
       ]
     </script>
 
-    [% blogPost = blogPost[0]; %]
+    [% blogPost = blogPost.results[0]; %]
 
     <h1>[%= blogPost.getStructuredText("blog-post.body").getTitle().text %]</h1>
 

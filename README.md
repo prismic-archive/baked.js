@@ -98,8 +98,8 @@ Pagination related parameters can be specified using `data-query-<name>` syntax.
   ]
 </script>
 
-<h1>[%= featuredProducts.length %] featured products:</h1>
-[% _.each(featuredProducts, function(product) { %]
+<h1>[%= featuredProducts.total_results_size %] featured products:</h1>
+[% _.each(featuredProducts.results, function(product) { %]
   <div>
     <h2>[%= product.getText('product.name') %]</h2>
     <img data-src="[%= product.getImageView('product.image', 'icon').url %]">
