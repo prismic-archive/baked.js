@@ -158,7 +158,7 @@ To create links to the above page, use the helper `url_to`, and specify the argu
 You can also use the helper without providing any argument.
 
 ```html
-<a href="[%= url_to('index' %]">index</a>
+<a href="[%= url_to('index') %]">index</a>
 ```
 
 **Note**: remember: if nobody call a page (using the `url_to` helper) it won't be generated.
