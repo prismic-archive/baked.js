@@ -1,5 +1,6 @@
 <div><a href="[%= pathTo('/index') %]">index</a></div>
 
+[% onlyBrowser(function () { %]
 <p>
   [% if (loggedIn) { %]
     <select data-prismic-action="update">
@@ -16,3 +17,4 @@
     <button data-prismic-action="signin">Sign in</button>
   [% } %]
 </p>
+[% }) %]
