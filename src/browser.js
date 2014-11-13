@@ -17,7 +17,13 @@ window.vm = require('vm');
 
   var HTML = document.querySelector('html');
   var queryString;
+  var config = {};
   var clientId, accessToken, ref;
+
+  function updateConfig(c) {
+    _.assign(config, c);
+    clientId = c.oauthClientId || clientId;
+  }
 
   // OAuth client id (optional)
   clientId = document.querySelector('head meta[name="prismic-oauth-client-id"]');
@@ -162,6 +168,7 @@ window.vm = require('vm');
     return ajax({url: '/_router.json' })
       .then(function (response) {
         var routerInfos = JSON.parse(response.responseText);
+        updateConfig(routerInfos.config);
         return Router.create(routerInfos.params, routerInfos.partials, routerInfos.requires, {
           srcDir: '',
           dstDir: ''

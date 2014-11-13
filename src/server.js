@@ -347,7 +347,7 @@ var Configuration = require("./configuration");
   function saveRouter(router, dir, ctx) {
     var dst = dir + '/_router.json';
     return logAndTime("Save router => '" + dst + "'", function () {
-      var content = JSON.stringify(router.routerInfos());
+      var content = JSON.stringify(router.routerInfos(ctx));
       return Q.ninvoke(fs, 'writeFile', dst, content, "utf8");
     }, ctx).thenResolve(router);
   }
