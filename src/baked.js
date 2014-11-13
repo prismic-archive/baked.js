@@ -129,6 +129,7 @@ var vm = require("vm");
       if (name) {
         _.assign(binding, {
           form: dataset.form || 'everything',
+          dataset: dataset,
           render: function(api) {
             return renderQuery(scriptContent, conf.args, api);
           }
@@ -162,7 +163,43 @@ var vm = require("vm");
             .submit(function (err, documents) {
               // skip the NodeJS specific 3rd argument (readableState...)
               if (err) { deferred.reject(err); }
-              else { deferred.resolve(documents); }
+              else {
+                if (binding.dataset.eager) {
+                  var promises = _.map(documents.results, function(doc, index) {
+                    var relationshipDeferred = Q.defer();
+                    var ids = _.map(doc.linkedDocuments, 'id');
+
+                    if (ids.length) {
+                      var query = '[[:d = any(document.id, ["' + ids.join('","') + '"]) ]]';
+                      api.form("everything")
+                        .ref(conf.ref || api.master())
+                        .query(query)
+                        .submit(function(err, relatedResults) {
+                          if (err) { relationshipDeferred.reject(err); }
+                          else {
+                            var keys = _.map(relatedResults.results, 'id');
+                            var related = _.zipObject(keys, relatedResults.results);
+                            documents.results[index].loadedDocuments = related;
+                            relationshipDeferred.resolve();
+                          }
+                        });
+                    } else {
+                      relationshipDeferred.resolve();
+                    }
+
+                    return relationshipDeferred.promise;
+                  });
+
+                  Q.all(promises).then(function() {
+                    deferred.resolve(documents);                    
+                  }, 
+                  function(err) {
+                    deferred.reject(err);
+                  })
+                } else {
+                  deferred.resolve(documents);
+                }
+              }
             });
           return deferred.promise
             .then(
