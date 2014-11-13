@@ -169,7 +169,7 @@ var vm = require("vm");
                     var relationshipDeferred = Q.defer();
                     var ids = _.map(doc.linkedDocuments, 'id');
 
-                    if (ids.length) {
+                    if (_.isEmpty(ids.length)) {
                       var query = '[[:d = any(document.id, ["' + ids.join('","') + '"]) ]]';
                       api.form("everything")
                         .ref(conf.ref || api.master())
@@ -189,13 +189,10 @@ var vm = require("vm");
 
                     return relationshipDeferred.promise;
                   });
-
-                  Q.all(promises).then(function() {
-                    deferred.resolve(documents);                    
-                  }, 
-                  function(err) {
-                    deferred.reject(err);
-                  })
+                  Q.all(promises).then(
+                    function() { deferred.resolve(documents); },
+                    function(err) { deferred.reject(err); }
+                  );
                 } else {
                   deferred.resolve(documents);
                 }
