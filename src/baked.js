@@ -119,7 +119,7 @@ var vm = require("vm");
       if (name) {
         _.assign(binding, {
           form: dataset.form || 'everything',
-          dataset: dataset,157
+          dataset: dataset,
           render: function(api) {
             return renderQuery(scriptContent, conf.args, api);
           }
