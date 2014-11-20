@@ -23,9 +23,9 @@
       ]
     </script>
 
-    <h1>[%= featuredProducts.length %] featured products:</h1>
+    <h1>[%= featuredProducts.total_results_size %] featured products:</h1>
 
-    [% _.each(featuredProducts, function(product) { %]
+    [% _.each(featuredProducts.results, function(product) { %]
 
       <div>
         <h2>
@@ -46,7 +46,7 @@
       ]
     </script>
 
-    [% _.each(blogPosts, function(post) { %]
+    [% _.each(blogPosts.results, function(post) { %]
 
       <article>
         <h2>

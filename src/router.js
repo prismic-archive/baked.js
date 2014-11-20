@@ -291,7 +291,7 @@ var baked = require("./baked");
     };
   };
 
-  Router.prototype.routerInfos = function () {
+  Router.prototype.routerInfos = function (ctx) {
     return {
       params: _.transform(this.params, function (result, value, name) {
         result[name.replace(this.srcDir, '')] = value;
@@ -301,7 +301,13 @@ var baked = require("./baked");
       }, this),
       requires: _.map(this.requires, function (name) {
         return name.replace(this.srcDir, '');
-      }, this)
+      }, this),
+      config: {
+        debug: ctx.debug,
+        api: ctx.api,
+        urlBase: ctx.urlBase,
+        oauthClientId: ctx.oauthClientId
+      }
     };
   };
 

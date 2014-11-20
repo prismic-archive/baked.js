@@ -11,25 +11,38 @@
     <meta name="prismic-url-base" content="http://localhost:8282/">
     <meta property="og:url" content="[%= urlToHere() %]" />
 
-    <script src="/baked.js"></script>
+    <script src="https://prismicio.github.io/baked.js/baked-0.0.8.js"></script>
   </head>
   <body>
 
     [%= pathToHere() %]
 
-    <script type="text/prismic-query" data-binding="blogPost">
+    <script type="text/prismic-query" data-eager="true" data-binding="blogPosts" >
       [
         [:d = any(document.id, ["$id"])]
       ]
     </script>
 
-    [% blogPost = blogPost[0]; %]
+    [% blogPost = blogPosts.results[0]; %]
+
+    [% relatedPosts = _.map(blogPost.getAll("blog-post.relatedpost"), function (link) {
+      return blogPost.loadedDocuments[link.document.id]
+    }) %]
 
     <h1>[%= blogPost.getStructuredText("blog-post.body").getTitle().text %]</h1>
 
     <article>
       [%= blogPost.getStructuredText("blog-post.body").getFirstParagraph().text %]
     </article>
+
+    <br />
+
+    <div>Related posts:</div>
+    <ul>
+    [% _.each(relatedPosts, function (relatedPost) { %]
+      <li>[%= relatedPost.getStructuredText("blog-post.body").getTitle().text %]</li>
+    [% }) %]
+    </ul>
 
     [%- partial('/footer') %]
 

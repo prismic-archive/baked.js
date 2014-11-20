@@ -19,14 +19,23 @@ var vm = require("vm");
     return deferred.promise;
   }
 
-  var defaultHelpers = {
+  var DEFAULT_HELPERS = {
     _: _,
-    times: function(n, f) {
-      for (var i=0; i < n; i++) {
-        f(i);
+    only: function(test) {
+      if (test) {
+        return function (block) { block(); };
+      } else {
+        return function (block) {};
       }
     }
   };
+
+  function defaultHelpers(conf) {
+    return _.assign({}, DEFAULT_HELPERS, {
+      onlyBrowser: DEFAULT_HELPERS.only(conf.mode == 'browser'),
+      onlyServer: DEFAULT_HELPERS.only(conf.mode == 'server')
+    });
+  }
 
   function renderTemplate(content, ctx) {
     ejs.open = '[%';
@@ -71,6 +80,7 @@ var vm = require("vm");
 
   function initConf(opts) {
     var conf = {
+      mode: opts.mode,
       env: opts.env || {},
       helpers: opts.helpers || {},
       logger: opts.logger,
@@ -119,6 +129,7 @@ var vm = require("vm");
       if (name) {
         _.assign(binding, {
           form: dataset.form || 'everything',
+          dataset: dataset,
           render: function(api) {
             return renderQuery(scriptContent, conf.args, api);
           }
@@ -152,16 +163,50 @@ var vm = require("vm");
             .submit(function (err, documents) {
               // skip the NodeJS specific 3rd argument (readableState...)
               if (err) { deferred.reject(err); }
-              else { deferred.resolve(documents); }
+              else {
+                if (binding.dataset.eager) {
+                  var promises = _.map(documents.results, function(doc, index) {
+                    var relationshipDeferred = Q.defer();
+                    var ids = _.map(doc.linkedDocuments, 'id');
+
+                    if (_.isEmpty(ids.length)) {
+                      var query = '[[:d = any(document.id, ["' + ids.join('","') + '"]) ]]';
+                      api.form("everything")
+                        .ref(conf.ref || api.master())
+                        .query(query)
+                        .submit(function(err, relatedResults) {
+                          if (err) { relationshipDeferred.reject(err); }
+                          else {
+                            var keys = _.map(relatedResults.results, 'id');
+                            var related = _.zipObject(keys, relatedResults.results);
+                            documents.results[index].loadedDocuments = related;
+                            relationshipDeferred.resolve();
+                          }
+                        });
+                    } else {
+                      relationshipDeferred.resolve();
+                    }
+
+                    return relationshipDeferred.promise;
+                  });
+                  Q.all(promises).then(
+                    function() { deferred.resolve(documents); },
+                    function(err) { deferred.reject(err); }
+                  );
+                } else {
+                  deferred.resolve(documents);
+                }
+              }
             });
           return deferred.promise
             .then(
-              function (documents) { return [name, documents.results]; },
+              function (documents) { return [name, documents]; },
               function (err) { conf.logger.error("Error while running query: \n%s\n", binding.predicates, err); }
             );
         }))
         .then(function (results) {
           var env = _.assign({}, {
+            mode: conf.mode,
             api: api,
             bookmarks: api.bookmarks,
             types: api.types,
@@ -179,7 +224,7 @@ var vm = require("vm");
         }).then(function(documentSets) {
           documentSets.loggedIn = !!conf.accessToken;
 
-          _.extend(documentSets, defaultHelpers);
+          _.extend(documentSets, defaultHelpers(conf));
           if (conf.helpers) { _.extend(documentSets, conf.helpers); }
           _.extend(documentSets, conf.args);
 

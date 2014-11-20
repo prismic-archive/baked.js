@@ -1,3 +1,8 @@
+### Incompatible changes
+
+- The queries results are no longer arrays but prismic.io's javascript-kit's `Response` object.
+  + The response elements are in its `results` field
+
 ## 0.0.8
 
 ### Changes

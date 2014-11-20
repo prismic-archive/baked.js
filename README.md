@@ -98,8 +98,8 @@ Pagination related parameters can be specified using `data-query-<name>` syntax.
   ]
 </script>
 
-<h1>[%= featuredProducts.length %] featured products:</h1>
-[% _.each(featuredProducts, function(product) { %]
+<h1>[%= featuredProducts.total_results_size %] featured products:</h1>
+[% _.each(featuredProducts.results, function(product) { %]
   <div>
     <h2>[%= product.getText('product.name') %]</h2>
     <img data-src="[%= product.getImageView('product.image', 'icon').url %]">
@@ -158,7 +158,7 @@ To create links to the above page, use the helper `url_to`, and specify the argu
 You can also use the helper without providing any argument.
 
 ```html
-<a href="[%= url_to('index' %]">index</a>
+<a href="[%= url_to('index') %]">index</a>
 ```
 
 **Note**: remember: if nobody call a page (using the `url_to` helper) it won't be generated.

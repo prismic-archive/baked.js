@@ -113,6 +113,7 @@ var Configuration = require("./configuration");
     return logAndTime("render file '" + src + "' " + JSON.stringify(args), function () {
       var env = {};
       return baked.render(router, {
+        mode: 'server',
         logger: ctx.logger,
         args: args,
         setContext: function (ctx) { env.ctx = ctx; },
@@ -133,7 +134,9 @@ var Configuration = require("./configuration");
         },
         tmpl: content,
         api: router.api(src),
-        requestHandler: ctx.requestHandler
+        requestHandler: ctx.requestHandler,
+        ref: process.env.BAKED_REF,
+        accessToken: process.env.BAKED_ACCESS_TOKEN
       }).then(function (result) {
         var routerInfos = router.routerInfosForFile(src, dst, args);
         var scriptTag = '<script>' +
@@ -344,7 +347,7 @@ var Configuration = require("./configuration");
   function saveRouter(router, dir, ctx) {
     var dst = dir + '/_router.json';
     return logAndTime("Save router => '" + dst + "'", function () {
-      var content = JSON.stringify(router.routerInfos());
+      var content = JSON.stringify(router.routerInfos(ctx));
       return Q.ninvoke(fs, 'writeFile', dst, content, "utf8");
     }, ctx).thenResolve(router);
   }
