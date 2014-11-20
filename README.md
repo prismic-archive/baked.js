@@ -195,7 +195,7 @@ The generation can actually be performed at 2 places:
 
 The dynamic mode needs some specific components:
 
-- The baked.js library (for instance `<script src="https://prismicio.github.io/baked.js/baked-0.0.8.js"></script>`)
+- The baked.js library (for instance `<script src="https://prismicio.github.io/baked.js/baked-0.1.0.js"></script>`)
 - The template of every content file (stored in the `.html.tmpl` files)
   - These files allow to render any page
 - The routing informations of every content pages (stored in `_router.json`
