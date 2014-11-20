@@ -160,7 +160,7 @@
   <span class="p">]</span>
 <span class="nt">&lt;/script&gt;</span>
 
-<span class="nt">&lt;h1&gt;</span>[%= featuredProducts.length %] featured products:<span class="nt">&lt;/h1&gt;</span>
+<span class="nt">&lt;h1&gt;</span>[%= featuredProducts.total_results_size %] featured products:<span class="nt">&lt;/h1&gt;</span>
 [% _.each(featuredProducts, function(product) { %]
   <span class="nt">&lt;div&gt;</span>
     <span class="nt">&lt;h2&gt;</span>[%= product.getText('product.name') %]<span class="nt">&lt;/h2&gt;</span>
@@ -216,7 +216,7 @@
 
 <p>You can also use the helper without providing any argument.</p>
 
-<div class="highlight highlight-html"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"[%= url_to('index' %]"</span><span class="nt">&gt;</span>index<span class="nt">&lt;/a&gt;</span>
+<div class="highlight highlight-html"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"[%= url_to('index') %]"</span><span class="nt">&gt;</span>index<span class="nt">&lt;/a&gt;</span>
 </pre></div>
 
 <p><strong>Note</strong>: remember: if nobody call a page (using the <code>url_to</code> helper) it won't be generated.</p>
@@ -266,7 +266,7 @@ the template rendering.</p>
 <p>The dynamic mode needs some specific components:</p>
 
 <ul>
-<li>The baked.js library (for instance <code>&lt;script src="https://prismicio.github.io/baked.js/baked-0.0.8.js"&gt;&lt;/script&gt;</code>)</li>
+<li>The baked.js library (for instance <code>&lt;script src="https://prismicio.github.io/baked.js/baked-0.1.0.js"&gt;&lt;/script&gt;</code>)</li>
 <li>The template of every content file (stored in the <code>.html.tmpl</code> files)
 
 <ul>
