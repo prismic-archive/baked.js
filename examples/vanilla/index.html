@@ -42,8 +42,17 @@
         return deferred.promise;
     </script>
 
+    <script type="text/prismic-query-js" data-binding="*">
+      return form()
+        .query('[[:d = any(document.tags, ["Featured"])]]')
+        .submit(function (res) {
+          return {both: res};
+        });
+    </script>
+
     (There are [%= products.total_results_size %] products)
     (There are [%= featured.total_results_size %] featured stuff)
+    (There are [%= both.total_results_size %] featured products)
 
     <!-- Require a library then use it -->
     [% var lib = require("myLib.js") %]

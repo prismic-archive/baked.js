@@ -262,6 +262,21 @@ var vm = require("vm");
             .all(_.map(conf.jsbindings, function(binding) {
               var ctx = vm.createContext(_.extend({}, documentSets, {
                 Q: Q,
+                form: function (name) {
+                  var form = ctx.api
+                                .form(name || "everything")
+                                .ref(ctx.ref || ctx.master);
+                  var submit = form.submit.bind(form);
+                  form.submit = function (f) {
+                    var deferred = Q.defer();
+                    submit(function(err, res) {
+                      if (err) { deferred.reject(err); }
+                      else { deferred.resolve(f ? Q(res).then(f) : res); }
+                    });
+                    return deferred.promise;
+                  };
+                  return form;
+                }
               }));
               var script = "(function(){\n" + binding.script + "\n})()";
               var res = vm.runInContext(script, ctx);

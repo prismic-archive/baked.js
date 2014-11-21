@@ -4,6 +4,7 @@
   + they are defined with `type="text/prismic-query-js"`
   + they can add more than 1 variable in the environment
     * specify `data-binding="*"` in the query tag, then return an object
+  + a `form()` helper allows to call the API and get a Q promise
 
 ## 0.1.0
 
