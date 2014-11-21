@@ -44,7 +44,7 @@
 
     <script type="text/prismic-query-js" data-binding="*">
       return form()
-        .query('[[:d = any(document.tags, ["Featured"])]]')
+        .query('[[:d = any(document.tags, ["Featured"])][:d = any(document.type, ["product"])]]')
         .submit(function (res) {
           return {both: res};
         });
@@ -52,15 +52,16 @@
 
     <script type="text/prismic-query-js" data-binding="status">
       return ajax("https://status.github.com/api/status.json").then(function (resp) {
-        return resp.json['status'];
+        return resp.json.status;
       })
     </script>
 
-    (There are [%= products.total_results_size %] products)
-    (There are [%= featured.total_results_size %] featured stuff)
-    (There are [%= both.total_results_size %] featured products)
-
-    Status: [%= status %]
+    <p>
+      There are [%= products.total_results_size %] products<br>
+      There are [%= featured.total_results_size %] featured stuff<br>
+      There are [%= both.total_results_size %] featured products<br>
+      GitHub API Status: [%= status %]
+    </p>
 
     <!-- Require a library then use it -->
     [% var lib = require("myLib.js") %]
