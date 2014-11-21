@@ -3,6 +3,9 @@ var ejs = require("ejs");
 var Prismic = require("prismic.io").Prismic;
 var Q = require("q");
 var vm = require("vm");
+var http = require('http');
+var https = require('https');
+var url = require('url');
 
 (function (exporter, undefined) {
   "use strict";
@@ -262,6 +265,56 @@ var vm = require("vm");
             .all(_.map(conf.jsbindings, function(binding) {
               var ctx = vm.createContext(_.extend({}, documentSets, {
                 Q: Q,
+                ajax: function (options, callback) {
+                  if (typeof options == "string") {
+                    options = {url: options, method: 'GET'};
+                  }
+                  var parsed = url.parse(options.url);
+                  var h = parsed.protocol == 'https:' ? https : http;
+                  _.defaults(options, {
+                    hostname: parsed.hostname,
+                    path: parsed.path,
+                    query: parsed.query,
+                  });
+                  var deferred = Q.defer();
+                  var req = h.request(options, function(response) {
+                    if (response.statusCode &&
+                        response.statusCode >= 200 &&
+                        response.statusCode < 300) {
+                      var body = [];
+                      response.on('data', function (chunk) {
+                        body.push(chunk);
+                      });
+                      response.on('end', function () {
+                        var res = {
+                          body: body.join(""),
+                          statusCode: response.statusCode,
+                          headers: response.headers
+                        };
+                        var json;
+                        Object.defineProperty(res, "json", {
+                          get: function () {
+                            if (!json) {
+                              json = JSON.parse(this.body);
+                            }
+                            return json;
+                          }
+                        });
+                        deferred.resolve(res);
+                      });
+                    } else {
+                      deferred.reject(
+                        new Error("Unexpected status code [" + response.statusCode + "] on URL " + options.url),
+                        null
+                      );
+                    }
+                  });
+                  if (options.data) {
+                    req.write(options.data);
+                  }
+                  req.end();
+                  return deferred.promise;
+                },
                 form: function (name) {
                   var form = ctx.api
                                 .form(name || "everything")

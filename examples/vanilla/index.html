@@ -50,9 +50,17 @@
         });
     </script>
 
+    <script type="text/prismic-query-js" data-binding="status">
+      return ajax("https://status.github.com/api/status.json").then(function (resp) {
+        return resp.json['status'];
+      })
+    </script>
+
     (There are [%= products.total_results_size %] products)
     (There are [%= featured.total_results_size %] featured stuff)
     (There are [%= both.total_results_size %] featured products)
+
+    Status: [%= status %]
 
     <!-- Require a library then use it -->
     [% var lib = require("myLib.js") %]
