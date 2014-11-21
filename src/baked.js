@@ -3,6 +3,9 @@ var ejs = require("ejs");
 var Prismic = require("prismic.io").Prismic;
 var Q = require("q");
 var vm = require("vm");
+var http = require('http');
+var https = require('https');
+var url = require('url');
 
 (function (exporter, undefined) {
   "use strict";
@@ -102,11 +105,12 @@ var vm = require("vm");
       return;
     }
 
-    // Extract the bindings
-    conf.bindings = {};
     function toUpperCase(str, l) { return l.toUpperCase(); }
-    var scriptRx = /<script +type="text\/prismic-query"([^>]*)>([\s\S]*?)<\/script>/ig;
-    conf.tmpl = conf.tmpl.replace(scriptRx, function (str, scriptParams, scriptContent) {
+
+    // Extract the query bindings
+    conf.bindings = {};
+    var rxBindings = /<script +type="text\/prismic-query"([^>]*)>([\s\S]*?)<\/script>/ig;
+    conf.tmpl = conf.tmpl.replace(rxBindings, function (str, scriptParams, scriptContent) {
       var dataRx = /data-([a-z0-9\-]+)="([^"]*)"/ig;
       var dataset = {};
       var match;
@@ -135,6 +139,40 @@ var vm = require("vm");
           }
         });
         conf.bindings[name] = binding;
+      }
+      return str.replace(/.*/g, '');  // remove the <script> tag but preserve lines number
+    });
+
+    // Extract the JS bindings
+    conf.jsbindings = [];
+    var rxBindingsJS = /<script +type="text\/prismic-query-js"([^>]*)>([\s\S]*?)<\/script>/ig;
+    conf.tmpl = conf.tmpl.replace(rxBindingsJS, function (str, scriptParams, scriptContent) {
+      var dataRx = /data-([a-z0-9\-]+)="([^"]*)"/ig;
+      var dataset = {};
+      var match;
+      var binding = {
+        params: {}
+      };
+      while ((match = dataRx.exec(scriptParams)) !== null) {
+        var attribute = match[1].toLowerCase();
+        var value = match[2];
+        var key;
+        if (/^query-/.test(attribute)) {
+          key = attribute.replace(/^query-/, '').replace(/-(.)/g, toUpperCase);
+          binding.params[key] = value;
+        } else {
+          key = attribute.replace(/-(.)/g, toUpperCase);
+          dataset[key] = value;
+        }
+      }
+      var name = dataset.binding;
+      if (name) {
+        _.assign(binding, {
+          name: name,
+          dataset: dataset,
+          script: scriptContent
+        });
+        conf.jsbindings.push(binding);
       }
       return str.replace(/.*/g, '');  // remove the <script> tag but preserve lines number
     });
@@ -221,6 +259,94 @@ var vm = require("vm");
             }
             return documentSets;
           }, env);
+        })
+        .then(function (documentSets) {
+          return Q
+            .all(_.map(conf.jsbindings, function(binding) {
+              var ctx = vm.createContext(_.extend({}, documentSets, {
+                Q: Q,
+                ajax: function (options, callback) {
+                  if (typeof options == "string") {
+                    options = {url: options, method: 'GET'};
+                  }
+                  var parsed = url.parse(options.url);
+                  var h = parsed.protocol == 'https:' ? https : http;
+                  _.defaults(options, {
+                    hostname: parsed.hostname,
+                    path: parsed.path,
+                    query: parsed.query,
+                  });
+                  var deferred = Q.defer();
+                  var req = h.request(options, function(response) {
+                    if (response.statusCode &&
+                        response.statusCode >= 200 &&
+                        response.statusCode < 300) {
+                      var body = [];
+                      response.on('data', function (chunk) {
+                        body.push(chunk);
+                      });
+                      response.on('end', function () {
+                        var res = {
+                          body: body.join(""),
+                          statusCode: response.statusCode,
+                          headers: response.headers
+                        };
+                        var json;
+                        Object.defineProperty(res, "json", {
+                          get: function () {
+                            if (!json) {
+                              json = JSON.parse(this.body);
+                            }
+                            return json;
+                          }
+                        });
+                        deferred.resolve(res);
+                      });
+                    } else {
+                      deferred.reject(
+                        new Error("Unexpected status code [" + response.statusCode + "] on URL " + options.url),
+                        null
+                      );
+                    }
+                  });
+                  if (options.data) {
+                    req.write(options.data);
+                  }
+                  req.end();
+                  return deferred.promise;
+                },
+                form: function (name) {
+                  var form = ctx.api
+                                .form(name || "everything")
+                                .ref(ctx.ref || ctx.master);
+                  var submit = form.submit.bind(form);
+                  form.submit = function (f) {
+                    var deferred = Q.defer();
+                    submit(function(err, res) {
+                      if (err) { deferred.reject(err); }
+                      else { deferred.resolve(f ? Q(res).then(f) : res); }
+                    });
+                    return deferred.promise;
+                  };
+                  return form;
+                }
+              }));
+              var script = "(function(){\n" + binding.script + "\n})()";
+              var res = vm.runInContext(script, ctx);
+              return Q(res).then(function (value) {
+                return {name: binding.name, value: value};
+              });
+            }))
+            .then(function (allRes) {
+              _.each(allRes, function (res) {
+                if (res.name == '*') {
+                  _.extend(documentSets, res.value);
+                } else {
+                  documentSets[res.name] = res.value;
+                }
+              });
+              return documentSets;
+            });
         }).then(function(documentSets) {
           documentSets.loggedIn = !!conf.accessToken;
 

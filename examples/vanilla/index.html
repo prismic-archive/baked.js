@@ -12,6 +12,57 @@
   </head>
   <body>
 
+    <script type="text/prismic-query-js" data-binding="*">
+      var deferred = Q.defer();
+      api
+        .form("everything")
+        .ref(ref || master)
+        .query('[[:d = any(document.type, ["product"])]]')
+        .submit(function(err, res) {
+          if (err) { deferred.reject(err); }
+          else { deferred.resolve({
+            products: res
+          }); }
+        });
+      return deferred.promise;
+    </script>
+
+    <script type="text/prismic-query-js" data-binding="*">
+      var deferred = Q.defer();
+      api
+        .form("everything")
+        .ref(ref || master)
+        .query('[[:d = any(document.tags, ["Featured"])]]')
+        .submit(function(err, res) {
+          if (err) { deferred.reject(err); }
+          else { deferred.resolve({
+            featured: res
+          }); }
+        });
+        return deferred.promise;
+    </script>
+
+    <script type="text/prismic-query-js" data-binding="*">
+      return form()
+        .query('[[:d = any(document.tags, ["Featured"])][:d = any(document.type, ["product"])]]')
+        .submit(function (res) {
+          return {both: res};
+        });
+    </script>
+
+    <script type="text/prismic-query-js" data-binding="status">
+      return ajax("https://status.github.com/api/status.json").then(function (resp) {
+        return resp.json.status;
+      })
+    </script>
+
+    <p>
+      There are [%= products.total_results_size %] products<br>
+      There are [%= featured.total_results_size %] featured stuff<br>
+      There are [%= both.total_results_size %] featured products<br>
+      GitHub API Status: [%= status %]
+    </p>
+
     <!-- Require a library then use it -->
     [% var lib = require("myLib.js") %]
     [% console.log("required and assigned:", lib) %]
