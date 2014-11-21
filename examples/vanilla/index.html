@@ -12,6 +12,39 @@
   </head>
   <body>
 
+    <script type="text/prismic-query-js" data-binding="*">
+      var deferred = Q.defer();
+      api
+        .form("everything")
+        .ref(ref || master)
+        .query('[[:d = any(document.type, ["product"])]]')
+        .submit(function(err, res) {
+          if (err) { deferred.reject(err); }
+          else { deferred.resolve({
+            products: res
+          }); }
+        });
+      return deferred.promise;
+    </script>
+
+    <script type="text/prismic-query-js" data-binding="*">
+      var deferred = Q.defer();
+      api
+        .form("everything")
+        .ref(ref || master)
+        .query('[[:d = any(document.tags, ["Featured"])]]')
+        .submit(function(err, res) {
+          if (err) { deferred.reject(err); }
+          else { deferred.resolve({
+            featured: res
+          }); }
+        });
+        return deferred.promise;
+    </script>
+
+    (There are [%= products.total_results_size %] products)
+    (There are [%= featured.total_results_size %] featured stuff)
+
     <!-- Require a library then use it -->
     [% var lib = require("myLib.js") %]
     [% console.log("required and assigned:", lib) %]

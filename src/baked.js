@@ -102,11 +102,12 @@ var vm = require("vm");
       return;
     }
 
-    // Extract the bindings
-    conf.bindings = {};
     function toUpperCase(str, l) { return l.toUpperCase(); }
-    var scriptRx = /<script +type="text\/prismic-query"([^>]*)>([\s\S]*?)<\/script>/ig;
-    conf.tmpl = conf.tmpl.replace(scriptRx, function (str, scriptParams, scriptContent) {
+
+    // Extract the query bindings
+    conf.bindings = {};
+    var rxBindings = /<script +type="text\/prismic-query"([^>]*)>([\s\S]*?)<\/script>/ig;
+    conf.tmpl = conf.tmpl.replace(rxBindings, function (str, scriptParams, scriptContent) {
       var dataRx = /data-([a-z0-9\-]+)="([^"]*)"/ig;
       var dataset = {};
       var match;
@@ -135,6 +136,40 @@ var vm = require("vm");
           }
         });
         conf.bindings[name] = binding;
+      }
+      return str.replace(/.*/g, '');  // remove the <script> tag but preserve lines number
+    });
+
+    // Extract the JS bindings
+    conf.jsbindings = [];
+    var rxBindingsJS = /<script +type="text\/prismic-query-js"([^>]*)>([\s\S]*?)<\/script>/ig;
+    conf.tmpl = conf.tmpl.replace(rxBindingsJS, function (str, scriptParams, scriptContent) {
+      var dataRx = /data-([a-z0-9\-]+)="([^"]*)"/ig;
+      var dataset = {};
+      var match;
+      var binding = {
+        params: {}
+      };
+      while ((match = dataRx.exec(scriptParams)) !== null) {
+        var attribute = match[1].toLowerCase();
+        var value = match[2];
+        var key;
+        if (/^query-/.test(attribute)) {
+          key = attribute.replace(/^query-/, '').replace(/-(.)/g, toUpperCase);
+          binding.params[key] = value;
+        } else {
+          key = attribute.replace(/-(.)/g, toUpperCase);
+          dataset[key] = value;
+        }
+      }
+      var name = dataset.binding;
+      if (name) {
+        _.assign(binding, {
+          name: name,
+          dataset: dataset,
+          script: scriptContent
+        });
+        conf.jsbindings.push(binding);
       }
       return str.replace(/.*/g, '');  // remove the <script> tag but preserve lines number
     });
@@ -221,6 +256,29 @@ var vm = require("vm");
             }
             return documentSets;
           }, env);
+        })
+        .then(function (documentSets) {
+          return Q
+            .all(_.map(conf.jsbindings, function(binding) {
+              var ctx = vm.createContext(_.extend({}, documentSets, {
+                Q: Q,
+              }));
+              var script = "(function(){\n" + binding.script + "\n})()";
+              var res = vm.runInContext(script, ctx);
+              return Q(res).then(function (value) {
+                return {name: binding.name, value: value};
+              });
+            }))
+            .then(function (allRes) {
+              _.each(allRes, function (res) {
+                if (res.name == '*') {
+                  _.extend(documentSets, res.value);
+                } else {
+                  documentSets[res.name] = res.value;
+                }
+              });
+              return documentSets;
+            });
         }).then(function(documentSets) {
           documentSets.loggedIn = !!conf.accessToken;
 

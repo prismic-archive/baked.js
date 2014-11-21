@@ -1,3 +1,10 @@
+### Features
+
+- Add javascript queries: these queries contains JS code which is executed before rendering the page. They can return a value or a Q promise.
+  + they are defined with `type="text/prismic-query-js"`
+  + they can add more than 1 variable in the environment
+    * specify `data-binding="*"` in the query tag, then return an object
+
 ## 0.1.0
 
 ### Incompatible changes
