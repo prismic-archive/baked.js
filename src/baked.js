@@ -177,6 +177,42 @@ var vm = require("vm");
       };
     }
   }
+  function queryHelperJsonP(ctx) {
+    if (ctx.mode == 'server') {
+      return queryHelperAjax(ctx);  // no need for JSONP server-side
+    } else {
+      return function (url) {
+        var deferred = Q.defer();
+        var callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+        window[callbackName] = function(data) {
+          delete window[callbackName];
+          document.body.removeChild(script);
+          var resp = {
+            statusCode: 200,
+            headers: {},
+            json: data
+          };
+          var body;
+          Object.defineProperty(resp, "body", {
+            get: function () {
+              if (!body) {
+                body = JSON.stringify(this.json);
+              }
+              return body;
+            }
+          });
+          deferred.resolve(resp);
+        };
+        var script = document.createElement('script');
+        script.onerror = function (e) {
+          deferred.reject("Error while calling (with JSONP) " + url);
+        };
+        script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
+        document.body.appendChild(script);
+        return deferred.promise;
+      };
+    }
+  }
 
   function initConf(opts) {
     var conf = {
@@ -363,7 +399,8 @@ var vm = require("vm");
               var ctx = vm.createContext(_.extend({}, documentSets, {
                 Q: Q,
                 form: queryHelperForm(documentSets),
-                ajax: queryHelperAjax(documentSets)
+                ajax: queryHelperAjax(documentSets),
+                jsonp: queryHelperJsonP(documentSets)
               }));
               var script = "(function(){\n" + binding.script + "\n})()";
               var res = vm.runInContext(script, ctx);

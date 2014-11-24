@@ -43,7 +43,7 @@
     </script>
 
     <script type="text/prismic-query-js" data-binding="status">
-      return ajax("https://status.github.com/api/status.json").then(function (resp) {
+      return jsonp("https://status.github.com/api/status.json").then(function (resp) {
         return resp.json.status;
       })
     </script>

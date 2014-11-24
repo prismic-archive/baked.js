@@ -6,6 +6,7 @@
     * specify `data-binding="*"` in the query tag, then return an object
   + a `form()` helper allows to call the API and get a Q promise
   + an `ajax()` helper allows to perform HTTP(S) requests and get a Q promise
+  + a `jsonp()` helper allows to perform HTTP(S) requests on other domains
 
 ## 0.1.0
 
