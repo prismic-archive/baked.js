@@ -377,6 +377,7 @@ var vm = require("vm");
         }))
         .then(function (results) {
           var env = _.assign({}, {
+            console: console,
             mode: conf.mode,
             api: api,
             bookmarks: api.bookmarks,
