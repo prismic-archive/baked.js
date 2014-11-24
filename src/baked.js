@@ -3,9 +3,6 @@ var ejs = require("ejs");
 var Prismic = require("prismic.io").Prismic;
 var Q = require("q");
 var vm = require("vm");
-var http = require('http');
-var https = require('https');
-var url = require('url');
 
 (function (exporter, undefined) {
   "use strict";
@@ -79,6 +76,106 @@ var url = require('url');
       var variable = simple || complex;
       return env && env[variable] || '';
     });
+  }
+
+  function queryHelperForm(ctx) {
+    return function (name) {
+      var form = ctx.api
+                    .form(name || "everything")
+                    .ref(ctx.ref || ctx.master);
+      var submit = form.submit.bind(form);
+      form.submit = function (f) {
+        var deferred = Q.defer();
+        submit(function(err, res) {
+          if (err) { deferred.reject(err); }
+          else { deferred.resolve(f ? Q(res).then(f) : res); }
+        });
+        return deferred.promise;
+      };
+      return form;
+    };
+  }
+  function queryHelperAjax(ctx) {
+    function prepareResp(resp) {
+      var json;
+      Object.defineProperty(resp, "json", {
+        get: function () {
+          if (!json) {
+            json = JSON.parse(this.body);
+          }
+          return json;
+        }
+      });
+      return resp;
+    }
+    if (ctx.mode == 'server') {
+      var http = require('http');
+      var https = require('https');
+      var URL = require('url');
+      return function (url, method) {
+        var parsed = URL.parse(url);
+        var options = {
+          method: method || 'GET',
+          hostname: parsed.hostname,
+          port: parsed.port,
+          path: parsed.path,
+          query: parsed.query
+        };
+        var h = parsed.protocol == 'https:' ? https : http;
+        var deferred = Q.defer();
+        var req = h.request(options, function(response) {
+          if (response.statusCode &&
+              response.statusCode >= 200 &&
+              response.statusCode < 300) {
+            var body = [];
+            response.on('data', function (chunk) {
+              body.push(chunk);
+            });
+            response.on('end', function () {
+              deferred.resolve(prepareResp({
+                body: body.join(""),
+                statusCode: response.statusCode,
+                headers: response.headers
+              }));
+            });
+          } else {
+            deferred.reject(
+              new Error("Unexpected status code [" + response.statusCode + "] on URL " + url),
+              null
+            );
+          }
+        });
+        if (options.data) {
+          req.write(options.data);
+        }
+        req.end();
+        return deferred.promise;
+      };
+    } else {
+      return function (url, method) {
+        var xhr = new XMLHttpRequest();
+        var deferred = Q.defer();
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === 4) {
+            if (xhr.status &&
+                xhr.status >= 200 &&
+                xhr.status < 300) {
+              deferred.resolve(prepareResp({
+                body: xhr.responseText,
+                statusCode: xhr.status,
+                headers: xhr.getAllResponseHeaders()
+              }));
+            } else {
+              var status = xhr.status;
+              deferred.reject(new Error("Unexpected status code [" + status + "] on URL " + url));
+            }
+          }
+        };
+        xhr.open(method || 'GET', url, true);
+        xhr.send();
+        return deferred.promise;
+      };
+    }
   }
 
   function initConf(opts) {
@@ -265,71 +362,8 @@ var url = require('url');
             .all(_.map(conf.jsbindings, function(binding) {
               var ctx = vm.createContext(_.extend({}, documentSets, {
                 Q: Q,
-                ajax: function (options, callback) {
-                  if (typeof options == "string") {
-                    options = {url: options, method: 'GET'};
-                  }
-                  var parsed = url.parse(options.url);
-                  var h = parsed.protocol == 'https:' ? https : http;
-                  _.defaults(options, {
-                    hostname: parsed.hostname,
-                    path: parsed.path,
-                    query: parsed.query,
-                  });
-                  var deferred = Q.defer();
-                  var req = h.request(options, function(response) {
-                    if (response.statusCode &&
-                        response.statusCode >= 200 &&
-                        response.statusCode < 300) {
-                      var body = [];
-                      response.on('data', function (chunk) {
-                        body.push(chunk);
-                      });
-                      response.on('end', function () {
-                        var res = {
-                          body: body.join(""),
-                          statusCode: response.statusCode,
-                          headers: response.headers
-                        };
-                        var json;
-                        Object.defineProperty(res, "json", {
-                          get: function () {
-                            if (!json) {
-                              json = JSON.parse(this.body);
-                            }
-                            return json;
-                          }
-                        });
-                        deferred.resolve(res);
-                      });
-                    } else {
-                      deferred.reject(
-                        new Error("Unexpected status code [" + response.statusCode + "] on URL " + options.url),
-                        null
-                      );
-                    }
-                  });
-                  if (options.data) {
-                    req.write(options.data);
-                  }
-                  req.end();
-                  return deferred.promise;
-                },
-                form: function (name) {
-                  var form = ctx.api
-                                .form(name || "everything")
-                                .ref(ctx.ref || ctx.master);
-                  var submit = form.submit.bind(form);
-                  form.submit = function (f) {
-                    var deferred = Q.defer();
-                    submit(function(err, res) {
-                      if (err) { deferred.reject(err); }
-                      else { deferred.resolve(f ? Q(res).then(f) : res); }
-                    });
-                    return deferred.promise;
-                  };
-                  return form;
-                }
+                form: queryHelperForm(documentSets),
+                ajax: queryHelperAjax(documentSets)
               }));
               var script = "(function(){\n" + binding.script + "\n})()";
               var res = vm.runInContext(script, ctx);

@@ -20,26 +20,18 @@
         .query('[[:d = any(document.type, ["product"])]]')
         .submit(function(err, res) {
           if (err) { deferred.reject(err); }
-          else { deferred.resolve({
-            products: res
-          }); }
+          else { deferred.resolve({ products: res }); }
         });
       return deferred.promise;
     </script>
 
     <script type="text/prismic-query-js" data-binding="*">
-      var deferred = Q.defer();
-      api
-        .form("everything")
-        .ref(ref || master)
+      return form()
         .query('[[:d = any(document.tags, ["Featured"])]]')
-        .submit(function(err, res) {
-          if (err) { deferred.reject(err); }
-          else { deferred.resolve({
-            featured: res
-          }); }
+        .submit()
+        .then(function (res) {
+          return {featured: res};
         });
-        return deferred.promise;
     </script>
 
     <script type="text/prismic-query-js" data-binding="*">
