@@ -1,3 +1,5 @@
+## 0.1.1
+
 ### Features
 
 - Allow to use page's params in query attributes
