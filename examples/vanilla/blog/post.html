@@ -39,7 +39,7 @@
 
     <div>Related posts:</div>
     <ul>
-    [% _.each(relatedPosts, function (relatedPost) { %]
+    [% _.each(relatedPosts.results, function (relatedPost) { %]
       <li>[%= relatedPost.getStructuredText("blog-post.body").getTitle().text %]</li>
     [% }) %]
     </ul>
