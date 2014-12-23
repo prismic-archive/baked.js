@@ -22,7 +22,7 @@
     [% require("myLib.js", {noCache: true}) %]
     [% console.log("required and fetched from global:", myLib) %]
 
-    <div><a href="[%= pathTo('search', {typ: 'product', tag: 'Featured'}) %]">
+    <div><a href="[%= pathTo('search', {typ: 'product', tag: 'Featured', page: 1}) %]">
       Search
     </a></div>
 

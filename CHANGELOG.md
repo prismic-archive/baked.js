@@ -1,3 +1,7 @@
+### Features
+
+- Allow to use page's params in query attributes
+
 ## 0.1.0
 
 ### Incompatible changes

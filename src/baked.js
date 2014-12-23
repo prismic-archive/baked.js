@@ -156,7 +156,7 @@ var vm = require("vm");
           var form = api.form(binding.form);
           form = form.ref(conf.ref || api.master());
           form = _.reduce(binding.params, function (form, value, key) {
-            return form.set(key, value);
+            return form.set(key, renderQuery(value, conf.args, api));
           }, form);
           form
             .query(binding.render(api))

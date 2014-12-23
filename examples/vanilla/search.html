@@ -7,16 +7,17 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="prismic-oauth-client-id" content="UxWopwEAAPN0sBcH">
-    <meta name="prismic-routing-pattern" content="search/$typ/$tag">
+    <meta name="prismic-routing-pattern" content="search/$typ/$tag/$page">
     <meta name="prismic-routing-param" content="typ">
     <meta name="prismic-routing-param" content="tag">
+    <meta name="prismic-routing-param" content="page">
     <meta property="og:url" content="[%= urlToHere() %]" />
 
     <script src="https://prismicio.github.io/baked.js/baked-0.1.0.js"></script>
   </head>
   <body>
 
-    <script type="text/prismic-query" data-binding="featuredProducts" data-query-orderings="[my.product.name]">
+    <script type="text/prismic-query" data-binding="featuredProducts" data-query-orderings="[my.product.name]" data-query-page-size="1" data-query-page="$page">
       [
         [:d = any(document.type, ["$typ"])]
         [:d = at(document.tags, ["$tag"])]
@@ -38,9 +39,35 @@
 
     [% }) %]
 
+    <div>
+    [% if (featuredProducts.page > 1) { %]
+      [% if (featuredProducts.page > 2) { %]
+        <a href="[%= pathTo('search', {typ: 'product', tag: 'Featured', page: 1}) %]">First</a>
+      [% } else { %]
+        First
+      [% } %]
+      |
+      <a href="[%= pathTo('search', {typ: 'product', tag: 'Featured', page: featuredProducts.page-1}) %]">Previous</a>
+    [% } else { %]
+      First | Previous
+    [% } %]
+    |
+    [% if (featuredProducts.page < featuredProducts.total_pages) { %]
+      <a href="[%= pathTo('search', {typ: 'product', tag: 'Featured', page: featuredProducts.page+1}) %]">Next</a>
+      |
+      [% if (featuredProducts.page < featuredProducts.total_pages-1) { %]
+        <a href="[%= pathTo('search', {typ: 'product', tag: 'Featured', page: featuredProducts.total_pages}) %]">Last</a>
+      [% } else { %]
+        Last
+      [% } %]
+    [% } else { %]
+      Next | Last
+    [% } %]
+    </div>
+
     <h1>And this is featured in our blog:</h1>
 
-    <script type="text/prismic-query" data-binding="blogPosts" data-form="blog" data-query-page-size="5">
+    <script type="text/prismic-query" data-binding="blogPosts" data-form="blog">
       [
         [:d = at(document.tags, ["Featured"])]
       ]
