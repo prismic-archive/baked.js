@@ -25,9 +25,12 @@
 
     [% blogPost = blogPosts.results[0]; %]
 
-    [% relatedPosts = _.map(blogPost.getAll("blog-post.relatedpost"), function (link) {
-      return blogPost.loadedDocuments[link.document.id]
-    }) %]
+    [% relatedPosts = _
+      .chain(blogPost.getAll("blog-post.relatedpost"))
+      .map(function (link) { return blogPost.loadedDocuments[link.document.id] })
+      .compact()
+      .value()
+    %]
 
     <h1>[%= blogPost.getStructuredText("blog-post.body").getTitle().text %]</h1>
 
@@ -37,12 +40,14 @@
 
     <br />
 
-    <div>Related posts:</div>
-    <ul>
-    [% _.each(relatedPosts.results, function (relatedPost) { %]
-      <li>[%= relatedPost.getStructuredText("blog-post.body").getTitle().text %]</li>
-    [% }) %]
-    </ul>
+    [% if (relatedPosts.length > 0) { %]
+      <div>Related posts:</div>
+      <ul>
+      [% _.each(relatedPosts, function (relatedPost) { %]
+        <li>[%= relatedPost.getStructuredText("blog-post.body").getTitle().text %]</li>
+      [% }) %]
+      </ul>
+    [% } %]
 
     [%- partial('/footer') %]
 
