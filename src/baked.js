@@ -167,7 +167,7 @@ var vm = require("vm");
                 if (binding.dataset.eager) {
                   var promises = _.map(documents.results, function(doc, index) {
                     var relationshipDeferred = Q.defer();
-                    var ids = _.map(doc.linkedDocuments, 'id');
+                    var ids = _.map(doc.linkedDocuments(), 'id');
 
                     if (_.isEmpty(ids.length)) {
                       var query = '[[:d = any(document.id, ["' + ids.join('","') + '"]) ]]';
