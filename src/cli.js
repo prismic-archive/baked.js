@@ -15,13 +15,16 @@ var _ = require('lodash');
       "  --config <config> -- Configuration file" +
       "  --config <config> -- Configuration file" +
       "  --[no-]async      -- Run asynchronously (default: true)\n" +
-      "  --[no-]debug      -- Better stacktraces (default: false)\n";
+      "  --[no-]debug      -- Better stacktraces (default: false)\n" +
+      "  --ignore <ptn>    -- Ignore a file/dir (can be call multiple times)\n";
     return msg;
   }
 
   function parse(args) {
     if (!args) { args = process.argv.slice(2); }
-    var options = {};
+    var options = {
+      ignore: []
+    };
     var rest = [];
     for (var i=0; i<args.length; i++) {
       var arg = args[i];
@@ -48,6 +51,12 @@ var _ = require('lodash');
           var dst = args[i];
           if (!dst) { throw new Error("missing dst"); }
           options.dstDir = dst;
+          break;
+        case '--ignore' :
+          i++;
+          var ignore = args[i];
+          if (!ignore) { throw new Error("missing ignore pattern"); }
+          options.ignore.push(ignore);
           break;
         case '--' :
           rest.concat(args);

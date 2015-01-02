@@ -9,6 +9,9 @@ var watch = require('gulp-watch');
 var ignore = require('gulp-ignore');
 var rimraf = require('gulp-rimraf');
 
+// polyfill
+require("./src/ext/starts_with");
+
 var cli = require('./src/cli');
 var Configuration = require('./src/configuration');
 

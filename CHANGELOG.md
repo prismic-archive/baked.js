@@ -1,3 +1,10 @@
+### Featurs
+
+- It is now possible to ignore some file/directories
+  + Globbing is accepted (e.g. “`.*~`”)
+  + The destination directory is automatically ignored if in the source directory
+    * It is now possible to call `baked --src . --dst build` with infinite loop
+
 ## 0.1.1
 
 ### Features

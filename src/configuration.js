@@ -47,8 +47,19 @@ var winston = require('winston');
     return pwd;
   }
 
+  function mergeObjWithArr(obj1, obj2) {
+    return _.assign({}, obj1, obj2, function (a, b) {
+      if (a === undefined) { return b; }
+      if (b === undefined) { return a; }
+      if (a.length === undefined || b.length === undefined) {
+        return b;
+      }
+      return [].concat(a, b);
+    });
+  }
+
   function Configuration(json, opts) {
-    var merge = _.assign(json, opts);
+    var merge = mergeObjWithArr(json, opts);
 
     this.pwd = merge.pwd || getPWD();
     this.debug = merge.debug === undefined ? false : merge.debug;
@@ -59,7 +70,23 @@ var winston = require('winston');
     this.api = merge.api;
     this.urlBase = merge.urlBase;
     this.oauthClientId = merge.oauthClientId;
-
+    // Ignore
+    this.ignore = merge.ignore || [];
+    if (this.ignore.length === undefined) { this.ignore = [this.ignore]; }
+    this.ignore = _.map(this.ignore, function (ignore) {
+      return path.normalize(this.srcDir + "/" + ignore);
+    }, this);
+    if (this.dstDir.startsWith(this.pwd)) {
+      this.ignore.push(this.dstDir);
+    }
+    this.ignore = _.map(this.ignore, function (ignore) {
+      var r = ignore
+        .replace(/[.]/g, "\\.")
+        .replace(/[*]/g, ".*")
+        .replace(/[?]/g, ".?");
+      return new RegExp("^" + r + ".*", "g");
+    }, this);
+    //
     this.updateLogger();
   }
 
