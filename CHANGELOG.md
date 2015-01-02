@@ -4,6 +4,15 @@
   + Globbing is accepted (e.g. “`.*~`”)
   + The destination directory is automatically ignored if in the source directory
     * It is now possible to call `baked --src . --dst build` with infinite loop
+- The default source directory of the `baked` command is now the current directory
+  + A baked website can now be generated using only `baked` without options
+
+### Incompatible changes
+
+- The default directories are changed
+  + The `baked` command now uses the current directory as source directory
+  + The Gulp file still uses `to_generate` and `generated` by default
+    * The projects using baked's `gulp.js` file should not be impacted
 
 ## 0.1.1
 

@@ -65,7 +65,7 @@ var winston = require('winston');
     this.debug = merge.debug === undefined ? false : merge.debug;
     this.async = merge.async === undefined ? true : merge.async;
     this.loggerLevel = merge.loggerLevel || 'warn';
-    this.srcDir = removeTrailingSlash(merge.srcDir || path.join(this.pwd, 'to_generate'));
+    this.srcDir = removeTrailingSlash(merge.srcDir || path.join(this.pwd, '.'));
     this.dstDir = removeTrailingSlash(merge.dstDir || path.join(this.pwd, 'generated'));
     this.api = merge.api;
     this.urlBase = merge.urlBase;
