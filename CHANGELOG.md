@@ -1,6 +1,6 @@
 ## 0.2.0
 
-### Featurs
+### Features
 
 - It is now possible to ignore some file/directories
   + Globbing is accepted (e.g. “`.*~`”)
