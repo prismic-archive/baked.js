@@ -1,3 +1,5 @@
+## 0.2.0
+
 ### Featurs
 
 - It is now possible to ignore some file/directories

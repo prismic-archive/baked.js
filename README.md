@@ -21,13 +21,14 @@ Run the command:
 baked
 ```
 
-It will generate all files from `to_generate/` into `generated/`.
+It will generate all files from the current directory into the `generated/` directory.
 
 You can set some options using command line arguments:
 
 - `--no-async`: Generate files one by one (slower but easier to debug)
 - `--src <src_dir>`: Specify the source directory
 - `--dst <dst_dir>`: Specify the directory where generated files will be stored
+- `--ignore <pattern>`: Ignore a file/directory (can be use multiple times)
 
 ### Custom generation
 
@@ -195,7 +196,7 @@ The generation can actually be performed at 2 places:
 
 The dynamic mode needs some specific components:
 
-- The baked.js library (for instance `<script src="https://prismicio.github.io/baked.js/baked-0.1.1.js"></script>`)
+- The baked.js library (for instance `<script src="https://prismicio.github.io/baked.js/baked-0.2.0.min.js"></script>`)
 - The template of every content file (stored in the `.html.tmpl` files)
   - These files allow to render any page
 - The routing informations of every content pages (stored in `_router.json`
