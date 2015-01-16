@@ -10,13 +10,17 @@
  * /!\ WARNING /!\
  */
 
+var path = require('path');
+
 var browserify = require('gulp-browserify');
 var concat = require('gulp-concat');
 var gulp = require('gulp');
 var watch = require('gulp-watch');
+var uglify = require('gulp-uglify');
 
 var config = {
   libName: 'baked.js',
+  libMinName: 'baked.min.js',
   buildDir: 'build'
 };
 
@@ -33,8 +37,15 @@ gulp.task('build', function() {
     .pipe(gulp.dest(config.buildDir));
 });
 
-gulp.task('watch', ['build'], function () {
-  gulp.watch('./src/**/*.js', ['build']);
+gulp.task('compress', ['build'], function() {
+  return gulp.src(path.join(config.buildDir, config.libName))
+    .pipe(uglify())
+    .pipe(concat(config.libMinName))
+    .pipe(gulp.dest(config.buildDir))
 });
 
-gulp.task('default', ['build']);
+gulp.task('watch', ['compress'], function () {
+  gulp.watch('./src/**/*.js', ['compress']);
+});
+
+gulp.task('default', ['compress']);
