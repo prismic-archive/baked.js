@@ -52,7 +52,7 @@
 <div class="highlight highlight-sh"><pre>baked
 </pre></div>
 
-<p>It will generate all files from <code>to_generate/</code> into <code>generated/</code>.</p>
+<p>It will generate all files from the current directory into the <code>generated/</code> directory.</p>
 
 <p>You can set some options using command line arguments:</p>
 
@@ -63,6 +63,8 @@
 <code>--src &lt;src_dir&gt;</code>: Specify the source directory</li>
 <li>
 <code>--dst &lt;dst_dir&gt;</code>: Specify the directory where generated files will be stored</li>
+<li>
+<code>--ignore &lt;pattern&gt;</code>: Ignore a file/directory (can be use multiple times)</li>
 </ul>
 
 <h3>
@@ -266,7 +268,7 @@ the template rendering.</p>
 <p>The dynamic mode needs some specific components:</p>
 
 <ul>
-<li>The baked.js library (for instance <code>&lt;script src="https://prismicio.github.io/baked.js/baked-0.1.1.js"&gt;&lt;/script&gt;</code>)</li>
+<li>The baked.js library (for instance <code>&lt;script src="https://prismicio.github.io/baked.js/baked-0.2.0.min.js"&gt;&lt;/script&gt;</code>)</li>
 <li>The template of every content file (stored in the <code>.html.tmpl</code> files)
 
 <ul>
