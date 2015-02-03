@@ -43,10 +43,10 @@ var config = {};
 function init(cfg) {
   initialized = true;
   if (!cfg) cfg = {};
-  var argOptions = _.defaults({
+  var argOptions = _.defaults(cfg.options, {
     srcDir: "to_generate",
     dstDir: "generated"
-  }, cfg.options);
+  });
 
   // supports gulpfiles providing src_dir insteaf of srcDir to init()
   if (!argOptions.srcDir) { argOptions.srcDir = argOptions.src_dir; }
