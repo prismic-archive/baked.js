@@ -259,6 +259,16 @@ Here an example:
 [% } %]
 ```
 
+### Contributions
+
+- Étienne Vallette d'Osia (@dohzya)
+- Guillaume Bort (@guillaumebort)
+- Sébastien Renault (@srenault)
+- Robin van Breukelen (@robinvanb)
+- Mike Moulton (@mmoulton)
+- Jonathan Bennett (@jbennett)
+- @rdpacheco
+
 ### Licence
 
 This software is licensed under the Apache 2 license, quoted below.
