@@ -43,7 +43,7 @@ var config = {};
 function init(cfg) {
   initialized = true;
   if (!cfg) cfg = {};
-  var argOptions = _.defaults(cfg.options, {
+  var argOptions = cfg.options = _.defaults({}, cfg.options, {
     srcDir: "to_generate",
     dstDir: "generated"
   });
