@@ -1,3 +1,10 @@
+## 0.2.1
+
+### Fixes
+
+- `srcDir` or `dstDir` could not be overwritten in `gulpfile.js`.
+- The dynamic browser was activated for every query strings, now only the ones containing at least `ref` or `access_token` will fire it.
+
 ## 0.2.0
 
 ### Features
