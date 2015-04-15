@@ -1,0 +1,30 @@
+{
+  "name": "baked",
+  "version": "0.2.1",
+  "homepage": "https://prismicio.github.io/baked.js",
+  "authors": [
+    "Étienne Vallette d'Osia <dohzya@prismic.io>"
+  ],
+  "description": "A static website generator in JS, powerered by prismic.io",
+  "main": "src/browser.js",
+  "moduleType": [
+    "node"
+  ],
+  "keywords": [
+    "tool",
+    "generator",
+    "static",
+    "prismic.io"
+  ],
+  "license": "Apache 2.0",
+  "ignore": [
+    "bower_components"
+  ],
+  "dependencies": {
+    "ejs": "^1.0.0",
+    "lodash": "^2.4.1",
+    "moment": "^2.6.0",
+    "prismic.io": "1.0.28",
+    "q": "^1.0.1"
+  }
+}
