@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+[% lib = require('myLib.js') %]
+<html>
+  [% title = lib.formatTitle("test") %]
+  [%- partial('/header') %]
+  <body>
+
+    <script type="text/prismic-query" data-binding="blogPosts" data-form="blog">
+      [
+        [:d = at(document.tags, ["Featured"])]
+      ]
+    </script>
+
+    [% _.each(blogPosts.results, function(post) { %]
+      [%= post.getText("blog-post.author") %]
+    [% }) %]
+  </body>
+</html>
