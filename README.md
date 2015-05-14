@@ -92,7 +92,7 @@ The documents returned by the queries are passed to the templated through the va
 Pagination related parameters can be specified using `data-query-<name>` syntax.
 
 ```html
-<script type="text/prismic-query" data-binding="product" data-query-orderings="[my.product.name]">
+<script type="text/prismic-query" data-binding="featuredProducts" data-query-orderings="[my.product.name]">
   [
     [:d = any(document.type, ["product"])]
     [:d = at(document.tags, ["Featured"])]
