@@ -38,18 +38,23 @@ var vm = require("vm");
   }
 
   function renderTemplate(content, ctx) {
+    // The vm context sandbox is kept separate from the template context to work around an issue
+    // in earlier versions of node (pre v0.11.7) where escape() is added to the template context.
+    if (!ctx._sandbox) {
+      ctx._sandbox = vm.createContext(ctx);
+    }
     ejs.open = '[%';
     ejs.close = '%]';
-    ctx.__render__ = function render() {
-      delete ctx.__render__;
+    ctx._sandbox.__render__ = function render() {
+      delete ctx._sandbox.__render__;
       return ejs.render(content, ctx);
     };
 
-    return vm.runInContext("__render__()", ctx);
+    return vm.runInContext("__render__()", ctx._sandbox);
   }
 
   function requireFile(content, ctx, filename) {
-    return vm.runInContext(content, ctx, filename);
+    return vm.runInContext(content, ctx._sandbox, filename);
   }
 
   function renderContent(content, ctx) {
@@ -228,9 +233,8 @@ var vm = require("vm");
           if (conf.helpers) { _.extend(documentSets, conf.helpers); }
           _.extend(documentSets, conf.args);
 
-          var ctx = vm.createContext(documentSets);
-          conf.setContext(ctx);
-          var result = renderContent(conf.tmpl, ctx)
+          conf.setContext(documentSets);
+          var result = renderContent(conf.tmpl, documentSets)
             .replace(/(<img[^>]*)data-src="([^"]*)"/ig, '$1src="$2"');
 
           return {api: api, content: result};

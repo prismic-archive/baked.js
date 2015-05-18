@@ -17,6 +17,7 @@ var concat = require('gulp-concat');
 var gulp = require('gulp');
 var watch = require('gulp-watch');
 var uglify = require('gulp-uglify');
+var mocha = require('gulp-mocha');
 
 var config = {
   libName: 'baked.js',
@@ -35,6 +36,11 @@ gulp.task('build', function() {
     }))
     .pipe(concat(config.libName))
     .pipe(gulp.dest(config.buildDir));
+});
+
+gulp.task('test', function () {
+  return gulp.src('./test/*.js')
+    .pipe(mocha({reporter: 'dot'}));
 });
 
 gulp.task('compress', ['build'], function() {
