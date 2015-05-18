@@ -89,7 +89,7 @@ Queries (to prismic.io repositories) can be written directly in the template, us
 
 The documents returned by the queries are passed to the templated through the variable whose name is specified with `data-binding` attribute.
 
-Pagination related parameters can be specified using `data-query-<name>` syntax.
+Pagination related parameters can be specified using `data-query-<name>` syntax, however their names must be written in dash-case instead of camelCase (for instance the parameter `pageSize` should be specified using `data-query-page-size`).
 
 ```html
 <script type="text/prismic-query" data-binding="featuredProducts" data-query-orderings="[my.product.name]">
