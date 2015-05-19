@@ -2,6 +2,7 @@ baked.js
 ========
 
 [![NPM version](https://badge.fury.io/js/baked.svg)](http://badge.fury.io/js/baked)
+[![Build Status](https://api.travis-ci.org/prismicio/baked.js.png)](https://travis-ci.org/prismicio/baked.js)
 
 baked.js is a static website generator, using Node.js, which embed an updated version of the precedent JS script.
 
