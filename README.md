@@ -110,10 +110,10 @@ Pagination related parameters can be specified using `data-query-<name>` syntax,
 
 ## Links
 
-To create links to an other generated page, use the helper `url_to`, and specify the file name (without the “.html” part).
+To create links to an other generated page, use the helper `pathTo`, and specify the file name (without the “.html” part).
 
 ```html
-<a href="[%= url_to('search') %]">[%= product.getText('product.name') %]</a>
+<a href="[%= pathTo('search') %]">[%= product.getText('product.name') %]</a>
 ```
 
 ## Page parameters
@@ -140,10 +140,10 @@ Then use these parameters in your query, by using the syntax `$name` or `${name}
 </script>
 ```
 
-To create links to the above page, use the helper `url_to`, and specify the arguments.
+To create links to the above page, use the helper `pathTo`, and specify the arguments.
 
 ```html
-<a href="[%= url_to('product', {id: product.id}) %]">
+<a href="[%= pathTo('product', {id: product.id}) %]">
     [%= product.getText('product.name') %]
 </a>
 ```
@@ -151,7 +151,7 @@ To create links to the above page, use the helper `url_to`, and specify the argu
 **Bonus**: if your only argument is “`id`”, you can give it directly, without wraping it in a “`{id: "xxx"}`” structure.
 
 ```html
-<a href="[%= url_to('product', product.id) %]">
+<a href="[%= pathTo('product', product.id) %]">
     [%= product.getText('product.name') %]
 </a>
 ```
@@ -159,10 +159,10 @@ To create links to the above page, use the helper `url_to`, and specify the argu
 You can also use the helper without providing any argument.
 
 ```html
-<a href="[%= url_to('index') %]">index</a>
+<a href="[%= pathTo('index') %]">index</a>
 ```
 
-**Note**: remember: if nobody call a page (using the `url_to` helper) it won't be generated.
+**Note**: remember: if nobody calls a page (using the `pathTo` helper) it won't be generated.
 
 ### Custom URL
 
@@ -201,7 +201,7 @@ The dynamic mode needs some specific components:
   - These files allow to render any page
 - The routing informations of every content pages (stored in `_router.json`
   - This file allows to build a router which is used to
-    - create a link between the current page and the ones references by the `url_to` helper (reverse routing)
+    - create a link between the current page and the ones references by the `pathTo` helper (reverse routing)
     - find the template to use, its parameters and the given argument in case of non-statically-rendered page (routing)
       - This case can happen when loading a page that is created only with a specific release.
 
