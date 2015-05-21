@@ -1,7 +1,7 @@
 {
   "name": "baked",
   "description": "A singlepage static builder for prismic.io",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "homepage": "https://prismicio.github.io/baked.js/",
   "repository": {
     "type": "git",

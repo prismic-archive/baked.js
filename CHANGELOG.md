@@ -1,3 +1,15 @@
+## 0.3.0
+
+### Features
+* New version of the Prismic kit, that comes with several new features such as fetchLinks and UID
+
+### Fixes
+* #19 don't overwrite cfg.option
+* #22 Fix issue for global escape
+
+### Potentially incompatible changes
+* The updated version of the Prismic kit has changes on DocumentLink that should be transparent for most users but may require an adaptation for some cases; see https://github.com/prismicio/javascript-kit/commit/21ef7ff8d2a1ac872402528dfaa638e5f511ffd1
+
 ## 0.2.1
 
 ### Fixes
