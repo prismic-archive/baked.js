@@ -34,11 +34,11 @@ var baked = require("./baked");
   };
 
   function isTemplate(file) {
-    return /\.html$/.test(_.last(els(file)));
+      return /\.(x|ht)ml$/.test(_.last(els(file)));
   }
 
   function srcForFile(router, file) {
-    if (!/\.html$/.test(file)) file += '.html';
+    if (!/\.(x|ht)ml$/.test(file)) file += '.html';
     return router.srcDir.replace(/\/$/, '') + '/' + file.replace(/^\//, '');
   }
 
@@ -253,6 +253,8 @@ var baked = require("./baked");
     }
     if (/\/index\.html?$/.test(route)) {
       // nothing to do
+    } else if (/\.xml$/.test(route)) {
+      // nothing to do
     } else if (/\/index?$/.test(route)) {
       route += ".html";
     } else if (!/\.html$/.test(route)) {
@@ -317,7 +319,7 @@ var baked = require("./baked");
     if (_.isEmpty(pathEls)) return null;
     var file = pathEls[pathEls.length - 1];
     if (!/^_/.test(file)) { file = '_' + file; }
-    if (!/\.html$/.test(file)) { file += '.html'; }
+    if (!/\.(ht|x)ml$/.test(file)) { file += '.html'; }
     pathEls[pathEls.length - 1] = file;
     return router.srcDir + (/^\//.test(path) ? '/' : '') + pathEls.join('/');
   }
