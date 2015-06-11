@@ -269,6 +269,8 @@ Here an example:
 - Mike Moulton (@mmoulton)
 - Jonathan Bennett (@jbennett)
 - @rdpacheco
+- Erwan Loisant (@erwan)
+- Paul Egan (paulegan)
 
 ### Licence
 
