@@ -174,9 +174,9 @@
 <h2>
 <a name="links" class="anchor" href="#links"><span class="octicon octicon-link"></span></a>Links</h2>
 
-<p>To create links to an other generated page, use the helper <code>url_to</code>, and specify the file name (without the “.html” part).</p>
+<p>To create links to an other generated page, use the helper <code>pathTo</code>, and specify the file name (without the “.html” part).</p>
 
-<div class="highlight highlight-html"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"[%= url_to('search') %]"</span><span class="nt">&gt;</span>[%= product.getText('product.name') %]<span class="nt">&lt;/a&gt;</span>
+<div class="highlight highlight-html"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"[%= pathTo('search') %]"</span><span class="nt">&gt;</span>[%= product.getText('product.name') %]<span class="nt">&lt;/a&gt;</span>
 </pre></div>
 
 <h2>
@@ -202,26 +202,26 @@
 <span class="nt">&lt;/script&gt;</span>
 </pre></div>
 
-<p>To create links to the above page, use the helper <code>url_to</code>, and specify the arguments.</p>
+<p>To create links to the above page, use the helper <code>pathTo</code>, and specify the arguments.</p>
 
-<div class="highlight highlight-html"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"[%= url_to('product', {id: product.id}) %]"</span><span class="nt">&gt;</span>
+<div class="highlight highlight-html"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"[%= pathTo('product', {id: product.id}) %]"</span><span class="nt">&gt;</span>
     [%= product.getText('product.name') %]
 <span class="nt">&lt;/a&gt;</span>
 </pre></div>
 
 <p><strong>Bonus</strong>: if your only argument is “<code>id</code>”, you can give it directly, without wraping it in a “<code>{id: "xxx"}</code>” structure.</p>
 
-<div class="highlight highlight-html"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"[%= url_to('product', product.id) %]"</span><span class="nt">&gt;</span>
+<div class="highlight highlight-html"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"[%= pathTo('product', product.id) %]"</span><span class="nt">&gt;</span>
     [%= product.getText('product.name') %]
 <span class="nt">&lt;/a&gt;</span>
 </pre></div>
 
 <p>You can also use the helper without providing any argument.</p>
 
-<div class="highlight highlight-html"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"[%= url_to('index') %]"</span><span class="nt">&gt;</span>index<span class="nt">&lt;/a&gt;</span>
+<div class="highlight highlight-html"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"[%= pathTo('index') %]"</span><span class="nt">&gt;</span>index<span class="nt">&lt;/a&gt;</span>
 </pre></div>
 
-<p><strong>Note</strong>: remember: if nobody call a page (using the <code>url_to</code> helper) it won't be generated.</p>
+<p><strong>Note</strong>: remember: if nobody call a page (using the <code>pathTo</code> helper) it won't be generated.</p>
 
 <h3>
 <a name="custom-url" class="anchor" href="#custom-url"><span class="octicon octicon-link"></span></a>Custom URL</h3>
@@ -268,7 +268,7 @@ the template rendering.</p>
 <p>The dynamic mode needs some specific components:</p>
 
 <ul>
-<li>The baked.js library (for instance <code>&lt;script src="https://prismicio.github.io/baked.js/baked-0.2.1.min.js"&gt;&lt;/script&gt;</code>)</li>
+<li>The baked.js library (for instance <code>&lt;script src="https://prismicio.github.io/baked.js/baked-0.3.0.min.js"&gt;&lt;/script&gt;</code>)</li>
 <li>The template of every content file (stored in the <code>.html.tmpl</code> files)
 
 <ul>
@@ -281,7 +281,7 @@ the template rendering.</p>
 <li>This file allows to build a router which is used to
 
 <ul>
-<li>create a link between the current page and the ones references by the <code>url_to</code> helper (reverse routing)</li>
+<li>create a link between the current page and the ones references by the <code>pathTo</code> helper (reverse routing)</li>
 <li>find the template to use, its parameters and the given argument in case of non-statically-rendered page (routing)
 
 <ul>
