@@ -1,3 +1,7 @@
+### Fixes
+
+- #26 gulpfile.js's `ignore` option is no longer ignored
+
 ## 0.3.0
 
 ### Features

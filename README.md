@@ -271,6 +271,7 @@ Here an example:
 - @rdpacheco
 - Erwan Loisant (@erwan)
 - Paul Egan (paulegan)
+- Russell Dempsey (@SgtPooki)
 
 ### Licence
 
