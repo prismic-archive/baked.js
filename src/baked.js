@@ -247,7 +247,7 @@ var vm = require("vm");
   function parseRoutingInfos(content, ctx) {
     var rxAPI = /<meta +name="prismic-api" +content="([^"]+)" *>/ig;
     var rxParam = /<meta +name="prismic-routing-param" +content="([a-z][a-z0-9]*)" *>/ig;
-    var rxPattern = /<meta +name="prismic-routing-pattern" +content="([\/$a-z][\/${}a-z0-9.-_]*)" *>/ig;
+    var rxPattern = /<meta +name="prismic-routing-pattern" +content="([\/$a-z][\/${}a-z0-9._-]*)" *>/ig;
     var rxURLBase = /<meta +name="prismic-url-base" +content="([^"]+)" *>/ig;
     var match;
     var res = {
