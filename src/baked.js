@@ -411,6 +411,7 @@ var vm = require("vm");
           return Q
             .all(_.map(conf.jsbindings, function(binding) {
               var ctx = vm.createContext(_.extend({}, documentSets, {
+                Prismic: Prismic,  // prismic.io's Predicate
                 Q: Q,
                 form: queryHelperForm(documentSets),
                 ajax: queryHelperAjax(documentSets),
