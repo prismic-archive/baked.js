@@ -354,6 +354,9 @@ var vm = require("vm");
           form = _.reduce(binding.params, function (form, value, key) {
             return form.set(key, renderQuery(value, conf.args, api));
           }, form);
+          if (binding.dataset.single) {
+            form.pageSize(1);
+          }
           form
             .query(binding.render(api))
             .submit(function (err, documents) {
@@ -396,7 +399,12 @@ var vm = require("vm");
             });
           return deferred.promise
             .then(
-              function (documents) { return [name, documents]; },
+              function (documents) {
+                if (binding.dataset.single) {
+                  documents = documents.results[0];
+                }
+                return [name, documents];
+              },
               function (err) { conf.logger.error("Error while running query: \n%s\n", binding.predicates, err); }
             );
         }))

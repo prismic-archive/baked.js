@@ -13,7 +13,7 @@
   </head>
   <body>
 
-    <script type="text/prismic-query" data-binding="product">
+    <script type="text/prismic-query" data-binding="product" data-single="true">
       [
         [:d = any(document.id, ["$id"])]
       ]
@@ -21,15 +21,13 @@
 
     <script type="text/prismic-query-js" data-binding="*">
       // stupid query which retrieves all document with the same type
-      if (product.results_size === 0)
+      if (!product)
         return {sameTypes: emptyResponse()};
       return form()
-        .query(Prismic.Predicates.at("document.type", product.results[0].type))
+        .query(Prismic.Predicates.at("document.type", product.type))
         .submit()
         .then(withName("sameTypes"));
     </script>
-
-    [% product = product.results[0]; %]
 
     <h1>[%= product.getText('product.name') %]</h1>
 
