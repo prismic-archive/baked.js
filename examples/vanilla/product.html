@@ -22,7 +22,7 @@
     <script type="text/prismic-query-js" data-binding="*">
       // stupid query which retrieves all document with the same type
       if (product.results_size === 0)
-        return {sameTypes: []};
+        return {sameTypes: emptyResponse()};
       return form()
         .query(Prismic.Predicates.at("document.type", product.results[0].type))
         .submit()

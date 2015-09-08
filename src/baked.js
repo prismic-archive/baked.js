@@ -227,6 +227,18 @@ var vm = require("vm");
     });
   }
 
+  function queryHelperEmptyResponse() {
+    return {
+      page: 1,
+      results_per_page: 20,
+      results_size: 0,
+      total_results_size: 0,
+      total_pages: 0,
+      next_page: null,
+      prev_page: null
+    };
+  }
+
   function initConf(opts) {
     var conf = {
       mode: opts.mode,
@@ -417,6 +429,7 @@ var vm = require("vm");
                 ajax: queryHelperAjax(documentSets),
                 jsonp: queryHelperJsonP(documentSets),
                 withName: queryHelperWithName,
+                emptyResponse: queryHelperEmptyResponse
               }));
               var script = "(function(){\n" + binding.script + "\n})()";
               var res = vm.runInContext(script, ctx);
