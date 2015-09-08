@@ -37,9 +37,7 @@
     <script type="text/prismic-query-js" data-binding="*">
       return form()
         .query('[[:d = any(document.tags, ["Featured"])][:d = any(document.type, ["product"])]]')
-        .submit(function (res) {
-          return {both: res};
-        });
+        .submit(withName("both"));
     </script>
 
     <script type="text/prismic-query-js" data-binding="status">

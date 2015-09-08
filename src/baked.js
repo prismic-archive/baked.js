@@ -219,6 +219,14 @@ var vm = require("vm");
     }
   }
 
+  function queryHelperWithName(name) {
+    return (function (value) {
+      var o = {};
+      o[name] = value;
+      return o;
+    });
+  }
+
   function initConf(opts) {
     var conf = {
       mode: opts.mode,
@@ -406,7 +414,8 @@ var vm = require("vm");
                 Q: Q,
                 form: queryHelperForm(documentSets),
                 ajax: queryHelperAjax(documentSets),
-                jsonp: queryHelperJsonP(documentSets)
+                jsonp: queryHelperJsonP(documentSets),
+                withName: queryHelperWithName,
               }));
               var script = "(function(){\n" + binding.script + "\n})()";
               var res = vm.runInContext(script, ctx);
