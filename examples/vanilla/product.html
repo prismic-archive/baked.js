@@ -19,9 +19,21 @@
       ]
     </script>
 
+    <script type="text/prismic-query-js" data-binding="*">
+      // stupid query which retrieves all document with the same type
+      if (product.results_size === 0)
+        return {sameTypes: []};
+      return form()
+        .query(Prismic.Predicates.at("document.type", product.results[0].type))
+        .submit()
+        .then(withName("sameTypes"));
+    </script>
+
     [% product = product.results[0]; %]
 
     <h1>[%= product.getText('product.name') %]</h1>
+
+    <div>[%= sameTypes.total_results_size %] document(s) of this type (“[%= product.type %]”)</div>
 
     <div>
       <img data-src="[%= product.getImageView('product.image', 'icon').url %]">
