@@ -11,7 +11,7 @@ window.vm = require('vm');
 (function(window, undefined) {
   "use strict";
 
-  if (_.isEmpty(location.search)) return;
+  if (_.isEmpty(location.search) || (_.isNull(getArg("ref")) && _.isNull(getArg("access_token")))) return;
 
   document.querySelector('html').style.display = 'none';
 
@@ -50,8 +50,8 @@ window.vm = require('vm');
   function prepareConf(localRouter, content) {
     if (!queryString) {
       queryString = location.search;
-      accessToken = accessToken || getArg('access_token');
-      ref = getArg('ref');
+      accessToken = accessToken || getArg('access_token') || "";
+      ref = getArg('ref') || "";
     }
     var localArgs = localRouter.localInfos.args;
     var args = localRouter.args();
@@ -95,7 +95,7 @@ window.vm = require('vm');
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
     var results = regex.exec(location.search);
-    return (!results) ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    return (!results) ? null : decodeURIComponent(results[1].replace(/\+/g, " "));
   }
 
   function notifyRendered(localRouter, api, conf, template, infos) {

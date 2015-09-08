@@ -8,6 +8,53 @@
   + an `ajax()` helper allows to perform HTTP(S) requests and get a Q promise
   + a `jsonp()` helper allows to perform HTTP(S) requests on other domains
 
+### Fixes
+
+- #26 gulpfile.js's `ignore` option is no longer ignored
+
+## 0.3.0
+
+### Features
+* New version of the Prismic kit, that comes with several new features such as fetchLinks and UID
+
+### Fixes
+* #19 don't overwrite cfg.option
+* #22 Fix issue for global escape
+
+### Potentially incompatible changes
+* The updated version of the Prismic kit has changes on DocumentLink that should be transparent for most users but may require an adaptation for some cases; see https://github.com/prismicio/javascript-kit/commit/21ef7ff8d2a1ac872402528dfaa638e5f511ffd1
+
+## 0.2.1
+
+### Fixes
+
+- `srcDir` or `dstDir` could not be overwritten in `gulpfile.js`.
+- The dynamic browser was activated for every query strings, now only the ones containing at least `ref` or `access_token` will fire it.
+
+## 0.2.0
+
+### Features
+
+- It is now possible to ignore some file/directories
+  + Globbing is accepted (e.g. “`.*~`”)
+  + The destination directory is automatically ignored if in the source directory
+    * It is now possible to call `baked --src . --dst build` with infinite loop
+- The default source directory of the `baked` command is now the current directory
+  + A baked website can now be generated using only `baked` without options
+
+### Incompatible changes
+
+- The default directories are changed
+  + The `baked` command now uses the current directory as source directory
+  + The Gulp file still uses `to_generate` and `generated` by default
+    * The projects using baked's `gulp.js` file should not be impacted
+
+## 0.1.1
+
+### Features
+
+- Allow to use page's params in query attributes
+
 ## 0.1.0
 
 ### Incompatible changes

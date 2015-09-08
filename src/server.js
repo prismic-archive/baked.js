@@ -159,7 +159,16 @@ var Configuration = require("./configuration");
     }, ctx);
   }
 
+  function isIgnored(src, ctx) {
+    return _.any(ctx.ignore, function (ignore) {
+      return ignore.test(src);
+    });
+  }
+
   function renderStaticFile(name, src, dst, args, router, ctx) {
+    if (isIgnored(src, ctx)) {
+      return Q(null);
+    }
     return logAndTime("static render file '" + src + "' " + JSON.stringify(args), function () {
       if (!router.isBakedTemplate(src)) {
         return Q
@@ -210,6 +219,9 @@ var Configuration = require("./configuration");
   }
 
   function renderDir(srcDir, dstDir, router, ctx) {
+    if (isIgnored(srcDir, ctx)) {
+      return Q([]);
+    }
     return logAndTime("render dir '" + srcDir + "'", function () {
       return createDirs([dstDir], ctx)
         .then(function () {
@@ -272,6 +284,9 @@ var Configuration = require("./configuration");
   /* ***************************************************************** *** */
 
   function buildRouterForFile(name, src, ctx) {
+    if (isIgnored(src, ctx)) {
+      return Q();
+    }
     return logAndTime("Build router for file '" + src + "'", function () {
       var result;
       if (Router.isPartial(name)) {
@@ -302,6 +317,9 @@ var Configuration = require("./configuration");
   }
 
   function buildRouterForDir(srcDir, ctx) {
+    if (isIgnored(srcDir, ctx)) {
+      return Q([]);
+    }
     return logAndTime("Build router for dir '" + srcDir + "'", function () {
       return Q
         .ninvoke(fs, 'readdir', srcDir)

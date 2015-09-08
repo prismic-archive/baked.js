@@ -2,5 +2,8 @@
   "loggerLevel": "warn",
   "api": "https://lesbonneschoses-ulzozro531ca879z.prismic.io/api",
   "urlBase": "http://localhost:8282/",
-  "oauthClientId": "VCp5tScAACgAE9vr"
+  "oauthClientId": "VCp5tScAACgAE9vr",
+  "ignore": [
+    ".*~"
+  ]
 }

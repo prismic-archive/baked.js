@@ -9,6 +9,9 @@ var watch = require('gulp-watch');
 var ignore = require('gulp-ignore');
 var rimraf = require('gulp-rimraf');
 
+// polyfill
+require("./src/ext/starts_with");
+
 var cli = require('./src/cli');
 var Configuration = require('./src/configuration');
 
@@ -40,14 +43,20 @@ var config = {};
 function init(cfg) {
   initialized = true;
   if (!cfg) cfg = {};
-  var argOptions = _.defaults({}, cfg.options);
+  var argOptions = _.defaults({}, cfg.options, {
+    srcDir: "to_generate",
+    dstDir: "generated"
+  });
 
   // supports gulpfiles providing src_dir insteaf of srcDir to init()
   if (!argOptions.srcDir) { argOptions.srcDir = argOptions.src_dir; }
   if (!argOptions.dstDir) { argOptions.dstDir = argOptions.dst_dir; }
 
   var cliOptions = parseOptions();
-  var configuration = Configuration.readFromFileSync(_.assign(argOptions, cliOptions));
+
+  var configuration = Configuration.readFromFileSync(_.assign(argOptions, cliOptions, {
+    ignore: _.union(argOptions.ignore, cliOptions.ignore)
+  }));
 
   // supports gulpfiles using src_dir insteaf of srcDir from baked.config
   Object.defineProperty(configuration, "src_dir", {

@@ -1,7 +1,7 @@
 {
   "name": "baked",
   "description": "A singlepage static builder for prismic.io",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "homepage": "https://prismicio.github.io/baked.js/",
   "repository": {
     "type": "git",
@@ -32,7 +32,7 @@
     "http-server": "^0.6.1",
     "lodash": "^2.4.1",
     "moment": "^2.6.0",
-    "prismic.io": "^1.0.26",
+    "prismic.io": "1.1.4",
     "q": "^1.0.1",
     "winston": "^0.7.3"
   },
@@ -40,7 +40,10 @@
     "gulp": "^3.7.0",
     "gulp-browserify": "^0.5.0",
     "gulp-concat": "^2.2.0",
-    "gulp-watch": "^0.6.8"
+    "gulp-uglify": "^1.0.2",
+    "gulp-watch": "^0.6.8",
+    "gulp-mocha": "~2.0.1",
+    "should": "~6.0.1"
   },
   "engines": [
     "node >= 0.5.0"

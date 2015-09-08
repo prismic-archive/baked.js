@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta property="og:url" content="[%= urlToHere() %]" />
 
-    <script src="https://prismicio.github.io/baked.js/baked-0.1.0.js"></script>
+    <script src="https://prismicio.github.io/baked.js/baked-0.3.0.js"></script>
   </head>
   <body>
 
@@ -65,7 +65,7 @@
     [% require("myLib.js", {noCache: true}) %]
     [% console.log("required and fetched from global:", myLib) %]
 
-    <div><a href="[%= pathTo('search', {typ: 'product', tag: 'Featured'}) %]">
+    <div><a href="[%= pathTo('search', {typ: 'product', tag: 'Featured', page: 1}) %]">
       Search
     </a></div>
 
