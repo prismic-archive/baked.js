@@ -433,6 +433,7 @@ var vm = require("vm");
               var ctx = vm.createContext(_.extend({}, documentSets, {
                 Prismic: Prismic,  // prismic.io's Predicate
                 Q: Q,
+                _: _,
                 form: queryHelperForm(documentSets),
                 ajax: queryHelperAjax(documentSets),
                 jsonp: queryHelperJsonP(documentSets),
